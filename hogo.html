@@ -77,10 +77,11 @@
         onclick="copyGenjouToHenko()">現状 → 変更後 に複製</button>
       <button style="background:#666;color:#fff;padding:8px 14px;"
         onclick="resetFacility()">初期値に戻す</button>
+      <span id="saveMsg" style="font-size:12px;font-weight:bold;align-self:center;"></span>
       <div class="fld"><label>作成日</label>
         <input id="docDate" type="date" oninput="updMeta()"></div>
       <div class="fld"><label>作成者</label>
-        <input id="docAuthor" type="text" value="中島電気管理事務所"
+        <input id="docAuthor" type="text" value="" placeholder="作成者"
           style="width:200px" oninput="updMeta()"></div>
     </div>
   </div>
@@ -393,7 +394,19 @@ function saveState() {
       ocrs: ocrs.map(o => ({ name:o.name, tap:o.tap, dial:o.dial, chr:o.chr,
                              useInst:o.useInst, inst:o.inst, instT:o.instT, ct1:o.ct1 })),
     }));
-  } catch (e) {}
+    showSave(true);
+  } catch (e) { showSave(false); }
+}
+function showSave(ok) {
+  const m = document.getElementById("saveMsg"); if (!m) return;
+  if (ok) {
+    const d = new Date();
+    m.style.color = "#090";
+    m.textContent = "✓ この端末に保存済み（" + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0") + "）";
+  } else {
+    m.style.color = "#d00";
+    m.textContent = "✕ このブラウザでは保存できません（プライベートモード等）";
+  }
 }
 function applyState(st) {
   loading = true;
@@ -402,7 +415,7 @@ function applyState(st) {
   inrSel.value = st.inr || "";
   document.getElementById("docDate").value =
     st.docDate || new Date().toISOString().slice(0, 10);
-  document.getElementById("docAuthor").value = st.docAuthor || "中島電気管理事務所";
+  document.getElementById("docAuthor").value = st.docAuthor || "";
   updMetaDisplay();
   ocrs = [];
   (st.ocrs || []).forEach(o => { o.id = ++seq; ocrs.push(Object.assign({}, o)); });
