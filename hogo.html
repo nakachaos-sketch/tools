@@ -9,6 +9,8 @@
   body { margin: 0; background: #f0f2f5; color: #222; }
   .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
   h1 { font-size: 20px; border-bottom: 3px solid #1f3864; padding-bottom: 6px; }
+  #siteTitle { display: inline-block; margin-left: 10px; min-width: 200px; padding: 0 4px 1px;
+    font-size: 15px; font-weight: normal; color: #222; border-bottom: 2px solid #1f3864; vertical-align: baseline; }
   .card { background: #fff; border-radius: 8px; padding: 14px 16px; margin: 12px 0;
           box-shadow: 0 1px 4px rgba(0,0,0,.12); }
   .card.util   { border-left: 6px solid #7030a0; }
@@ -58,6 +60,7 @@
     .card { box-shadow: none; margin: 2px 0; padding: 2px; border-radius: 0; }
     .wrap { max-width: 100%; padding: 0; }
     h1 { font-size: 16px; margin: 0 0 2px; padding-bottom: 3px; }
+    #siteTitle { font-size: 13px; }
     .doc-meta { margin: 0 0 2px; }
     .sum { font-size: 11px; line-height: 1.35; }
     .spec-line { font-size: 10.5px; }
@@ -69,7 +72,7 @@
 <body>
 <div class="wrap">
   <h1>【保護協調検討】OCR I-t特性図
-    <span id="siteTitle" style="margin-left:8px;color:#1f3864;"></span></h1>
+    <span id="siteTitle"></span></h1>
   <div class="doc-meta">
     <span id="verOut" style="font-weight:bold;color:#c00;"></span>　　作成日: <span id="docDateOut"></span>　　作成者: <span id="docAuthorOut"></span>
   </div>
@@ -428,12 +431,14 @@ function saveState() { markDirty(); }
 function markDirty() {
   if (loading) return;
   dirty = true;
+  writeLS("pcoord_draft", { site: curSite, ver: curVer, st: currentState() });  // 下書き（再読込しても消えない）
   showStatus();
 }
 function doSave() {
   const ok = writeLS(slotKey(curSite, curVer), currentState());
   if (ok) {
     dirty = false;
+    clearDraft();
     const d = new Date();
     showStatus("✓ 保存しました " + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"));
   } else {
@@ -475,10 +480,21 @@ function loadCurrent() {
   let st = readLS(slotKey(curSite, curVer));
   if (!st && curVer === "henko") st = readLS(slotKey(curSite, "genjou"));
   if (!st) st = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  const dr = readLS("pcoord_draft");
+  if (dr && dr.site === curSite && dr.ver === curVer && dr.st) {   // 保存前の入力が残っていれば復元
+    applyState(dr.st);
+    dirty = true;
+    showStatus("● 未保存（前回の続き）", "#e65c00");
+    return;
+  }
   applyState(st);
 }
+function clearDraft() { try { localStorage.removeItem("pcoord_draft"); } catch (e) {} }
 function confirmLeave() {
-  return !dirty || confirm("保存していない変更があります。\n保存せずに切り替えますか？\n（戻って 💾保存 を押す場合は「キャンセル」）");
+  if (!dirty) return true;
+  const ok = confirm("保存していない変更があります。\n保存せずに切り替えますか？\n（戻って 💾保存 を押す場合は「キャンセル」）");
+  if (ok) { dirty = false; clearDraft(); }
+  return ok;
 }
 function onSwitch(sel) {
   if (!confirmLeave()) { siteSel.value = curSite; verSel.value = curVer; return; }
@@ -512,7 +528,7 @@ function deleteSite() {
   if (!confirm(`現場「${x.name}」を削除します（現状・変更後とも消えます）。よろしいですか？`)) return;
   try { localStorage.removeItem(slotKey(curSite, "genjou")); localStorage.removeItem(slotKey(curSite, "henko")); } catch (e) {}
   writeLS("pcoord_sites", list.filter(y => y.id !== curSite));
-  curSite = null; curVer = "genjou"; dirty = false;
+  curSite = null; curVer = "genjou"; dirty = false; clearDraft();
   fillSiteSel();
   loadCurrent();
 }
@@ -526,6 +542,7 @@ function copyGenjouToHenko() {
       !confirm("すでに保存されている【変更後】を、現状の内容で上書きします。よろしいですか？")) return;
   if (curVer === "genjou" && dirty) doSave();          // 現状の未保存分も保存
   writeLS(slotKey(curSite, "henko"), g);
+  dirty = false; clearDraft();
   curVer = "henko"; verSel.value = "henko";
   loadCurrent();
   showStatus("✓ 変更後に複製しました");
@@ -534,6 +551,7 @@ function resetFacility() {
   const label = curVer === "henko" ? "変更後" : "現状";
   if (!confirm(`この現場の【${label}】を初期値に戻します（保存内容も消えます）。よろしいですか？`)) return;
   try { localStorage.removeItem(slotKey(curSite, curVer)); } catch (e) {}
+  dirty = false; clearDraft();
   loadCurrent();
 }
 window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
