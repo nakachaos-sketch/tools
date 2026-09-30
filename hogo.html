@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保護協調検討ツール（OCR I-t特性図）</title>
+<style>
+  * { box-sizing: border-box; font-family: "Yu Gothic UI", "Meiryo", sans-serif; }
+  body { margin: 0; background: #f0f2f5; color: #222; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 20px; border-bottom: 3px solid #1f3864; padding-bottom: 6px; }
+  .card { background: #fff; border-radius: 8px; padding: 14px 16px; margin: 12px 0;
+          box-shadow: 0 1px 4px rgba(0,0,0,.12); }
+  .card.util   { border-left: 6px solid #7030a0; }
+  .ocr-card    { border-left: 6px solid var(--c, #c00); position: relative; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .fld { display: flex; flex-direction: column; }
+  .fld label { font-size: 10px; color: #666; margin-bottom: 2px; }
+  .fld input, .fld select {
+    padding: 6px 8px; border: 1px solid #bbb; border-radius: 5px; font-size: 14px; }
+  .fld input[type=text] { width: 170px; font-weight: bold; }
+  .fld input.num { width: 86px; }
+  .sec-t { font-size: 13px; font-weight: bold; color: #1f6b3a; margin-bottom: 8px; }
+  button { cursor: pointer; border: none; border-radius: 6px; font-size: 14px; }
+  .btn-add { background: #c00000; color: #fff; padding: 10px 18px; font-weight: bold; }
+  .btn-del { background: #e33; color: #fff; padding: 4px 10px; font-size: 12px;
+             position: absolute; top: 12px; right: 12px; }
+  .btn-pdf { background: #c04000; color: #fff; padding: 12px 26px; font-weight: bold; }
+  .btns { text-align: center; margin: 18px 0; }
+  #chartBox { background: #fff; }
+  .sum { font-size: 12.5px; line-height: 1.45; }
+  .sum .u { color: #1f6b3a; font-weight: bold; }
+  .sum .ng { color: #d00; font-weight: bold; }
+  .sum .ok { color: #090; font-weight: bold; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; }
+  .name-line { font-weight: bold; font-size: 14px; }
+  .spec-line { color: #555; font-size: 11.5px; margin: 1px 0 4px 14px; }
+  .foot { font-size: 10px; color: #888; margin-top: 8px; }
+  .doc-meta { text-align: right; font-size: 12px; color: #333; margin: 2px 0 6px; }
+  @media print {
+    body { background: #fff; }
+    .no-print, .card.util, #ocrList, #inrCard { display: none !important; }
+    .card { box-shadow: none; margin: 2px 0; padding: 2px; border-radius: 0; }
+    .wrap { max-width: 100%; padding: 0; }
+    h1 { font-size: 16px; margin: 0 0 2px; padding-bottom: 3px; }
+    .doc-meta { margin: 0 0 2px; }
+    .sum { font-size: 11px; line-height: 1.35; }
+    .spec-line { font-size: 10.5px; }
+    #svg { max-height: var(--svgPrintH, 138mm); display: block; margin: 0 auto; }
+    @page { size: A4 portrait; margin: 10mm; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>【保護協調検討】OCR I-t特性図
+    <input id="siteName" type="text" value="" placeholder="物件名"
+      style="font-size:15px;border:none;border-bottom:2px solid #1f3864;width:280px;"></h1>
+  <div class="doc-meta">
+    <span id="verOut" style="font-weight:bold;color:#c00;"></span>　　作成日: <span id="docDateOut"></span>　　作成者: <span id="docAuthorOut"></span>
+  </div>
+
+  <div class="card no-print" style="border-left:6px solid #1f3864">
+    <div class="sec-t" style="color:#1f3864">■ 物件選択（選ぶと整定値プリセットを読込。編集内容は物件ごとに自動保存）</div>
+    <div class="row">
+      <div class="fld"><label>物件</label>
+        <select id="siteSel" onchange="loadCurrent()" style="font-size:14px;font-weight:bold;">
+          <option value="generic">汎用</option>
+        </select></div>
+      <div class="fld"><label>版</label>
+        <select id="verSel" onchange="loadCurrent()"
+          style="font-size:14px;font-weight:bold;">
+          <option value="genjou">現状</option>
+          <option value="henko">変更後</option>
+        </select></div>
+      <button style="background:#1f6b3a;color:#fff;padding:8px 14px;"
+        onclick="copyGenjouToHenko()">現状 → 変更後 に複製</button>
+      <button style="background:#666;color:#fff;padding:8px 14px;"
+        onclick="resetFacility()">初期値に戻す</button>
+      <div class="fld"><label>作成日</label>
+        <input id="docDate" type="date" oninput="updMeta()"></div>
+      <div class="fld"><label>作成者</label>
+        <input id="docAuthor" type="text" value="中島電気管理事務所"
+          style="width:200px" oninput="updMeta()"></div>
+    </div>
+  </div>
+
+  <div class="card util">
+    <div class="sec-t" style="color:#7030a0">■ 電力会社 配変OCR 設定値（段付き定限時）</div>
+    <div class="row">
+      <div class="fld"><label>1段目 電流(A)</label><input class="num" id="u1a" type="number" value="720" oninput="drawAndSum()"></div>
+      <div class="fld"><label>1段目 時間(s)</label><input class="num" id="u1t" type="number" step="0.1" value="0.5" oninput="drawAndSum()"></div>
+      <div class="fld"><label>2段目 電流(A)</label><input class="num" id="u2a" type="number" value="1440" oninput="drawAndSum()"></div>
+      <div class="fld"><label>2段目 時間(s)</label><input class="num" id="u2t" type="number" step="0.1" value="0.2" oninput="drawAndSum()"></div>
+    </div>
+  </div>
+
+  <div id="ocrList"></div>
+  <div class="no-print" style="margin:10px 0;">
+    <button class="btn-add" onclick="addOcr()">＋ OCRを追加</button>
+  </div>
+
+  <div class="card" id="inrCard">
+    <div class="sec-t" style="color:#e0e">■ 変圧器突入電流（参考プロット）</div>
+    <div class="row">
+      <div class="fld"><label>表示</label>
+        <select id="inrSel" onchange="drawAndSum()">
+          <option value="">なし</option>
+          <option value="150">3φ150kVA</option>
+          <option value="300">3φ300kVA</option>
+          <option value="500" selected>3φ500kVA</option>
+          <option value="750">3φ750kVA</option>
+        </select></div>
+    </div>
+  </div>
+
+  <div class="no-print" style="margin:8px 0;">
+    <label style="font-size:12px;color:#555;">グラフ縦サイズ（印刷の余白に合わせて拡大）
+      <input type="range" id="chartH" min="560" max="1050" step="30" value="560"
+        oninput="setChartH(this.value)" style="vertical-align:middle;width:240px;">
+      <span id="chartHOut" style="font-weight:bold;">標準</span></label>
+  </div>
+
+  <div class="card" id="chartBox">
+    <svg id="svg" viewBox="0 0 640 560" style="width:100%"></svg>
+  </div>
+
+  <div class="card sum" id="summary"></div>
+
+  <div class="btns no-print">
+    <button class="btn-pdf" onclick="window.print()">【 PDFとして保存（印刷） 】</button>
+  </div>
+  <div class="foot no-print">
+    特性式 t = K×(D/10)/(M^α−1)（M=I/Is）　SI:K0.14/α0.02　VI:K13.5/α1　EI:K80/α2。
+    ダイヤルDは銘板値のまま入力（D/10がタイムレバー換算）。CT二次は5A固定。
+    突入電流は6.6kV参考表（0.01〜5s）。Ctrl+P → PDF保存でA4縦1枚に出力されます。
+  </div>
+</div>
+
+<script>
+const COLORS = ["#d00000", "#0070c0", "#7030a0", "#e36c09", "#00879e", "#375623"];
+const CHARS = { VI: {k:13.5, a:1, label:"VI (強反限時)"},
+                SI: {k:0.14, a:0.02, label:"SI (標準反限時)"},
+                EI: {k:80,   a:2, label:"EI (超反限時)"},
+                DT: {k:0,    a:0, label:"定限時"},
+                PF: {k:0,    a:0, label:"PF限流ヒューズ(I²t)"} };
+// PF選択時: タップ欄=PF定格(A)・CT一次=5 と入力（Is=定格A）。溶断 t=10R²/I²近似
+// 突入電流 (時間s, 一次電流A) 6.6kV 三相
+const INRUSH = { "150": [[0.01,349],[0.05,234],[0.1,191],[0.5,92.6],[1,65.4],[5,28.9]],
+                 "300": [[0.01,524],[0.05,360],[0.1,303],[0.5,147],[1,106],[5,50.8]],
+                 "500": [[0.01,825],[0.05,580],[0.1,490],[0.5,245],[1,180],[5,82.5]],
+                 "750": [[0.01,1237],[0.05,870],[0.1,735],[0.5,367],[1,270],[5,124]] };
+
+let ocrs = [];
+let seq = 0;
+
+function addOcr(preset) {
+  const d = Object.assign(
+    { name: "OCR " + (ocrs.length + 1), tap: 5, dial: 1, chr: "VI",
+      useInst: true, inst: 50, instT: 0.05, ct1: 100 }, preset || {});
+  d.id = ++seq;
+  ocrs.push(d);
+  render();
+}
+function delOcr(id) { ocrs = ocrs.filter(o => o.id !== id); render(); }
+function upd(id, key, val) {
+  const o = ocrs.find(o => o.id === id); if (!o) return;
+  if (key === "name" || key === "chr") o[key] = val;
+  else if (key === "useInst") o[key] = (val === "1");
+  else o[key] = parseFloat(val) || 0;
+  drawAndSum();
+}
+
+function render() {
+  const box = document.getElementById("ocrList");
+  box.innerHTML = ocrs.map((o, i) => {
+    const c = COLORS[i % COLORS.length];
+    return `<div class="card ocr-card" style="--c:${c}">
+      <button class="btn-del no-print" onclick="delOcr(${o.id})">削除</button>
+      <div class="row">
+        <div class="fld"><label>名称</label>
+          <input type="text" value="${o.name}" oninput="upd(${o.id},'name',this.value)"></div>
+        <div class="fld"><label>タップ(二次A)</label>
+          <input class="num" type="number" step="0.5" value="${o.tap}" oninput="upd(${o.id},'tap',this.value)"></div>
+        <div class="fld"><label>ダイヤル</label>
+          <input class="num" type="number" step="0.25" value="${o.dial}" oninput="upd(${o.id},'dial',this.value)"></div>
+        <div class="fld"><label>特性</label>
+          <select onchange="upd(${o.id},'chr',this.value)">
+            ${Object.keys(CHARS).map(k =>
+              `<option value="${k}" ${o.chr===k?"selected":""}>${CHARS[k].label}</option>`).join("")}
+          </select></div>
+        <div class="fld"><label>瞬時</label>
+          <select onchange="upd(${o.id},'useInst',this.value)">
+            <option value="1" ${o.useInst?"selected":""}>使用</option>
+            <option value="0" ${!o.useInst?"selected":""}>ロック</option>
+          </select></div>
+        <div class="fld"><label>瞬時(二次A)</label>
+          <input class="num" type="number" value="${o.inst}" oninput="upd(${o.id},'inst',this.value)"></div>
+        <div class="fld"><label>瞬時時間(s)</label>
+          <input class="num" type="number" step="0.01" value="${o.instT}" oninput="upd(${o.id},'instT',this.value)"></div>
+        <div class="fld"><label>CT比(一次A)</label>
+          <input class="num" type="number" value="${o.ct1}" oninput="upd(${o.id},'ct1',this.value)"></div>
+      </div></div>`;
+  }).join("");
+  drawAndSum();
+}
+
+function ocrTime(o, I) {
+  const Is = o.tap * o.ct1 / 5;
+  if (o.chr === "PF") {                                // 限流ヒューズ I²t近似
+    if (I < Is * 1.3) return null;
+    return Math.min(600, Math.max(0.004, 10 * Is * Is / (I * I)));
+  }
+  const instP = o.useInst ? o.inst * o.ct1 / 5 : Infinity;
+  if (I >= instP) return o.instT;
+  if (I <= Is) return null;
+  const ch = CHARS[o.chr];
+  if (ch.k === 0) return o.dial;                       // 定限時: ダイヤル=秒
+  return ch.k * (o.dial / 10) / (Math.pow(I / Is, ch.a) - 1);
+}
+function utilTime(I) {
+  const a1 = +u1a.value, t1 = +u1t.value, a2 = +u2a.value, t2 = +u2t.value;
+  if (!a1 || I < a1) return null;
+  if (a2 && I >= a2) return t2;
+  return t1;
+}
+
+// ===== SVG 描画 =====
+const XMIN=10, XMAX=100000, YMIN=0.01, YMAX=1000;
+const L=60, R=15, T=12, B=44, W=640;
+let H = 560;  // グラフ縦サイズ（可変）。スライダーで拡大→印刷の余白を活用
+const px = v => L + (Math.log10(v)-Math.log10(XMIN)) / (Math.log10(XMAX)-Math.log10(XMIN)) * (W-L-R);
+const py = v => T + (Math.log10(YMAX)-Math.log10(v)) / (Math.log10(YMAX)-Math.log10(YMIN)) * (H-T-B);
+
+function draw() {
+  let g = "";
+  // グリッド
+  for (let e = 1; e <= 5; e++) for (let m = 1; m < 10; m++) {
+    const v = m * Math.pow(10, e);
+    if (v > XMAX) break;
+    g += `<line x1="${px(v)}" y1="${T}" x2="${px(v)}" y2="${H-B}" stroke="${m===1?"#999":"#e2e2e2"}" stroke-width="${m===1?1:.5}"/>`;
+  }
+  for (let e = -2; e <= 3; e++) for (let m = 1; m < 10; m++) {
+    const v = m * Math.pow(10, e);
+    if (v > YMAX) break;
+    g += `<line x1="${L}" y1="${py(v)}" x2="${W-R}" y2="${py(v)}" stroke="${m===1?"#999":"#e2e2e2"}" stroke-width="${m===1?1:.5}"/>`;
+  }
+  // 軸ラベル
+  [[10,"10"],[100,"100"],[1000,"1k"],[10000,"10k"],[100000,"100k"]].forEach(([v,s]) =>
+    g += `<text x="${px(v)}" y="${H-B+16}" font-size="11" text-anchor="middle">${s}</text>`);
+  [[0.01,"0.01"],[0.1,"0.1"],[1,"1"],[10,"10"],[100,"100"],[1000,"1000"]].forEach(([v,s]) =>
+    g += `<text x="${L-6}" y="${py(v)+4}" font-size="11" text-anchor="end">${s}</text>`);
+  g += `<text x="${(L+W-R)/2}" y="${H-8}" font-size="12" text-anchor="middle">電流 I [A]（一次換算）</text>`;
+  g += `<text x="14" y="${(T+H-B)/2}" font-size="12" text-anchor="middle" transform="rotate(-90 14 ${(T+H-B)/2})">動作時間 t [s]</text>`;
+
+  // 電力会社ステップ（緑）
+  const a1=+u1a.value, t1=+u1t.value, a2=+u2a.value, t2=+u2t.value;
+  if (a1 && t1) {
+    let pts = [[a1, YMAX], [a1, t1]];
+    if (a2 && t2) pts.push([a2, t1], [a2, t2], [XMAX, t2]);
+    else pts.push([XMAX, t1]);
+    g += `<polyline points="${pts.map(p=>px(p[0])+","+py(Math.max(p[1],YMIN))).join(" ")}"
+          fill="none" stroke="#1f6b3a" stroke-width="2.5"/>`;
+  }
+  // OCR曲線
+  ocrs.forEach((o, i) => {
+    const c = COLORS[i % COLORS.length];
+    let pts = [];
+    const Is = o.tap * o.ct1 / 5;
+    for (let lg = Math.log10(Math.max(Is*1.02, XMIN)); lg <= Math.log10(XMAX); lg += 0.01) {
+      const I = Math.pow(10, lg);
+      const t = ocrTime(o, I);
+      if (t !== null && t <= YMAX*2) pts.push([I, Math.min(Math.max(t, YMIN), YMAX)]);
+    }
+    if (pts.length)
+      g += `<polyline points="${pts.map(p=>px(p[0])+","+py(p[1])).join(" ")}"
+            fill="none" stroke="${c}" stroke-width="2"/>`;
+  });
+  // 突入電流
+  const inr = INRUSH[inrSel.value];
+  if (inr) inr.forEach(([t, I]) =>
+    g += `<circle cx="${px(I)}" cy="${py(t)}" r="4" fill="#e0e" opacity=".85"/>`);
+
+  g += `<rect x="${L}" y="${T}" width="${W-L-R}" height="${H-T-B}" fill="none" stroke="#333"/>`;
+  const svg = document.getElementById("svg");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  svg.innerHTML = g;
+}
+
+function drawAndSum() {
+  draw();
+  const a1=+u1a.value, t1=+u1t.value, a2=+u2a.value, t2=+u2t.value;
+  let h = `<div class="sec-t">■ 動作時間差（電力会社 − 需要家）
+    <span class="u">【電力会社】 1段目: ${a1}A/${t1}s ｜ 2段目: ${a2}A/${t2}s</span></div>`;
+  ocrs.forEach((o, i) => {
+    const c = COLORS[i % COLORS.length];
+    const Is = o.tap * o.ct1 / 5;
+    const instP = o.useInst ? o.inst * o.ct1 / 5 : null;
+    const fmt = n => n.toLocaleString("ja-JP");
+    let spec;
+    if (o.chr === "PF") {
+      spec = `限流ヒューズ 定格 ${fmt(Is)}A（I²t近似・溶断開始 ${fmt(Math.round(Is*1.3))}A〜）`;
+    } else {
+      spec = `CT比: ${fmt(o.ct1)}/5A ／ タップ: ${o.tap}A（二次）→ 整定電流 Is: ${fmt(Is)}A（一次）`
+        + ` ／ ダイヤル: ${o.dial}（TL換算 ${(o.dial/10).toFixed(2)}）／ 特性: ${CHARS[o.chr].label}`
+        + ` ／ 瞬時: ${o.useInst
+              ? o.inst + "A（二次）→ " + fmt(instP) + "A（一次）・" + o.instT + "s"
+              : "ロック（不使用）"}`;
+    }
+    let diffs = [];
+    [[a1, t1, "1段目"], [a2, t2, "2段目"]].forEach(([a, t, lbl]) => {
+      if (!a || !t) return;
+      // 段の区間内で需要家が最も遅い点（区間開始点）で比較
+      const tc = ocrTime(o, a * 1.001);
+      if (tc === null) { diffs.push(`【${lbl} ${a}A】: 不動作`); return; }
+      const d = t - tc;
+      diffs.push(`<span class="${d < 0 ? "ng" : "ok"}">【${lbl} ${a}A】: ${d >= 0 ? "+" : ""}${d.toFixed(3)}s</span>`);
+    });
+    h += `<div style="margin-top:4px"><span class="dot" style="background:${c}"></span>
+      <span class="name-line" style="color:${c}">${o.name}</span></div>
+      <div class="spec-line">${spec}<br>時間差 → ${diffs.join(" ／ ")}</div>`;
+  });
+  h += `<div class="foot">時間差がマイナス＝需要家OCRが電力会社より遅い（協調NG領域あり）。プラスでも0.1s以上の余裕を推奨。</div>`;
+  document.getElementById("summary").innerHTML = h;
+  saveState();
+}
+
+// ===== 物件プリセット =====
+const PRESETS = {
+  generic:   { site: "", u: [720, 0.5, 1440, 0.2], inr: "",
+    ocrs: [{ name: "受電OCR", tap: 5, dial: 1, chr: "VI", useInst: true, inst: 50, instT: 0.05, ct1: 100 }] },
+};
+
+// ===== 作成日・作成者 =====
+function updMetaDisplay() {
+  const d = document.getElementById("docDate").value;
+  document.getElementById("docDateOut").textContent =
+    d ? d.replace(/-/g, "/") : "";
+  document.getElementById("docAuthorOut").textContent =
+    document.getElementById("docAuthor").value;
+  document.getElementById("verOut").textContent =
+    "【" + (verSel.value === "henko" ? "変更後" : "現状") + "】";
+}
+function updMeta() { updMetaDisplay(); saveState(); }
+
+// ===== グラフ縦サイズ（可変・全物件共通の表示設定） =====
+function setChartH(v) {
+  H = +v;
+  const mm = Math.round(H / 560 * 138);   // 標準560u=138mm を基準に比例
+  document.documentElement.style.setProperty("--svgPrintH", mm + "mm");
+  document.getElementById("chartHOut").textContent =
+    H === 560 ? "標準" : "拡大（印刷 約" + mm + "mm）";
+  try { localStorage.setItem("pcoord_chartH", H); } catch (e) {}
+  draw();
+}
+(function initChartH() {
+  let v = 560;
+  try { v = parseInt(localStorage.getItem("pcoord_chartH")) || 560; } catch (e) {}
+  const sl = document.getElementById("chartH");
+  if (sl) sl.value = v;
+  setChartH(v);
+})();
+
+// ===== 物件×版ごとの自動保存（localStorage）=====
+// キー: pcoord_<物件>_<版>  版 = genjou(現状) / henko(変更後)
+let loading = false;
+function readLS(key) {
+  try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
+}
+function curKey() { return "pcoord_" + siteSel.value + "_" + verSel.value; }
+
+// 旧形式（版なし pcoord_<物件>）を「変更後」へ一度だけ移行
+function migrateOld() {
+  Object.keys(PRESETS).forEach(fac => {
+    const oldKey = "pcoord_" + fac;
+    const henkoKey = "pcoord_" + fac + "_henko";
+    const old = readLS(oldKey);
+    if (old && !localStorage.getItem(henkoKey)) {
+      try { localStorage.setItem(henkoKey, JSON.stringify(old)); } catch (e) {}
+    }
+  });
+}
+
+function saveState() {
+  if (loading) return;
+  try {
+    localStorage.setItem(curKey(), JSON.stringify({
+      site: siteName.value,
+      u: [+u1a.value, +u1t.value, +u2a.value, +u2t.value],
+      inr: inrSel.value,
+      docDate: document.getElementById("docDate").value,
+      docAuthor: document.getElementById("docAuthor").value,
+      ocrs: ocrs.map(o => ({ name:o.name, tap:o.tap, dial:o.dial, chr:o.chr,
+                             useInst:o.useInst, inst:o.inst, instT:o.instT, ct1:o.ct1 })),
+    }));
+  } catch (e) {}
+}
+function applyState(st) {
+  loading = true;
+  siteName.value = st.site || "";
+  [u1a.value, u1t.value, u2a.value, u2t.value] = st.u;
+  inrSel.value = st.inr || "";
+  document.getElementById("docDate").value =
+    st.docDate || new Date().toISOString().slice(0, 10);
+  document.getElementById("docAuthor").value = st.docAuthor || "中島電気管理事務所";
+  updMetaDisplay();
+  ocrs = [];
+  (st.ocrs || []).forEach(o => { o.id = ++seq; ocrs.push(Object.assign({}, o)); });
+  render();
+  loading = false;
+  saveState();
+}
+// 現在の 物件×版 を読み込む（保存が無ければフォールバック）
+function loadCurrent() {
+  const fac = siteSel.value, ver = verSel.value;
+  let st = readLS("pcoord_" + fac + "_" + ver);
+  if (!st) {
+    if (ver === "henko") st = readLS("pcoord_" + fac + "_genjou") || PRESETS[fac];
+    else                 st = PRESETS[fac];  // 現状の初期はプリセット
+  }
+  applyState(st);
+}
+// 現状の内容を変更後スロットへ複製（変更後に切替えて編集開始）
+function copyGenjouToHenko() {
+  const fac = siteSel.value;
+  const g = readLS("pcoord_" + fac + "_genjou");
+  if (!g) { alert("現状のデータがありません。先に『現状』を入力・保存してください。"); return; }
+  try { localStorage.setItem("pcoord_" + fac + "_henko", JSON.stringify(g)); } catch (e) {}
+  verSel.value = "henko";
+  loadCurrent();
+}
+function resetFacility() {
+  const label = verSel.value === "henko" ? "変更後" : "現状";
+  if (!confirm(`この物件の【${label}】を初期値に戻します。よろしいですか？`)) return;
+  try { localStorage.removeItem(curKey()); } catch (e) {}
+  loadCurrent();
+}
+siteName.addEventListener("input", saveState);
+
+// 初期表示：旧データ移行 → データがある版を優先表示
+migrateOld();
+if (readLS("pcoord_generic_genjou")) verSel.value = "genjou";
+else if (readLS("pcoord_generic_henko")) verSel.value = "henko";
+loadCurrent();
+</script>
+</body>
+</html>
