@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高圧ケーブル耐圧試験 試験器・リアクトル選定ツール</title>
+<style>
+  :root{
+    --bg:#f4f5f2; --card:#ffffff; --ink:#1a1f26; --muted:#5d6873;
+    --line:#e2e5e0; --blue:#15489c; --blue-soft:#e8eef8; --amber:#e8a838;
+    --panel:#10151b; --ok:#52d98a; --warn:#ffc24d; --over:#ff6b6b;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",Meiryo,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%;}
+  .wrap{max-width:720px;margin:0 auto;padding:18px 16px 60px;}
+  .stripe{height:8px;background:repeating-linear-gradient(45deg,var(--amber) 0 14px,#1a1f26 14px 28px);border-radius:4px;margin-bottom:18px;}
+  header h1{font-size:20px;margin:0 0 4px;letter-spacing:.01em;}
+  header p{margin:0 0 18px;color:var(--muted);font-size:13px;}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 16px;margin-bottom:16px;}
+  .card h2{font-size:13px;margin:0 0 14px;color:var(--blue);font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px;}
+  .card h2::before{content:"";width:6px;height:16px;background:var(--blue);border-radius:2px;display:inline-block;}
+  .field{margin-bottom:14px;} .field:last-child{margin-bottom:0;}
+  label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+  label .hint{font-weight:400;color:var(--muted);font-size:11px;margin-left:4px;}
+  select,input[type=number]{width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-family:inherit;}
+  select:focus,input:focus{outline:none;border-color:var(--blue);}
+  .row{display:flex;gap:10px;} .row > .field{flex:1;margin-bottom:0;}
+  .seg{display:flex;border:1.5px solid var(--line);border-radius:9px;overflow:hidden;}
+  .seg button{flex:1;border:0;background:#fff;padding:11px 4px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;}
+  .seg button.on{background:var(--blue);color:#fff;}
+
+  .item{border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:11px;}
+  .item.on{border-color:var(--blue);background:#fafcff;}
+  .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
+  .item-head .nm{font-size:13.5px;font-weight:700;}
+  .item-head .contrib{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;font-weight:700;color:var(--muted);}
+  .item.on .item-head .contrib{color:var(--blue);}
+  .item-head .del{border:0;background:#fdeceb;color:#c43c34;font-size:12px;font-weight:700;border-radius:6px;padding:5px 9px;cursor:pointer;font-family:inherit;}
+  .contribLine{font-size:12px;color:var(--muted);margin-top:7px;}
+  .contribLine .rowContrib{font-family:"SFMono-Regular",Consolas,monospace;font-weight:700;color:var(--blue);}
+
+  .addbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
+  .addbar button{flex:1;min-width:120px;border:1.5px dashed var(--blue);background:#fff;color:var(--blue);
+    font-size:13px;font-weight:700;border-radius:9px;padding:10px 6px;cursor:pointer;font-family:inherit;}
+  .addbar button:active{background:var(--blue-soft);}
+
+  .panel{background:var(--panel);border-radius:14px;padding:20px 18px;margin-bottom:16px;color:#dfe6ee;}
+  .panel .big{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:46px;font-weight:700;line-height:1;letter-spacing:-.01em;color:var(--ok);}
+  .panel .big .u{font-size:18px;color:#8fa0b3;margin-left:6px;font-weight:500;}
+  .panel .biglabel{font-size:12px;color:#8fa0b3;letter-spacing:.05em;margin-bottom:8px;}
+  .panel .sub{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;border-top:1px solid #25303c;padding-top:14px;}
+  .panel .sub div{flex:1;min-width:92px;}
+  .panel .sub .n{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:21px;font-weight:600;color:#eef3f8;}
+  .panel .sub .n.net{color:var(--ok);}
+  .panel .sub .l{font-size:11px;color:#8fa0b3;letter-spacing:.03em;}
+  .verdict{margin-top:16px;border-radius:10px;padding:13px 14px;font-size:14px;font-weight:700;display:flex;align-items:flex-start;gap:9px;line-height:1.5;}
+  .verdict .dot{width:11px;height:11px;border-radius:50%;margin-top:5px;flex:none;}
+  .v-ok{background:rgba(82,217,138,.13);color:#9bf0c0;} .v-ok .dot{background:var(--ok);}
+  .v-warn{background:rgba(255,194,77,.13);color:#ffd98a;} .v-warn .dot{background:var(--warn);}
+  .v-over{background:rgba(255,107,107,.14);color:#ffb3b3;} .v-over .dot{background:var(--over);}
+  .verdict small{display:block;font-weight:500;color:#9fb0c2;margin-top:3px;font-size:12px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);}
+  th{color:var(--muted);font-weight:600;font-size:11px;background:var(--blue-soft);}
+  td.size{font-weight:700;color:var(--blue);background:#fafbfc;}
+  td.hot{background:#fff0ef;color:var(--over);font-weight:700;}
+  .tablenote{font-size:11px;color:var(--muted);margin-top:8px;}
+  .note{font-size:12px;color:var(--muted);line-height:1.65;} .note b{color:var(--ink);}
+  details{margin-top:6px;} summary{font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;padding:6px 0;}
+  details p{font-size:12.5px;color:var(--muted);margin:6px 0;}
+  .eq{font-family:"SFMono-Regular",Consolas,monospace;background:#f0f2ee;padding:2px 6px;border-radius:4px;font-size:12px;color:var(--ink);}
+  .kit{background:var(--blue-soft);border-radius:9px;padding:10px 12px;font-size:12px;color:#27425f;margin-bottom:14px;line-height:1.7;}
+  .kit b{color:var(--blue);} .kit .set{display:block;margin-top:4px;}
+  .subhead{font-size:12px;font-weight:700;color:var(--muted);margin:16px 0 8px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="stripe"></div>
+  <header>
+    <h1>耐圧試験 試験器・リアクトル選定ツール</h1>
+    <p>試験対象を組み合わせ・台数・追加して、合計充電電流とリアクトル要否を自動判定します。</p>
+  </header>
+
+  <!-- 試験条件 -->
+  <div class="card">
+    <h2>試験条件</h2>
+    <div class="field">
+      <label>電圧区分</label>
+      <div class="seg" id="vcseg">
+        <button class="on" data-kv="6.6" onclick="setVclass('6.6')">6.6 kV（10,350V）</button>
+        <button data-kv="3.3" onclick="setVclass('3.3')">3.3 kV（5,175V）</button>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>周波数</label>
+        <div class="seg" id="freqseg">
+          <button class="on" data-f="50" onclick="setFreq(50)">50 Hz</button>
+          <button data-f="60" onclick="setFreq(60)">60 Hz</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>試験電圧<span class="hint">（V・自動・編集可）</span></label>
+        <input type="number" id="volt" value="10350" step="25" min="0" oninput="calc()">
+      </div>
+    </div>
+    <p class="note" style="margin-top:10px">※交流耐圧は10分間。6.6kV→10,350V、3.3kV→5,175V。群馬は50Hzです。</p>
+  </div>
+
+  <!-- 試験対象 -->
+  <div class="card">
+    <h2>試験対象を選ぶ（組み合わせ・台数・追加OK）</h2>
+
+    <div class="field">
+      <label>ケーブルの静電容量データ<span class="hint">（旧JISは実測寄り）</span></label>
+      <div class="seg" id="dataseg">
+        <button class="on" data-d="old" onclick="setData('old')">旧JIS(1971)</button>
+        <button data-d="now" onclick="setData('now')">現行JIS(2022)</button>
+      </div>
+    </div>
+
+    <!-- ケーブル（単一） -->
+    <div class="item" id="it_cable">
+      <div class="item-head"><span class="nm">高圧ケーブル CVT</span><span class="contrib" id="c_cable">— mA</span></div>
+      <div class="row">
+        <div class="field">
+          <select id="cableSize" onchange="onSize()">
+            <option value="14">14 sq</option>
+            <option value="22">22 sq</option>
+            <option value="38" selected>38 sq</option>
+            <option value="60">60 sq</option>
+            <option value="100">100 sq</option>
+            <option value="150">150 sq</option>
+            <option value="200">200 sq</option>
+            <option value="250">250 sq</option>
+            <option value="325">325 sq</option>
+            <option value="manual">▼ 実測値を手入力</option>
+          </select>
+        </div>
+        <div class="field"><input type="number" id="cableLen" value="100" step="1" min="0" oninput="calc()" placeholder="長さ m"></div>
+      </div>
+      <div class="field" id="capManualWrap" style="display:none;margin-top:10px">
+        <input type="number" id="capManual" value="0.22" step="0.01" min="0" oninput="calc()" placeholder="静電容量 μF/km(1相)">
+      </div>
+      <div class="contribLine">サイズ＋長さ(m)。長さ0で除外。</div>
+    </div>
+
+    <!-- 機器（追加式） -->
+    <div class="subhead">コンデンサ・変圧器（必要なだけ追加）</div>
+    <div id="equipList"></div>
+    <div class="addbar">
+      <button onclick="addItem('cap')">＋ コンデンサ</button>
+      <button onclick="addItem('tr1')">＋ 単相変圧器</button>
+      <button onclick="addItem('tr3')">＋ 三相変圧器</button>
+    </div>
+  </div>
+
+  <!-- 試験器 -->
+  <div class="card">
+    <h2>手持ちの試験器を選ぶ</h2>
+    <div class="kit">
+      登録済みセット：
+      <span class="set">①<b>IP-R3</b>＋<b>R-1230</b>（3kVA/12kV・許容250mA）＋<b>DR-1230M</b>（130H）／ムサシ電機計器</span>
+      <span class="set">②<b>BCT-25K</b>＋<b>T-13K15</b>（約1.95kVA/13kV・許容150mA）＋<b>L-13K</b>（209mA級）／双興電機</span>
+    </div>
+    <div class="field">
+      <label>昇圧トランス</label>
+      <select id="trafo" onchange="onTrafo()">
+        <option value="250" selected>① IP-R3＋R-1230（許容250mA）</option>
+        <option value="150">② BCT-25K＋T-13K15（許容150mA）</option>
+        <option value="manual">▼ 許容電流を手入力</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>試験器の許容充電電流<span class="hint">（mA・自動・編集可）</span></label>
+      <input type="number" id="tester" value="250" step="10" min="0" oninput="calc()">
+    </div>
+    <div class="field">
+      <label>リアクトル</label>
+      <select id="reactor" onchange="onReactor()">
+        <option value="none" selected>なし</option>
+        <option value="130">① DR-1230M（ムサシ・130H）</option>
+        <option value="158">② L-13K（双興・209mA級）</option>
+        <option value="manual">▼ 補償電流を手入力</option>
+      </select>
+    </div>
+    <div id="reactWrap" style="display:none">
+      <div class="row">
+        <div class="field">
+          <label>1台あたり補償電流<span class="hint">（mA・自動/編集可）</span></label>
+          <input type="number" id="reactMA" value="0" step="10" min="0" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>リアクトル台数<span class="hint">（並列）</span></label>
+          <input type="number" id="reactQty" value="1" step="1" min="1" oninput="calc()">
+        </div>
+      </div>
+      <p class="note" style="margin-top:8px">並列で台数を増やすと補償電流が台数分ふえます。ただし<b>試験器セットの約2倍を超える</b>組み合わせは現場により試験不可の場合あり（メーカー注意事項）。</p>
+    </div>
+  </div>
+
+  <!-- 結果 -->
+  <div class="panel">
+    <div class="biglabel">合計充電電流（試験対象すべて）</div>
+    <div class="big"><span id="ic">—</span><span class="u">mA</span></div>
+    <div class="sub">
+      <div><div class="n" id="o_cable">—</div><div class="l">ケーブル分 mA</div></div>
+      <div><div class="n" id="o_equip">—</div><div class="l">機器分 mA</div></div>
+      <div><div class="n" id="kva">—</div><div class="l">必要容量 kVA</div></div>
+    </div>
+    <div class="sub">
+      <div><div class="n" id="o_tester">—</div><div class="l">試験器の許容 mA</div></div>
+      <div><div class="n" id="o_react">—</div><div class="l">リアクトル補償 mA</div></div>
+      <div><div class="n net" id="o_net">—</div><div class="l">試験器の負担 mA</div></div>
+    </div>
+    <div class="verdict v-ok" id="verdict">
+      <span class="dot"></span><span id="vtext">入力すると判定します</span>
+    </div>
+  </div>
+
+  <!-- 早見表 -->
+  <div class="card">
+    <h2>ケーブル充電電流 早見表（mA・現在の条件）</h2>
+    <table id="reftable"></table>
+    <p class="tablenote">赤いセル＝<b>試験器の負担</b>（合計−リアクトル補償）が許容（<span id="tcap2">250</span>mA）を超える組み合わせ。機器分も加味しています。</p>
+  </div>
+
+  <!-- 補足 -->
+  <div class="card">
+    <h2>判定が「超過」のときの対処</h2>
+    <p class="note">
+      ① <b>リアクトルを入れる</b>　② <b>許容電流の大きい試験器</b>に変える（双興150mA→ムサシ250mA等）<br>
+      ③ ケーブルと機器を<b>分割して印加</b>する　④ ケーブルは<b>直流</b>で印加
+    </p>
+    <details>
+      <summary>データの出典と計算の中身</summary>
+      <p>合計 ＝ ケーブル ＋ 追加した機器すべて（容量性でほぼ同相のため加算）。負担 ＝ 合計 − リアクトル補償。</p>
+      <p>ケーブル：<span class="eq">I=2πfCV</span>。旧JIS(1971)＝提供資料に整合（38sq=214mA/100m＝0.22μF/km・50Hz・10,350V）。3.3kVは試験電圧5,175Vで自動計算（3.3kVケーブルの静電容量は実測値の入力推奨）。</p>
+      <p>機器：提供資料の1台あたり充電電流(mA・6kV/10,350V)×台数。<b>3.3kV(5,175V)選択時は電圧比（×0.5）で換算した概算</b>です。3.3kV機器の実測表があれば差し替え可能です。</p>
+      <p>許容：R-1230＝250mA、T-13K15＝150mA。リアクトル補償＝試験電圧÷(2πf×L)。最終は現地実測で確認してください。</p>
+    </details>
+  </div>
+</div>
+
+<script>
+  var freq = 50, DATASET = 'old', REACT_L = null, rowSeq = 0;
+  var CAP = {
+    old:{"14":0.16,"22":0.19,"38":0.22,"60":0.26,"100":0.32,"150":0.38,"200":0.39,"250":0.41,"325":0.45},
+    now:{"14":0.24,"22":0.27,"38":0.32,"60":0.37,"100":0.45,"150":0.52,"200":0.51,"250":0.55,"325":0.61}
+  };
+  var SIZES=["14","22","38","60","100","150","200","250","325"], LENGTHS=[50,100,150,200,300];
+  // 1台あたり充電電流 mA（提供資料・6kV/10350V・50Hz）
+  var CAPACITOR={10:2.4,15:3.5,20:4.8,25:5.9,30:7.1,50:11.8,75:17.8,100:23.7,150:35.6,200:47.8};
+  var TR1={10:3.3,20:3.8,30:10.8,50:12.2,75:16.5,100:13.2,150:14.6,200:14.1,300:16.5,500:16.4};
+  var TR3={10:11.3,20:12.7,30:16.9,50:17.4,75:17.9,100:19.7,150:19.7,200:19.7,300:13.6,500:17.9};
+  var TYPES={
+    cap:{label:'コンデンサ',table:CAPACITOR,unit:'kvar'},
+    tr1:{label:'単相変圧器',table:TR1,unit:'kVA'},
+    tr3:{label:'三相変圧器',table:TR3,unit:'kVA'}
+  };
+  var DEFCAP={cap:'50',tr1:'50',tr3:'50'};
+
+  function val(id){return document.getElementById(id).value;}
+  function num(id){return parseFloat(document.getElementById(id).value)||0;}
+  function fmt(n,d){if(!isFinite(n))return "—";return n.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});}
+  function chargeMA(c,len,f,v){return 2*Math.PI*f*(c*(len/1000)*3*1e-6)*v*1000;}
+
+  function setVclass(kv){
+    document.querySelectorAll('#vcseg button').forEach(function(b){b.classList.toggle('on',b.dataset.kv===kv);});
+    document.getElementById('volt').value = (kv==='6.6')?10350:5175;
+    calc();
+  }
+  function setData(d){
+    DATASET=d;
+    document.querySelectorAll('#dataseg button').forEach(function(b){b.classList.toggle('on',b.dataset.d===d);});
+    if(val('cableSize')!=='manual'){document.getElementById('capManual').value=CAP[d][val('cableSize')];}
+    calc();
+  }
+  function onSize(){
+    var v=val('cableSize'), wrap=document.getElementById('capManualWrap'), cm=document.getElementById('capManual');
+    if(v==='manual'){wrap.style.display='block';cm.readOnly=false;cm.focus();}
+    else {wrap.style.display='none';cm.value=CAP[DATASET][v];}
+    calc();
+  }
+  function setFreq(f){
+    freq=f;
+    document.querySelectorAll('#freqseg button').forEach(function(b){b.classList.toggle('on',Number(b.dataset.f)===f);});
+    syncReactor(); calc();
+  }
+  function onTrafo(){
+    if(val('trafo')!=='manual'){document.getElementById('tester').value=val('trafo');} else {document.getElementById('tester').focus();}
+    calc();
+  }
+  function onReactor(){
+    var v=val('reactor'), wrap=document.getElementById('reactWrap'), ma=document.getElementById('reactMA');
+    if(v==='none'){REACT_L=null;wrap.style.display='none';ma.value=0;}
+    else if(v==='manual'){REACT_L=null;wrap.style.display='block';ma.readOnly=false;}
+    else {REACT_L=parseFloat(v);wrap.style.display='block';ma.readOnly=true;}
+    syncReactor(); calc();
+  }
+  function syncReactor(){
+    if(REACT_L){document.getElementById('reactMA').value=Math.round(num('volt')/(2*Math.PI*freq*REACT_L)*1000);}
+  }
+
+  function addItem(type){
+    rowSeq++;
+    var id='row'+rowSeq, t=TYPES[type], opts='';
+    Object.keys(t.table).forEach(function(k){
+      opts+='<option value="'+k+'"'+(k===DEFCAP[type]?' selected':'')+'>'+k+' '+t.unit+'</option>';
+    });
+    var div=document.createElement('div');
+    div.className='item on'; div.id=id; div.setAttribute('data-type',type);
+    div.innerHTML=
+      '<div class="item-head"><span class="nm">'+t.label+'</span>'+
+      '<button class="del" onclick="delItem(\''+id+'\')">✕ 削除</button></div>'+
+      '<div class="row">'+
+        '<div class="field"><select class="rowCap" onchange="calc()">'+opts+'</select></div>'+
+        '<div class="field"><input type="number" class="rowQty" value="1" min="0" step="1" oninput="calc()" placeholder="台数"></div>'+
+      '</div>'+
+      '<div class="contribLine">寄与 <span class="rowContrib">— mA</span></div>';
+    document.getElementById('equipList').appendChild(div);
+    calc();
+  }
+  function delItem(id){var e=document.getElementById(id);if(e)e.parentNode.removeChild(e);calc();}
+
+  function cableMA(volt){
+    var len=num('cableLen'); if(len<=0) return 0;
+    var c=(val('cableSize')==='manual')?num('capManual'):CAP[DATASET][val('cableSize')];
+    return chargeMA(c,len,freq,volt);
+  }
+
+  function calc(){
+    syncReactor();
+    var volt=num('volt'), tester=num('tester'), react=num('reactMA');
+    var vscale=volt/10350; // 機器値は6kV/10350V基準→電圧比で換算
+
+    var cab=cableMA(volt);
+    document.getElementById('c_cable').textContent=fmt(cab,0)+' mA';
+    document.getElementById('it_cable').classList.toggle('on',cab>0);
+
+    var equip=0;
+    document.querySelectorAll('#equipList .item').forEach(function(rowEl){
+      var type=rowEl.getAttribute('data-type');
+      var capv=rowEl.querySelector('.rowCap').value;
+      var qty=parseFloat(rowEl.querySelector('.rowQty').value)||0;
+      var c=(TYPES[type].table[capv]||0)*qty*vscale;
+      rowEl.querySelector('.rowContrib').textContent=fmt(c,1)+' mA';
+      rowEl.classList.toggle('on',c>0);
+      equip+=c;
+    });
+
+    var ic=cab+equip, net=ic-react, kvaNeed=volt*(ic/1000)/1000;
+
+    document.getElementById('ic').textContent=fmt(ic,0);
+    document.getElementById('o_cable').textContent=fmt(cab,0);
+    document.getElementById('o_equip').textContent=fmt(equip,0);
+    document.getElementById('kva').textContent=fmt(kvaNeed,2);
+    document.getElementById('o_tester').textContent=fmt(tester,0);
+    document.getElementById('o_react').textContent=react>0?fmt(react,0):"—";
+    document.getElementById('o_net').textContent=fmt(net,0);
+
+    var big=document.querySelector('.panel .big');
+    var vd=document.getElementById('verdict'), vt=document.getElementById('vtext');
+    var netEl=document.getElementById('o_net'), maxWithR=tester+react;
+
+    if(ic<=0){
+      big.style.color='#8fa0b3'; netEl.style.color='#eef3f8'; vd.className='verdict v-ok';
+      vt.innerHTML='試験対象を入力してください<small>長さや台数を入れると判定します。</small>';
+    } else if(ic<=tester){
+      big.style.color='var(--ok)'; netEl.style.color='var(--ok)'; vd.className='verdict v-ok';
+      vt.innerHTML='試験器のみでOK<small>合計 '+fmt(ic,0)+'mA ≦ 許容 '+fmt(tester,0)+'mA。リアクトル不要です。</small>';
+    } else if(react>0 && net<=tester){
+      big.style.color='var(--warn)'; netEl.style.color='var(--ok)'; vd.className='verdict v-warn';
+      vt.innerHTML='リアクトル併用でOK<small>合計 '+fmt(ic,0)+'mA − 補償 '+fmt(react,0)+'mA ＝ 負担 '+fmt(net,0)+'mA ≦ 許容 '+fmt(tester,0)+'mA。上限 約'+fmt(maxWithR,0)+'mA。</small>';
+    } else {
+      big.style.color='var(--over)'; netEl.style.color='var(--over)'; vd.className='verdict v-over';
+      var lack=(react>0?net:ic)-tester;
+      var hint=react>0?'リアクトルでも約'+fmt(lack,0)+'mA超過。分割印加か直流を検討。':'リアクトルを入れると上限UP（DR-1230M:+約253mA / L-13K:+約209mA、50Hz）。';
+      vt.innerHTML='許容オーバー — 対策が必要<small>'+(react>0?'負担 '+fmt(net,0):'合計 '+fmt(ic,0))+'mA ＞ 許容 '+fmt(tester,0)+'mA。'+hint+'</small>';
+    }
+    document.getElementById('tcap2').textContent=fmt(tester,0);
+    buildTable(volt,tester,react,equip);
+  }
+
+  function buildTable(volt,tester,react,equip){
+    var t=document.getElementById('reftable'), h='<tr><th>太さ</th>';
+    LENGTHS.forEach(function(L){h+='<th>'+L+'m</th>';});
+    h+='</tr>';
+    SIZES.forEach(function(sq){
+      var c=CAP[DATASET][sq];
+      h+='<tr><td class="size">'+sq+'sq</td>';
+      LENGTHS.forEach(function(L){
+        var v=chargeMA(c,L,freq,volt), net=v+equip-react, over=net>tester;
+        h+='<td class="'+(over?'hot':'')+'">'+fmt(v,0)+'</td>';
+      });
+      h+='</tr>';
+    });
+    t.innerHTML=h;
+  }
+  calc();
+</script>
+</body>
+</html>
