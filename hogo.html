@@ -69,8 +69,7 @@
 <body>
 <div class="wrap">
   <h1>【保護協調検討】OCR I-t特性図
-    <input id="siteName" type="text" value="" placeholder="物件名"
-      style="font-size:15px;border:none;border-bottom:2px solid #1f3864;width:280px;"></h1>
+    <span id="siteTitle" style="margin-left:8px;color:#1f3864;"></span></h1>
   <div class="doc-meta">
     <span id="verOut" style="font-weight:bold;color:#c00;"></span>　　作成日: <span id="docDateOut"></span>　　作成者: <span id="docAuthorOut"></span>
   </div>
@@ -415,7 +414,7 @@ function siteName_(id) { const x = getSites().find(x => x.id === id); return x ?
 
 function currentState() {
   return {
-    site: siteName.value,
+    site: siteName_(curSite),
     u: [+u1a.value, +u1t.value, +u2a.value, +u2t.value],
     inr: inrSel.value,
     docDate: document.getElementById("docDate").value,
@@ -444,6 +443,7 @@ function doSave() {
 function showStatus(msg, color) {
   const m = document.getElementById("saveMsg"), b = document.getElementById("saveBtn");
   document.getElementById("whereOut").textContent = siteName_(curSite);
+  document.getElementById("siteTitle").textContent = siteName_(curSite);
   const tag = `<span style="color:#c00">【${curVer === "henko" ? "変更後" : "現状"}】</span> `;
   let t, col;
   if (msg) { t = msg; col = color || "#090"; }
@@ -456,7 +456,6 @@ function showStatus(msg, color) {
 
 function applyState(st) {
   loading = true;
-  siteName.value = st.site || siteName_(curSite);
   [u1a.value, u1t.value, u2a.value, u2t.value] = st.u || DEFAULT_STATE.u;
   inrSel.value = st.inr || "";
   document.getElementById("docDate").value =
@@ -497,7 +496,6 @@ function addSite() {
   curSite = id; curVer = "genjou";
   fillSiteSel();
   loadCurrent();
-  siteName.value = name;
   markDirty();
 }
 function renameSite() {
@@ -507,8 +505,7 @@ function renameSite() {
   x.name = name;
   writeLS("pcoord_sites", list);
   fillSiteSel();
-  siteName.value = name;
-  markDirty();
+  showStatus();
 }
 function deleteSite() {
   const list = getSites(), x = list.find(x => x.id === curSite);
@@ -539,7 +536,6 @@ function resetFacility() {
   try { localStorage.removeItem(slotKey(curSite, curVer)); } catch (e) {}
   loadCurrent();
 }
-siteName.addEventListener("input", markDirty);
 window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
 // 初期表示（前回開いていた現場・版を復元）
