@@ -27,6 +27,16 @@
              position: absolute; top: 12px; right: 12px; }
   .btn-pdf { background: #c04000; color: #fff; padding: 12px 26px; font-weight: bold; }
   .btns { text-align: center; margin: 18px 0; }
+  .btn-site { color: #fff; padding: 9px 14px; font-weight: bold; }
+  body { padding-bottom: 84px; }
+  .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+    background: #fff; border-top: 2px solid #1f3864; box-shadow: 0 -2px 8px rgba(0,0,0,.15);
+    display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 12px; }
+  .savebar .where { font-size: 13px; font-weight: bold; color: #1f3864; }
+  #saveMsg { font-size: 13px; font-weight: bold; }
+  #saveBtn { background: #0a7a2f; color: #fff; font-size: 18px; font-weight: bold; padding: 12px 34px; border-radius: 8px; }
+  #saveBtn.dirty { background: #e65c00; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(230,92,0,.25); } }
   #chartBox { background: #fff; }
   .sum { font-size: 12.5px; line-height: 1.45; }
   .sum .u { color: #1f6b3a; font-weight: bold; }
@@ -38,7 +48,8 @@
   .foot { font-size: 10px; color: #888; margin-top: 8px; }
   .doc-meta { text-align: right; font-size: 12px; color: #333; margin: 2px 0 6px; }
   @media print {
-    body { background: #fff; }
+    body { background: #fff; padding-bottom: 0; }
+    .savebar { display: none !important; }
     .no-print, .card.util, #ocrList, #inrCard { display: none !important; }
     .card { box-shadow: none; margin: 2px 0; padding: 2px; border-radius: 0; }
     .wrap { max-width: 100%; padding: 0; }
@@ -61,28 +72,27 @@
   </div>
 
   <div class="card no-print" style="border-left:6px solid #1f3864">
-    <div class="sec-t" style="color:#1f3864">■ 物件選択（選ぶと整定値プリセットを読込。編集内容は物件ごとに自動保存）</div>
+    <div class="sec-t" style="color:#1f3864">■ 現場選択（現場ごとに【現状】【変更後】を保存できます）</div>
     <div class="row">
-      <div class="fld"><label>物件</label>
-        <select id="siteSel" onchange="loadCurrent()" style="font-size:14px;font-weight:bold;">
-          <option value="generic">汎用</option>
-        </select></div>
+      <div class="fld"><label>現場</label>
+        <select id="siteSel" onchange="onSwitch(this)" style="font-size:15px;font-weight:bold;min-width:180px;"></select></div>
       <div class="fld"><label>版</label>
-        <select id="verSel" onchange="loadCurrent()"
-          style="font-size:14px;font-weight:bold;">
+        <select id="verSel" onchange="onSwitch(this)" style="font-size:15px;font-weight:bold;">
           <option value="genjou">現状</option>
           <option value="henko">変更後</option>
         </select></div>
-      <button style="background:#1f6b3a;color:#fff;padding:8px 14px;"
-        onclick="copyGenjouToHenko()">現状 → 変更後 に複製</button>
-      <button style="background:#666;color:#fff;padding:8px 14px;"
-        onclick="resetFacility()">初期値に戻す</button>
-      <span id="saveMsg" style="font-size:12px;font-weight:bold;align-self:center;"></span>
+      <button class="btn-site" style="background:#1f3864;" onclick="addSite()">＋ 現場を追加</button>
+      <button class="btn-site" style="background:#555;" onclick="renameSite()">名前変更</button>
+      <button class="btn-site" style="background:#a33;" onclick="deleteSite()">現場を削除</button>
+    </div>
+    <div class="row" style="margin-top:10px;">
+      <button class="btn-site" style="background:#1f6b3a;" onclick="copyGenjouToHenko()">現状 → 変更後 に複製</button>
+      <button class="btn-site" style="background:#777;" onclick="resetFacility()">この版を初期値に戻す</button>
       <div class="fld"><label>作成日</label>
         <input id="docDate" type="date" oninput="updMeta()"></div>
       <div class="fld"><label>作成者</label>
         <input id="docAuthor" type="text" value="" placeholder="作成者"
-          style="width:200px" oninput="updMeta()"></div>
+          style="width:180px" oninput="updMeta()"></div>
     </div>
   </div>
 
@@ -136,6 +146,12 @@
     ダイヤルDは銘板値のまま入力（D/10がタイムレバー換算）。CT二次は5A固定。
     突入電流は6.6kV参考表（0.01〜5s）。Ctrl+P → PDF保存でA4縦1枚に出力されます。
   </div>
+</div>
+
+<div class="savebar no-print">
+  <span class="where" id="whereOut"></span>
+  <span id="saveMsg"></span>
+  <button id="saveBtn" onclick="doSave()">💾 保存</button>
 </div>
 
 <script>
@@ -326,11 +342,9 @@ function drawAndSum() {
   saveState();
 }
 
-// ===== 物件プリセット =====
-const PRESETS = {
-  generic:   { site: "", u: [720, 0.5, 1440, 0.2], inr: "",
-    ocrs: [{ name: "受電OCR", tap: 5, dial: 1, chr: "VI", useInst: true, inst: 50, instT: 0.05, ct1: 100 }] },
-};
+// ===== 初期値（新しい現場を作ったときの中身） =====
+const DEFAULT_STATE = { site: "", u: [720, 0.5, 1440, 0.2], inr: "",
+  ocrs: [{ name: "受電OCR", tap: 5, dial: 1, chr: "VI", useInst: true, inst: 50, instT: 0.05, ct1: 100 }] };
 
 // ===== 作成日・作成者 =====
 function updMetaDisplay() {
@@ -342,7 +356,7 @@ function updMetaDisplay() {
   document.getElementById("verOut").textContent =
     "【" + (verSel.value === "henko" ? "変更後" : "現状") + "】";
 }
-function updMeta() { updMetaDisplay(); saveState(); }
+function updMeta() { updMetaDisplay(); markDirty(); }
 
 // ===== グラフ縦サイズ（可変・全物件共通の表示設定） =====
 function setChartH(v) {
@@ -362,98 +376,170 @@ function setChartH(v) {
   setChartH(v);
 })();
 
-// ===== 物件×版ごとの自動保存（localStorage）=====
-// キー: pcoord_<物件>_<版>  版 = genjou(現状) / henko(変更後)
-let loading = false;
+// ===== 現場一覧と保存（この端末の localStorage）=====
+// 現場一覧: pcoord_sites = [{id, name}]　データ: pcoord_<id>_<版>（版 = genjou / henko）
+let loading = false, dirty = false;
+let curSite = null, curVer = "genjou";
 function readLS(key) {
   try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
 }
-function curKey() { return "pcoord_" + siteSel.value + "_" + verSel.value; }
-
-// 旧形式（版なし pcoord_<物件>）を「変更後」へ一度だけ移行
-function migrateOld() {
-  Object.keys(PRESETS).forEach(fac => {
-    const oldKey = "pcoord_" + fac;
-    const henkoKey = "pcoord_" + fac + "_henko";
-    const old = readLS(oldKey);
-    if (old && !localStorage.getItem(henkoKey)) {
-      try { localStorage.setItem(henkoKey, JSON.stringify(old)); } catch (e) {}
-    }
-  });
+function writeLS(key, obj) {
+  try { localStorage.setItem(key, JSON.stringify(obj)); return true; } catch (e) { return false; }
 }
+function slotKey(site, ver) { return "pcoord_" + site + "_" + ver; }
+function getSites() {
+  let list = readLS("pcoord_sites");
+  if (!Array.isArray(list) || !list.length) {
+    list = [{ id: "generic", name: "汎用" }];
+    // 旧形式（版なし）のデータを「変更後」へ移行
+    const old = readLS("pcoord_generic");
+    if (old && !readLS(slotKey("generic", "henko"))) writeLS(slotKey("generic", "henko"), old);
+    writeLS("pcoord_sites", list);
+  }
+  return list;
+}
+function fillSiteSel() {
+  const list = getSites();
+  siteSel.innerHTML = list.map(x => `<option value="${x.id}">${x.name.replace(/</g, "&lt;")}</option>`).join("");
+  if (!list.some(x => x.id === curSite)) curSite = list[0].id;
+  siteSel.value = curSite;
+  verSel.value = curVer;
+}
+function siteName_(id) { const x = getSites().find(x => x.id === id); return x ? x.name : ""; }
 
-function saveState() {
+function currentState() {
+  return {
+    site: siteName.value,
+    u: [+u1a.value, +u1t.value, +u2a.value, +u2t.value],
+    inr: inrSel.value,
+    docDate: document.getElementById("docDate").value,
+    docAuthor: document.getElementById("docAuthor").value,
+    ocrs: ocrs.map(o => ({ name:o.name, tap:o.tap, dial:o.dial, chr:o.chr,
+                           useInst:o.useInst, inst:o.inst, instT:o.instT, ct1:o.ct1 })),
+  };
+}
+// 画面の変更は「未保存」にするだけ（保存は 💾保存 ボタン）
+function saveState() { markDirty(); }
+function markDirty() {
   if (loading) return;
-  try {
-    localStorage.setItem(curKey(), JSON.stringify({
-      site: siteName.value,
-      u: [+u1a.value, +u1t.value, +u2a.value, +u2t.value],
-      inr: inrSel.value,
-      docDate: document.getElementById("docDate").value,
-      docAuthor: document.getElementById("docAuthor").value,
-      ocrs: ocrs.map(o => ({ name:o.name, tap:o.tap, dial:o.dial, chr:o.chr,
-                             useInst:o.useInst, inst:o.inst, instT:o.instT, ct1:o.ct1 })),
-    }));
-    showSave(true);
-  } catch (e) { showSave(false); }
+  dirty = true;
+  showStatus();
 }
-function showSave(ok) {
-  const m = document.getElementById("saveMsg"); if (!m) return;
+function doSave() {
+  const ok = writeLS(slotKey(curSite, curVer), currentState());
   if (ok) {
+    dirty = false;
     const d = new Date();
-    m.style.color = "#090";
-    m.textContent = "✓ この端末に保存済み（" + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0") + "）";
+    showStatus("✓ 保存しました（" + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0") + "）");
   } else {
-    m.style.color = "#d00";
-    m.textContent = "✕ このブラウザでは保存できません（プライベートモード等）";
+    showStatus("✕ 保存できません（プライベートモード等）", "#d00");
   }
 }
+function showStatus(msg, color) {
+  const m = document.getElementById("saveMsg"), b = document.getElementById("saveBtn");
+  document.getElementById("whereOut").textContent =
+    siteName_(curSite) + "【" + (curVer === "henko" ? "変更後" : "現状") + "】";
+  if (msg) { m.textContent = msg; m.style.color = color || "#090"; }
+  else if (dirty) { m.textContent = "● 未保存の変更があります"; m.style.color = "#e65c00"; }
+  else if (readLS(slotKey(curSite, curVer))) { m.textContent = "✓ 保存済み"; m.style.color = "#090"; }
+  else { m.textContent = "まだ保存していません"; m.style.color = "#888"; }
+  b.classList.toggle("dirty", dirty);
+}
+
 function applyState(st) {
   loading = true;
-  siteName.value = st.site || "";
-  [u1a.value, u1t.value, u2a.value, u2t.value] = st.u;
+  siteName.value = st.site || siteName_(curSite);
+  [u1a.value, u1t.value, u2a.value, u2t.value] = st.u || DEFAULT_STATE.u;
   inrSel.value = st.inr || "";
   document.getElementById("docDate").value =
     st.docDate || new Date().toISOString().slice(0, 10);
   document.getElementById("docAuthor").value = st.docAuthor || "";
   updMetaDisplay();
   ocrs = [];
-  (st.ocrs || []).forEach(o => { o.id = ++seq; ocrs.push(Object.assign({}, o)); });
+  (st.ocrs || []).forEach(o => { ocrs.push(Object.assign({}, o, { id: ++seq })); });
   render();
   loading = false;
-  saveState();
+  dirty = false;
+  showStatus();
 }
-// 現在の 物件×版 を読み込む（保存が無ければフォールバック）
+// 現在の 現場×版 を読み込む（保存が無ければ：変更後→現状のコピー、現状→初期値）
 function loadCurrent() {
-  const fac = siteSel.value, ver = verSel.value;
-  let st = readLS("pcoord_" + fac + "_" + ver);
-  if (!st) {
-    if (ver === "henko") st = readLS("pcoord_" + fac + "_genjou") || PRESETS[fac];
-    else                 st = PRESETS[fac];  // 現状の初期はプリセット
-  }
+  writeLS("pcoord_last", { site: curSite, ver: curVer });
+  let st = readLS(slotKey(curSite, curVer));
+  if (!st && curVer === "henko") st = readLS(slotKey(curSite, "genjou"));
+  if (!st) st = JSON.parse(JSON.stringify(DEFAULT_STATE));
   applyState(st);
 }
-// 現状の内容を変更後スロットへ複製（変更後に切替えて編集開始）
-function copyGenjouToHenko() {
-  const fac = siteSel.value;
-  const g = readLS("pcoord_" + fac + "_genjou");
-  if (!g) { alert("現状のデータがありません。先に『現状』を入力・保存してください。"); return; }
-  try { localStorage.setItem("pcoord_" + fac + "_henko", JSON.stringify(g)); } catch (e) {}
-  verSel.value = "henko";
+function confirmLeave() {
+  return !dirty || confirm("保存していない変更があります。\n保存せずに切り替えますか？\n（戻って 💾保存 を押す場合は「キャンセル」）");
+}
+function onSwitch(sel) {
+  if (!confirmLeave()) { siteSel.value = curSite; verSel.value = curVer; return; }
+  curSite = siteSel.value; curVer = verSel.value;
   loadCurrent();
+}
+function addSite() {
+  if (!confirmLeave()) return;
+  const name = (prompt("新しい現場名を入力してください") || "").trim();
+  if (!name) return;
+  const list = getSites();
+  const id = "s" + Date.now();
+  list.push({ id, name });
+  writeLS("pcoord_sites", list);
+  curSite = id; curVer = "genjou";
+  fillSiteSel();
+  loadCurrent();
+  siteName.value = name;
+  markDirty();
+}
+function renameSite() {
+  const list = getSites(), x = list.find(x => x.id === curSite);
+  const name = (prompt("現場名を変更", x.name) || "").trim();
+  if (!name || name === x.name) return;
+  x.name = name;
+  writeLS("pcoord_sites", list);
+  fillSiteSel();
+  siteName.value = name;
+  markDirty();
+}
+function deleteSite() {
+  const list = getSites(), x = list.find(x => x.id === curSite);
+  if (!confirm(`現場「${x.name}」を削除します（現状・変更後とも消えます）。よろしいですか？`)) return;
+  try { localStorage.removeItem(slotKey(curSite, "genjou")); localStorage.removeItem(slotKey(curSite, "henko")); } catch (e) {}
+  writeLS("pcoord_sites", list.filter(y => y.id !== curSite));
+  curSite = null; curVer = "genjou"; dirty = false;
+  fillSiteSel();
+  loadCurrent();
+}
+// 現状の内容を変更後へ複製して保存（変更後に切替えて編集開始）
+function copyGenjouToHenko() {
+  let g;
+  if (curVer === "genjou") g = currentState();
+  else g = readLS(slotKey(curSite, "genjou"));
+  if (!g) { alert("現状のデータがありません。先に【現状】を入力して 💾保存 してください。"); return; }
+  if (readLS(slotKey(curSite, "henko")) &&
+      !confirm("すでに保存されている【変更後】を、現状の内容で上書きします。よろしいですか？")) return;
+  if (curVer === "genjou" && dirty) doSave();          // 現状の未保存分も保存
+  writeLS(slotKey(curSite, "henko"), g);
+  curVer = "henko"; verSel.value = "henko";
+  loadCurrent();
+  showStatus("✓ 現状を変更後に複製して保存しました");
 }
 function resetFacility() {
-  const label = verSel.value === "henko" ? "変更後" : "現状";
-  if (!confirm(`この物件の【${label}】を初期値に戻します。よろしいですか？`)) return;
-  try { localStorage.removeItem(curKey()); } catch (e) {}
+  const label = curVer === "henko" ? "変更後" : "現状";
+  if (!confirm(`この現場の【${label}】を初期値に戻します（保存内容も消えます）。よろしいですか？`)) return;
+  try { localStorage.removeItem(slotKey(curSite, curVer)); } catch (e) {}
   loadCurrent();
 }
-siteName.addEventListener("input", saveState);
+siteName.addEventListener("input", markDirty);
+window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
-// 初期表示：旧データ移行 → データがある版を優先表示
-migrateOld();
-if (readLS("pcoord_generic_genjou")) verSel.value = "genjou";
-else if (readLS("pcoord_generic_henko")) verSel.value = "henko";
+// 初期表示（前回開いていた現場・版を復元）
+const last = readLS("pcoord_last");
+if (last) { curSite = last.site; curVer = last.ver === "henko" ? "henko" : "genjou"; }
+fillSiteSel();
+if (!last && !readLS(slotKey(curSite, "genjou")) && readLS(slotKey(curSite, "henko"))) curVer = "henko";
+verSel.value = curVer;
 loadCurrent();
 </script>
 </body>
