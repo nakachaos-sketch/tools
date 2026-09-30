@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>保護協調検討ツール（OCR I-t特性図）</title>
 <style>
   * { box-sizing: border-box; font-family: "Yu Gothic UI", "Meiryo", sans-serif; }
@@ -31,10 +31,14 @@
   body { padding-bottom: 84px; }
   .savebar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
     background: #fff; border-top: 2px solid #1f3864; box-shadow: 0 -2px 8px rgba(0,0,0,.15);
-    display: flex; align-items: center; justify-content: center; gap: 14px; padding: 10px 12px; }
-  .savebar .where { font-size: 13px; font-weight: bold; color: #1f3864; }
-  #saveMsg { font-size: 13px; font-weight: bold; }
-  #saveBtn { background: #0a7a2f; color: #fff; font-size: 18px; font-weight: bold; padding: 12px 34px; border-radius: 8px; }
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 8px 14px calc(8px + env(safe-area-inset-bottom)); }
+  .savebar .info { flex: 0 1 auto; min-width: 0; line-height: 1.35; }
+  .savebar .where { font-size: 14px; font-weight: bold; color: #1f3864;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  #saveMsg { font-size: 12px; font-weight: bold; white-space: nowrap; }
+  #saveBtn { flex: 0 0 auto; white-space: nowrap; background: #0a7a2f; color: #fff; font-size: 18px; font-weight: bold; padding: 12px 30px; border-radius: 8px; }
+  @media (max-width: 480px) { .savebar { justify-content: space-between; } #saveBtn { padding: 12px 22px; } }
   #saveBtn.dirty { background: #e65c00; animation: pulse 1.4s infinite; }
   @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(230,92,0,.25); } }
   #chartBox { background: #fff; }
@@ -149,8 +153,10 @@
 </div>
 
 <div class="savebar no-print">
-  <span class="where" id="whereOut"></span>
-  <span id="saveMsg"></span>
+  <div class="info">
+    <div class="where" id="whereOut"></div>
+    <div id="saveMsg"></div>
+  </div>
   <button id="saveBtn" onclick="doSave()">💾 保存</button>
 </div>
 
@@ -430,19 +436,21 @@ function doSave() {
   if (ok) {
     dirty = false;
     const d = new Date();
-    showStatus("✓ 保存しました（" + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0") + "）");
+    showStatus("✓ 保存しました " + d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0"));
   } else {
-    showStatus("✕ 保存できません（プライベートモード等）", "#d00");
+    showStatus("✕ 保存できません", "#d00");
   }
 }
 function showStatus(msg, color) {
   const m = document.getElementById("saveMsg"), b = document.getElementById("saveBtn");
-  document.getElementById("whereOut").textContent =
-    siteName_(curSite) + "【" + (curVer === "henko" ? "変更後" : "現状") + "】";
-  if (msg) { m.textContent = msg; m.style.color = color || "#090"; }
-  else if (dirty) { m.textContent = "● 未保存の変更があります"; m.style.color = "#e65c00"; }
-  else if (readLS(slotKey(curSite, curVer))) { m.textContent = "✓ 保存済み"; m.style.color = "#090"; }
-  else { m.textContent = "まだ保存していません"; m.style.color = "#888"; }
+  document.getElementById("whereOut").textContent = siteName_(curSite);
+  const tag = `<span style="color:#c00">【${curVer === "henko" ? "変更後" : "現状"}】</span> `;
+  let t, col;
+  if (msg) { t = msg; col = color || "#090"; }
+  else if (dirty) { t = "● 未保存"; col = "#e65c00"; }
+  else if (readLS(slotKey(curSite, curVer))) { t = "✓ 保存済み"; col = "#090"; }
+  else { t = "未保存（新規）"; col = "#888"; }
+  m.innerHTML = tag + `<span style="color:${col}">${t}</span>`;
   b.classList.toggle("dirty", dirty);
 }
 
@@ -523,7 +531,7 @@ function copyGenjouToHenko() {
   writeLS(slotKey(curSite, "henko"), g);
   curVer = "henko"; verSel.value = "henko";
   loadCurrent();
-  showStatus("✓ 現状を変更後に複製して保存しました");
+  showStatus("✓ 変更後に複製しました");
 }
 function resetFacility() {
   const label = curVer === "henko" ? "変更後" : "現状";
