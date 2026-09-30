@@ -100,6 +100,12 @@
         <input id="docAuthor" type="text" value="" placeholder="作成者"
           style="width:180px" oninput="updMeta()"></div>
     </div>
+    <div class="row" style="margin-top:10px;padding-top:10px;border-top:1px dashed #bbb;align-items:center;">
+      <button class="btn-site" style="background:#0070c0;" onclick="exportBackup()">📤 バックアップ書き出し</button>
+      <button class="btn-site" style="background:#00879e;" onclick="document.getElementById('bkFile').click()">📥 バックアップ読み込み</button>
+      <input type="file" id="bkFile" accept=".json,application/json" style="display:none" onchange="importBackup(this)">
+      <span style="font-size:11px;color:#666;">全現場のデータを1つのファイル（.json）にまとめて、別の端末へ移せます</span>
+    </div>
   </div>
 
   <div class="card util">
@@ -553,6 +559,62 @@ function resetFacility() {
   try { localStorage.removeItem(slotKey(curSite, curVer)); } catch (e) {}
   dirty = false; clearDraft();
   loadCurrent();
+}
+// ===== バックアップ（全現場を1つのJSONファイルへ）=====
+function collectBackup() {
+  const sites = getSites(), data = {};
+  sites.forEach(x => ["genjou", "henko"].forEach(v => {
+    const st = readLS(slotKey(x.id, v));
+    if (st) data[x.id + "_" + v] = st;
+  }));
+  return { app: "hogo-kyocho", format: 1, exported: new Date().toISOString(), sites, data };
+}
+async function exportBackup() {
+  if (dirty && confirm("未保存の変更があります。先に 💾保存 してから書き出しますか？")) doSave();
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  const fname = `hogo_backup_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}.json`;
+  const text = JSON.stringify(collectBackup(), null, 1);
+  const file = new File([text], fname, { type: "application/json" });
+  // スマホ：共有メニュー（AirDrop・LINE・ファイルに保存など）／パソコン：ダウンロード
+  const mobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.userAgent));
+  if (mobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: "保護協調 バックアップ" }); return; }
+    catch (e) { if (e && e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = fname;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+function importBackup(input) {
+  const f = input.files && input.files[0]; input.value = "";
+  if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    let bk;
+    try { bk = JSON.parse(rd.result); } catch (e) { alert("ファイルを読み込めませんでした（JSON形式ではありません）。"); return; }
+    if (!bk || bk.app !== "hogo-kyocho" || !Array.isArray(bk.sites)) { alert("このツールのバックアップファイルではありません。"); return; }
+    const list = getSites();
+    const names = bk.sites.map(x => x.name).join("、");
+    const dup = bk.sites.filter(x => list.some(y => y.id === x.id)).length;
+    if (!confirm(`バックアップ（${bk.sites.length}現場：${names}）を読み込みます。\n` +
+        (dup ? `同じ現場 ${dup}件 はバックアップの内容で上書きされます。\n` : "") +
+        "この端末にだけある現場はそのまま残ります。よろしいですか？")) return;
+    if (!confirmLeave()) return;
+    bk.sites.forEach(x => {
+      const y = list.find(y => y.id === x.id);
+      if (y) y.name = x.name; else list.push({ id: x.id, name: x.name });
+      ["genjou", "henko"].forEach(v => {
+        const st = bk.data && bk.data[x.id + "_" + v];
+        if (st) writeLS(slotKey(x.id, v), st);
+      });
+    });
+    writeLS("pcoord_sites", list);
+    fillSiteSel();
+    loadCurrent();
+    showStatus("✓ バックアップを読み込みました");
+  };
+  rd.readAsText(f);
 }
 window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
 
