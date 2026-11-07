@@ -70,6 +70,8 @@
   .contrib{font-family:"SFMono-Regular",Consolas,monospace;font-size:13.5px;font-weight:700;color:var(--muted);}
   .item.on .contrib{color:var(--blue);}
   .del{border:0;background:#fdeceb;color:#c43c34;font-size:12px;font-weight:700;border-radius:6px;padding:4px 8px;cursor:pointer;font-family:inherit;}
+  .incseg button.on[data-i="0"]{background:#8a949e;}
+  #cableInputs.off{opacity:.35;pointer-events:none;}
   .unitlbl{font-size:10.5px;color:var(--muted);margin-top:2px;}
   .addbar{display:flex;gap:6px;margin-top:2px;}
   .addbar button{flex:1;border:1.5px dashed var(--blue);background:#fff;color:var(--blue);font-size:12.5px;font-weight:700;border-radius:8px;padding:8px 2px;cursor:pointer;font-family:inherit;}
@@ -226,6 +228,11 @@
       <h2>試験対象</h2>
       <div class="item" id="it_cable">
         <div class="item-head"><span class="nm">高圧ケーブル CVT</span><span class="contrib" id="c_cable">— mA</span></div>
+        <div class="seg incseg" id="incseg" style="margin-bottom:6px">
+          <button class="on" data-i="1" onclick="setInc(true)">耐圧に含む</button>
+          <button data-i="0" onclick="setInc(false)">含まない</button>
+        </div>
+        <div id="cableInputs">
         <div class="row">
           <div class="field">
             <select id="cableSize" onchange="onSize()">
@@ -249,6 +256,7 @@
         <div class="field" id="capManualWrap" style="display:none;margin-top:8px">
           <input type="number" id="capManual" value="0.22" step="0.01" min="0" oninput="calc()" placeholder="静電容量 μF/km(1相)">
           <div class="unitlbl">静電容量 μF/km（1相）</div>
+        </div>
         </div>
       </div>
       <div class="subhead">コンデンサ・変圧器（必要なだけ追加）</div>
@@ -374,6 +382,7 @@
 </div>
 
 <script>
+  var INC_CABLE=true;
   var freq = 50, DATASET = 'old', REACT_L = null, rowSeq = 0;
   var CAP = {
     old:{"14":0.16,"22":0.19,"38":0.22,"60":0.26,"100":0.32,"150":0.38,"200":0.39,"250":0.41,"325":0.45},
@@ -469,7 +478,14 @@
   }
   function delItem(id){var e=$(id);if(e)e.parentNode.removeChild(e);calc();}
 
+  function setInc(on){
+    INC_CABLE=!!on;
+    document.querySelectorAll('#incseg button').forEach(function(b){b.classList.toggle('on',(b.dataset.i==='1')===INC_CABLE);});
+    $('cableInputs').classList.toggle('off',!INC_CABLE);
+    calc();
+  }
   function cableMA(volt){
+    if(!INC_CABLE) return 0;
     var len=num('cableLen'); if(len<=0) return 0;
     var c=(val('cableSize')==='manual')?num('capManual'):CAP[DATASET][val('cableSize')];
     return chargeMA(c,len,freq,volt);
@@ -483,7 +499,7 @@
     var vscale=volt/10350;
 
     var cab=cableMA(volt);
-    $('c_cable').textContent=fmt(cab,0)+' mA';
+    $('c_cable').textContent=INC_CABLE?fmt(cab,0)+' mA':'含まない';
     $('it_cable').classList.toggle('on',cab>0);
 
     var equip=0;
@@ -624,11 +640,14 @@
       rows.push({type:el.getAttribute('data-type'),cap:el.querySelector('.rowCap').value,qty:el.querySelector('.rowQty').value});
     });
     var vc=document.querySelector('#vcseg button.on');
-    return {vc:vc?vc.dataset.kv:'6.6',freq:freq,data:DATASET,volt:val('volt'),size:val('cableSize'),len:val('cableLen'),
+    return {inc:INC_CABLE,vc:vc?vc.dataset.kv:'6.6',freq:freq,data:DATASET,volt:val('volt'),size:val('cableSize'),len:val('cableLen'),
       capM:val('capManual'),rows:rows,trafo:val('trafo'),tester:val('tester'),reactor:val('reactor'),reactMA:val('reactMA'),reactQty:val('reactQty')};
   }
   function setState(st){
     restoring=true;
+    INC_CABLE=(st.inc!==false);
+    document.querySelectorAll('#incseg button').forEach(function(b){b.classList.toggle('on',(b.dataset.i==='1')===INC_CABLE);});
+    $('cableInputs').classList.toggle('off',!INC_CABLE);
     document.querySelectorAll('#vcseg button').forEach(function(b){b.classList.toggle('on',b.dataset.kv===st.vc);});
     freq=st.freq||50; document.querySelectorAll('#freqseg button').forEach(function(b){b.classList.toggle('on',Number(b.dataset.f)===freq);});
     DATASET=st.data||'old'; document.querySelectorAll('#dataseg button').forEach(function(b){b.classList.toggle('on',b.dataset.d===DATASET);});
