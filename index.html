@@ -13,235 +13,363 @@
   *{box-sizing:border-box;}
   body{margin:0;font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",YuGothic,"Noto Sans JP",Meiryo,sans-serif;
     background:var(--bg);color:var(--ink);line-height:1.6;-webkit-text-size-adjust:100%;}
-  .wrap{max-width:720px;margin:0 auto;padding:18px 16px 60px;}
-  .stripe{height:8px;background:repeating-linear-gradient(45deg,var(--amber) 0 14px,#1a1f26 14px 28px);border-radius:4px;margin-bottom:18px;}
-  header h1{font-size:20px;margin:0 0 4px;letter-spacing:.01em;}
-  header p{margin:0 0 18px;color:var(--muted);font-size:13px;}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 16px;margin-bottom:16px;}
-  .card h2{font-size:13px;margin:0 0 14px;color:var(--blue);font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:8px;}
-  .card h2::before{content:"";width:6px;height:16px;background:var(--blue);border-radius:2px;display:inline-block;}
-  .field{margin-bottom:14px;} .field:last-child{margin-bottom:0;}
-  label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
-  label .hint{font-weight:400;color:var(--muted);font-size:11px;margin-left:4px;}
-  select,input[type=number]{width:100%;padding:11px 12px;font-size:16px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-family:inherit;}
-  select:focus,input:focus{outline:none;border-color:var(--blue);}
-  .row{display:flex;gap:10px;} .row > .field{flex:1;margin-bottom:0;}
-  .seg{display:flex;border:1.5px solid var(--line);border-radius:9px;overflow:hidden;}
-  .seg button{flex:1;border:0;background:#fff;padding:11px 4px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;font-family:inherit;}
-  .seg button.on{background:var(--blue);color:#fff;}
+  .wrap{max-width:720px;margin:0 auto;padding:0 12px 60px;}
 
-  .item{border:1px solid var(--line);border-radius:11px;padding:12px;margin-bottom:11px;}
-  .item.on{border-color:var(--blue);background:#fafcff;}
-  .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:9px;}
-  .item-head .nm{font-size:13.5px;font-weight:700;}
-  .item-head .contrib{font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;font-weight:700;color:var(--muted);}
-  .item.on .item-head .contrib{color:var(--blue);}
-  .item-head .del{border:0;background:#fdeceb;color:#c43c34;font-size:12px;font-weight:700;border-radius:6px;padding:5px 9px;cursor:pointer;font-family:inherit;}
-  .contribLine{font-size:12px;color:var(--muted);margin-top:7px;}
-  .contribLine .rowContrib{font-family:"SFMono-Regular",Consolas,monospace;font-weight:700;color:var(--blue);}
-
-  .addbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;}
-  .addbar button{flex:1;min-width:120px;border:1.5px dashed var(--blue);background:#fff;color:var(--blue);
-    font-size:13px;font-weight:700;border-radius:9px;padding:10px 6px;cursor:pointer;font-family:inherit;}
-  .addbar button:active{background:var(--blue-soft);}
-
-  .panel{background:var(--panel);border-radius:14px;padding:20px 18px;margin-bottom:16px;color:#dfe6ee;}
-  .panel .big{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:46px;font-weight:700;line-height:1;letter-spacing:-.01em;color:var(--ok);}
-  .panel .big .u{font-size:18px;color:#8fa0b3;margin-left:6px;font-weight:500;}
-  .panel .biglabel{font-size:12px;color:#8fa0b3;letter-spacing:.05em;margin-bottom:8px;}
-  .panel .sub{display:flex;gap:14px;margin-top:16px;flex-wrap:wrap;border-top:1px solid #25303c;padding-top:14px;}
-  .panel .sub div{flex:1;min-width:92px;}
-  .panel .sub .n{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:21px;font-weight:600;color:#eef3f8;}
-  .panel .sub .n.net{color:var(--ok);}
-  .panel .sub .l{font-size:11px;color:#8fa0b3;letter-spacing:.03em;}
-  .verdict{margin-top:16px;border-radius:10px;padding:13px 14px;font-size:14px;font-weight:700;display:flex;align-items:flex-start;gap:9px;line-height:1.5;}
-  .verdict .dot{width:11px;height:11px;border-radius:50%;margin-top:5px;flex:none;}
+  /* 上部固定：結果バー＋タブ */
+  .top{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:8px;margin:0 -12px;padding-left:12px;padding-right:12px;}
+  .stripe{height:5px;background:repeating-linear-gradient(45deg,var(--amber) 0 12px,#1a1f26 12px 24px);border-radius:3px;margin-bottom:8px;}
+  .panel{background:var(--panel);border-radius:12px;padding:10px 14px;color:#dfe6ee;}
+  .pmain{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;}
+  .biglabel{font-size:10.5px;color:#8fa0b3;letter-spacing:.04em;}
+  .big{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:34px;font-weight:700;line-height:1.05;color:var(--ok);}
+  .big .u{font-size:14px;color:#8fa0b3;margin-left:4px;font-weight:500;}
+  .netbox{text-align:right;}
+  .netbox .n{font-family:"SFMono-Regular",Consolas,monospace;font-size:20px;font-weight:700;color:#eef3f8;line-height:1.1;}
+  .netbox .n small{font-size:12px;color:#8fa0b3;font-weight:500;}
+  .verdict{margin-top:8px;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;display:flex;align-items:flex-start;gap:8px;line-height:1.45;}
+  .verdict .dot{width:10px;height:10px;border-radius:50%;margin-top:4px;flex:none;}
   .v-ok{background:rgba(82,217,138,.13);color:#9bf0c0;} .v-ok .dot{background:var(--ok);}
   .v-warn{background:rgba(255,194,77,.13);color:#ffd98a;} .v-warn .dot{background:var(--warn);}
   .v-over{background:rgba(255,107,107,.14);color:#ffb3b3;} .v-over .dot{background:var(--over);}
-  .verdict small{display:block;font-weight:500;color:#9fb0c2;margin-top:3px;font-size:12px;}
+  .verdict small{display:block;font-weight:500;color:#9fb0c2;font-size:11.5px;}
+  .moreBtn{display:block;width:100%;margin-top:6px;background:none;border:0;color:#8fa0b3;font-size:11.5px;cursor:pointer;font-family:inherit;padding:2px;}
+  .sub{display:none;gap:8px;margin-top:6px;flex-wrap:wrap;border-top:1px solid #25303c;padding-top:8px;}
+  .panel.open .sub{display:flex;}
+  .sub div{flex:1 1 30%;min-width:80px;}
+  .sub .n{font-family:"SFMono-Regular",Consolas,monospace;font-size:16px;font-weight:600;color:#eef3f8;}
+  .sub .l{font-size:10.5px;color:#8fa0b3;}
+  .miniTimer{display:none;margin-top:6px;font-size:12px;color:#ffd98a;font-weight:700;text-align:center;cursor:pointer;}
+  .miniTimer.show{display:block;}
+
+  .tabs{display:flex;gap:4px;margin:8px 0 0;border-bottom:2px solid var(--line);}
+  .tabs button{flex:1;border:0;background:none;padding:9px 4px 8px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;border-bottom:3px solid transparent;margin-bottom:-2px;}
+  .tabs button.on{color:var(--blue);border-bottom-color:var(--blue);}
+  .tabpage{display:none;padding-top:12px;} .tabpage.on{display:block;}
+
+  /* カード */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px;}
+  .card h2{font-size:12.5px;margin:0 0 10px;color:var(--blue);font-weight:700;letter-spacing:.04em;display:flex;align-items:center;gap:7px;}
+  .card h2::before{content:"";width:5px;height:14px;background:var(--blue);border-radius:2px;display:inline-block;}
+  .field{margin-bottom:10px;} .field:last-child{margin-bottom:0;}
+  label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--muted);}
+  label .hint{font-weight:400;font-size:10.5px;margin-left:3px;}
+  select,input[type=number]{width:100%;padding:9px 10px;font-size:16px;border:1.5px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-family:inherit;}
+  select:focus,input:focus{outline:none;border-color:var(--blue);}
+  .row{display:flex;gap:8px;} .row > .field{flex:1;margin-bottom:0;}
+  .seg{display:flex;border:1.5px solid var(--line);border-radius:8px;overflow:hidden;}
+  .seg button{flex:1;border:0;background:#fff;padding:8px 2px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:inherit;}
+  .seg button.on{background:var(--blue);color:#fff;}
+  .cond{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+  .cond .field{margin:0;}
+
+  .item{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;}
+  .item.on{border-color:var(--blue);background:#fafcff;}
+  .item-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:8px;}
+  .item-head .nm{font-size:13px;font-weight:700;}
+  .item-head .right{display:flex;align-items:center;gap:8px;}
+  .contrib{font-family:"SFMono-Regular",Consolas,monospace;font-size:13.5px;font-weight:700;color:var(--muted);}
+  .item.on .contrib{color:var(--blue);}
+  .del{border:0;background:#fdeceb;color:#c43c34;font-size:12px;font-weight:700;border-radius:6px;padding:4px 8px;cursor:pointer;font-family:inherit;}
+  .unitlbl{font-size:10.5px;color:var(--muted);margin-top:2px;}
+  .addbar{display:flex;gap:6px;margin-top:2px;}
+  .addbar button{flex:1;border:1.5px dashed var(--blue);background:#fff;color:var(--blue);font-size:12.5px;font-weight:700;border-radius:8px;padding:8px 2px;cursor:pointer;font-family:inherit;}
+  .addbar button:active{background:var(--blue-soft);}
 
   table{width:100%;border-collapse:collapse;font-size:13px;}
-  th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--line);}
+  th,td{padding:7px 4px;text-align:center;border-bottom:1px solid var(--line);}
   th{color:var(--muted);font-weight:600;font-size:11px;background:var(--blue-soft);}
   td.size{font-weight:700;color:var(--blue);background:#fafbfc;}
   td.hot{background:#fff0ef;color:var(--over);font-weight:700;}
   .tablenote{font-size:11px;color:var(--muted);margin-top:8px;}
-  .note{font-size:12px;color:var(--muted);line-height:1.65;} .note b{color:var(--ink);}
+  .note{font-size:12px;color:var(--muted);line-height:1.65;margin:0;} .note b{color:var(--ink);}
   details{margin-top:6px;} summary{font-size:13px;font-weight:600;color:var(--blue);cursor:pointer;padding:6px 0;}
   details p{font-size:12.5px;color:var(--muted);margin:6px 0;}
   .eq{font-family:"SFMono-Regular",Consolas,monospace;background:#f0f2ee;padding:2px 6px;border-radius:4px;font-size:12px;color:var(--ink);}
-  .kit{background:var(--blue-soft);border-radius:9px;padding:10px 12px;font-size:12px;color:#27425f;margin-bottom:14px;line-height:1.7;}
-  .kit b{color:var(--blue);} .kit .set{display:block;margin-top:4px;}
-  .subhead{font-size:12px;font-weight:700;color:var(--muted);margin:16px 0 8px;}
+  .kit{background:var(--blue-soft);border-radius:8px;padding:8px 10px;font-size:11.5px;color:#27425f;margin-bottom:10px;line-height:1.65;}
+  .kit b{color:var(--blue);} .kit .set{display:block;}
+  .subhead{font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 6px;}
+
+  /* タイマー */
+  .tmr{background:var(--panel);border-radius:14px;padding:14px;text-align:center;color:#dfe6ee;}
+  .tmr .cl{font-size:11px;color:#8fa0b3;letter-spacing:.04em;}
+  .clockrow{display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid #25303c;padding-bottom:10px;}
+  .clockrow > div{flex:1;}
+  .clockrow .cv{font-family:"SFMono-Regular",Consolas,monospace;font-size:20px;font-weight:700;color:#eef3f8;}
+  .clockrow .cv.end{color:var(--warn);}
+  .tmr .state{font-size:13px;color:#8fa0b3;font-weight:700;letter-spacing:.05em;min-height:20px;}
+  .tmr .digits{font-family:"SFMono-Regular",Consolas,"Roboto Mono",monospace;font-size:80px;font-weight:700;line-height:1.05;color:#eef3f8;}
+  .tmr.run .digits{color:var(--ok);}
+  .tmr.pause .digits{color:var(--warn);}
+  .tmr.done .digits{color:var(--over);animation:blink 1s steps(2) infinite;}
+  @keyframes blink{50%{opacity:.25;}}
+  .tmr .bar{height:8px;background:#25303c;border-radius:4px;overflow:hidden;margin:10px 0 6px;}
+  .tmr .bar i{display:block;height:100%;width:0;background:var(--ok);}
+  .tmr .remain{font-size:15px;color:#8fa0b3;font-weight:700;}
+  .tmr .remain span{font-family:"SFMono-Regular",Consolas,monospace;color:#dfe6ee;font-size:18px;}
+  .tbtns{display:flex;gap:8px;margin-top:14px;}
+  .tbtns button{flex:1;border:0;border-radius:10px;padding:16px 4px;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit;}
+  .b-start{background:var(--ok);color:#0b2416;}
+  .b-start.pause{background:var(--warn);color:#2e2200;}
+  .b-reset{background:#2a3542;color:#dfe6ee;}
+  .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .swt{font-size:15px;font-weight:700;}
+  .swd{font-size:11.5px;color:var(--muted);}
+  .toggle{position:relative;width:58px;height:32px;flex:none;margin:0;}
+  .toggle input{opacity:0;width:0;height:0;}
+  .toggle span{position:absolute;inset:0;background:#c9cfc8;border-radius:16px;transition:.2s;cursor:pointer;}
+  .toggle span::before{content:"";position:absolute;width:26px;height:26px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3);}
+  .toggle input:checked + span{background:var(--blue);}
+  .toggle input:checked + span::before{transform:translateX(26px);}
+  .savebar{display:flex;gap:6px;}
+  .savebar select{flex:1;font-size:14px;padding:8px;}
+  .btn{border:1.5px solid var(--blue);background:#fff;color:var(--blue);font-size:13px;font-weight:700;border-radius:8px;padding:8px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;}
+  .btn.fill{background:var(--blue);color:#fff;}
+  .btn.red{border-color:#e3b4b0;color:#c43c34;}
+  .btn.sm{padding:5px 8px;font-size:12px;}
+  .btn.armed,.b-reset.armed{background:#c43c34 !important;color:#fff !important;border-color:#c43c34 !important;}
+  .kitrow{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;}
+  .kitrow .row{margin-top:6px;}
+  .kitrow input[type=text]{width:100%;padding:9px 10px;font-size:15px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;}
+  .kitrow .kh{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-weight:700;}
+  .saveinfo{font-size:11.5px;color:var(--muted);margin-top:6px;}
+  .log{font-size:12.5px;color:var(--muted);margin:0;padding-left:18px;}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div class="stripe"></div>
-  <header>
-    <h1>耐圧試験 試験器・リアクトル選定ツール</h1>
-    <p>試験対象を組み合わせ・台数・追加して、合計充電電流とリアクトル要否を自動判定します。</p>
-  </header>
 
-  <!-- 試験条件 -->
-  <div class="card">
-    <h2>試験条件</h2>
-    <div class="field">
-      <label>電圧区分</label>
-      <div class="seg" id="vcseg">
-        <button class="on" data-kv="6.6" onclick="setVclass('6.6')">6.6 kV（10,350V）</button>
-        <button data-kv="3.3" onclick="setVclass('3.3')">3.3 kV（5,175V）</button>
-      </div>
-    </div>
-    <div class="row">
-      <div class="field">
-        <label>周波数</label>
-        <div class="seg" id="freqseg">
-          <button class="on" data-f="50" onclick="setFreq(50)">50 Hz</button>
-          <button data-f="60" onclick="setFreq(60)">60 Hz</button>
+  <div class="top">
+    <div class="stripe"></div>
+    <div class="panel" id="panel">
+      <div class="pmain">
+        <div>
+          <div class="biglabel">合計充電電流</div>
+          <div class="big"><span id="ic">—</span><span class="u">mA</span></div>
+        </div>
+        <div class="netbox">
+          <div class="biglabel">試験器の負担 / 許容</div>
+          <div class="n"><span id="o_net">—</span> <small>/ <span id="o_tester2">—</span> mA</small></div>
         </div>
       </div>
-      <div class="field">
-        <label>試験電圧<span class="hint">（V・自動・編集可）</span></label>
-        <input type="number" id="volt" value="10350" step="25" min="0" oninput="calc()">
+      <div class="verdict v-ok" id="verdict">
+        <span class="dot"></span><span id="vtext">入力すると判定します</span>
       </div>
+      <div class="sub">
+        <div><div class="n" id="o_cable">—</div><div class="l">ケーブル分 mA</div></div>
+        <div><div class="n" id="o_equip">—</div><div class="l">機器分 mA</div></div>
+        <div><div class="n" id="kva">—</div><div class="l">必要容量 kVA</div></div>
+        <div><div class="n" id="o_tester">—</div><div class="l">試験器の許容 mA</div></div>
+        <div><div class="n" id="o_react">—</div><div class="l">リアクトル補償 mA</div></div>
+        <div><div class="n" id="o_volt">—</div><div class="l">試験電圧 V</div></div>
+      </div>
+      <button class="moreBtn" id="moreBtn" onclick="toggleMore()">▼ 内訳を見る</button>
+      <div class="miniTimer" id="miniTimer" onclick="showTab('timer')">⏱ <span id="miniTxt">0:00</span>（タップでタイマーへ）</div>
     </div>
-    <p class="note" style="margin-top:10px">※交流耐圧は10分間。6.6kV→10,350V、3.3kV→5,175V。群馬は50Hzです。</p>
+    <div class="tabs" id="tabs">
+      <button class="on" data-t="calc" onclick="showTab('calc')">計算</button>
+      <button data-t="table" onclick="showTab('table')">早見表</button>
+      <button data-t="timer" onclick="showTab('timer')">⏱ タイマー</button>
+      <button data-t="kit" onclick="showTab('kit')">試験器</button>
+    </div>
   </div>
 
-  <!-- 試験対象 -->
-  <div class="card">
-    <h2>試験対象を選ぶ（組み合わせ・台数・追加OK）</h2>
-
-    <div class="field">
-      <label>ケーブルの静電容量データ<span class="hint">（旧JISは実測寄り）</span></label>
-      <div class="seg" id="dataseg">
-        <button class="on" data-d="old" onclick="setData('old')">旧JIS(1971)</button>
-        <button data-d="now" onclick="setData('now')">現行JIS(2022)</button>
+  <div class="tabpage on" id="tab_calc">
+    <div class="card">
+      <h2>保存・呼び出し</h2>
+      <div class="savebar">
+        <select id="savedSel"><option value="">― 保存した選定 ―</option></select>
+        <button class="btn" onclick="loadSaved()">開く</button>
+        <button class="btn red" onclick="delSaved(this)">削除</button>
+      </div>
+      <div class="savebar" style="margin-top:6px">
+        <input type="text" id="saveName" placeholder="保存名（例：〇〇工場 第2変電所）" style="flex:1;min-width:0;padding:8px 10px;font-size:15px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;">
+      </div>
+      <div class="savebar" style="margin-top:6px">
+        <button class="btn fill" style="flex:1" onclick="saveCurrent()">💾 今の選定を保存</button>
+        <button class="btn" onclick="clearInputs(this)">入力をクリア</button>
+      </div>
+      <div class="saveinfo" id="saveMsg" style="color:var(--blue);font-weight:700"></div>
+      <div class="saveinfo">前回の入力は自動で残り、次に開いたときに復元されます。保存はこのスマホ（ブラウザ）の中だけです。</div>
+    </div>
+    <div class="card">
+      <h2>試験条件</h2>
+      <div class="cond">
+        <div class="field">
+          <label>電圧区分</label>
+          <div class="seg" id="vcseg">
+            <button class="on" data-kv="6.6" onclick="setVclass('6.6')">6.6kV</button>
+            <button data-kv="3.3" onclick="setVclass('3.3')">3.3kV</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>周波数</label>
+          <div class="seg" id="freqseg">
+            <button class="on" data-f="50" onclick="setFreq(50)">50Hz</button>
+            <button data-f="60" onclick="setFreq(60)">60Hz</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>静電容量データ</label>
+          <div class="seg" id="dataseg">
+            <button class="on" data-d="old" onclick="setData('old')">旧JIS</button>
+            <button data-d="now" onclick="setData('now')">現行JIS</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>試験電圧 V<span class="hint">（自動・編集可）</span></label>
+          <input type="number" id="volt" value="10350" step="25" min="0" oninput="calc()">
+        </div>
       </div>
     </div>
 
-    <!-- ケーブル（単一） -->
-    <div class="item" id="it_cable">
-      <div class="item-head"><span class="nm">高圧ケーブル CVT</span><span class="contrib" id="c_cable">— mA</span></div>
+    <div class="card">
+      <h2>試験対象</h2>
+      <div class="item" id="it_cable">
+        <div class="item-head"><span class="nm">高圧ケーブル CVT</span><span class="contrib" id="c_cable">— mA</span></div>
+        <div class="row">
+          <div class="field">
+            <select id="cableSize" onchange="onSize()">
+              <option value="14">14 sq</option>
+              <option value="22">22 sq</option>
+              <option value="38" selected>38 sq</option>
+              <option value="60">60 sq</option>
+              <option value="100">100 sq</option>
+              <option value="150">150 sq</option>
+              <option value="200">200 sq</option>
+              <option value="250">250 sq</option>
+              <option value="325">325 sq</option>
+              <option value="manual">▼ 実測値を手入力</option>
+            </select>
+          </div>
+          <div class="field">
+            <input type="number" id="cableLen" value="100" step="1" min="0" oninput="calc()" placeholder="長さ m">
+            <div class="unitlbl">長さ m（0で除外）</div>
+          </div>
+        </div>
+        <div class="field" id="capManualWrap" style="display:none;margin-top:8px">
+          <input type="number" id="capManual" value="0.22" step="0.01" min="0" oninput="calc()" placeholder="静電容量 μF/km(1相)">
+          <div class="unitlbl">静電容量 μF/km（1相）</div>
+        </div>
+      </div>
+      <div class="subhead">コンデンサ・変圧器（必要なだけ追加）</div>
+      <div id="equipList"></div>
+      <div class="addbar">
+        <button onclick="addItem('cap')">＋コンデンサ</button>
+        <button onclick="addItem('tr1')">＋単相変圧器</button>
+        <button onclick="addItem('tr3')">＋三相変圧器</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>手持ちの試験器</h2>
+      <div class="kit">試験器・リアクトルは「<b>試験器</b>」タブで追加・編集できます。</div>
       <div class="row">
         <div class="field">
-          <select id="cableSize" onchange="onSize()">
-            <option value="14">14 sq</option>
-            <option value="22">22 sq</option>
-            <option value="38" selected>38 sq</option>
-            <option value="60">60 sq</option>
-            <option value="100">100 sq</option>
-            <option value="150">150 sq</option>
-            <option value="200">200 sq</option>
-            <option value="250">250 sq</option>
-            <option value="325">325 sq</option>
-            <option value="manual">▼ 実測値を手入力</option>
-          </select>
-        </div>
-        <div class="field"><input type="number" id="cableLen" value="100" step="1" min="0" oninput="calc()" placeholder="長さ m"></div>
-      </div>
-      <div class="field" id="capManualWrap" style="display:none;margin-top:10px">
-        <input type="number" id="capManual" value="0.22" step="0.01" min="0" oninput="calc()" placeholder="静電容量 μF/km(1相)">
-      </div>
-      <div class="contribLine">サイズ＋長さ(m)。長さ0で除外。</div>
-    </div>
-
-    <!-- 機器（追加式） -->
-    <div class="subhead">コンデンサ・変圧器（必要なだけ追加）</div>
-    <div id="equipList"></div>
-    <div class="addbar">
-      <button onclick="addItem('cap')">＋ コンデンサ</button>
-      <button onclick="addItem('tr1')">＋ 単相変圧器</button>
-      <button onclick="addItem('tr3')">＋ 三相変圧器</button>
-    </div>
-  </div>
-
-  <!-- 試験器 -->
-  <div class="card">
-    <h2>手持ちの試験器を選ぶ</h2>
-    <div class="kit">
-      登録済みセット：
-      <span class="set">①<b>IP-R3</b>＋<b>R-1230</b>（3kVA/12kV・許容250mA）＋<b>DR-1230M</b>（130H）／ムサシ電機計器</span>
-      <span class="set">②<b>BCT-25K</b>＋<b>T-13K15</b>（約1.95kVA/13kV・許容150mA）＋<b>L-13K</b>（209mA級）／双興電機</span>
-    </div>
-    <div class="field">
-      <label>昇圧トランス</label>
-      <select id="trafo" onchange="onTrafo()">
-        <option value="250" selected>① IP-R3＋R-1230（許容250mA）</option>
-        <option value="150">② BCT-25K＋T-13K15（許容150mA）</option>
-        <option value="manual">▼ 許容電流を手入力</option>
-      </select>
-    </div>
-    <div class="field">
-      <label>試験器の許容充電電流<span class="hint">（mA・自動・編集可）</span></label>
-      <input type="number" id="tester" value="250" step="10" min="0" oninput="calc()">
-    </div>
-    <div class="field">
-      <label>リアクトル</label>
-      <select id="reactor" onchange="onReactor()">
-        <option value="none" selected>なし</option>
-        <option value="130">① DR-1230M（ムサシ・130H）</option>
-        <option value="158">② L-13K（双興・209mA級）</option>
-        <option value="manual">▼ 補償電流を手入力</option>
-      </select>
-    </div>
-    <div id="reactWrap" style="display:none">
-      <div class="row">
-        <div class="field">
-          <label>1台あたり補償電流<span class="hint">（mA・自動/編集可）</span></label>
-          <input type="number" id="reactMA" value="0" step="10" min="0" oninput="calc()">
+          <label>昇圧トランス</label>
+          <select id="trafo" onchange="onTrafo()"></select>
         </div>
         <div class="field">
-          <label>リアクトル台数<span class="hint">（並列）</span></label>
-          <input type="number" id="reactQty" value="1" step="1" min="1" oninput="calc()">
+          <label>許容電流 mA<span class="hint">（編集可）</span></label>
+          <input type="number" id="tester" value="250" step="10" min="0" oninput="calc()">
         </div>
       </div>
-      <p class="note" style="margin-top:8px">並列で台数を増やすと補償電流が台数分ふえます。ただし<b>試験器セットの約2倍を超える</b>組み合わせは現場により試験不可の場合あり（メーカー注意事項）。</p>
+      <div class="field" style="margin-top:10px">
+        <label>リアクトル</label>
+        <select id="reactor" onchange="onReactor()"></select>
+      </div>
+      <div id="reactWrap" style="display:none">
+        <div class="row">
+          <div class="field">
+            <label>1台の補償 mA</label>
+            <input type="number" id="reactMA" value="0" step="10" min="0" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>台数（並列）</label>
+            <input type="number" id="reactQty" value="1" step="1" min="1" oninput="calc()">
+          </div>
+        </div>
+        <p class="note" style="margin-top:6px">並列で補償電流が台数分ふえます。<b>試験器セットの約2倍を超える</b>組み合わせは現場により試験不可の場合あり（メーカー注意事項）。</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>判定が「超過」のときの対処</h2>
+      <p class="note">
+        ① <b>リアクトルを入れる</b>　② <b>許容電流の大きい試験器</b>に変える（双興150mA→ムサシ250mA等）<br>
+        ③ ケーブルと機器を<b>分割して印加</b>する　④ ケーブルは<b>直流</b>で印加
+      </p>
+      <details>
+        <summary>データの出典と計算の中身</summary>
+        <p>合計 ＝ ケーブル ＋ 追加した機器すべて（容量性でほぼ同相のため加算）。負担 ＝ 合計 − リアクトル補償。</p>
+        <p>ケーブル：<span class="eq">I=2πfCV</span>。旧JIS(1971)＝提供資料に整合（38sq=214mA/100m＝0.22μF/km・50Hz・10,350V）。3.3kVは試験電圧5,175Vで自動計算（3.3kVケーブルの静電容量は実測値の入力推奨）。</p>
+        <p>機器：提供資料の1台あたり充電電流(mA・6kV/10,350V)×台数。<b>3.3kV(5,175V)選択時は電圧比（×0.5）で換算した概算</b>です。</p>
+        <p>許容：R-1230＝250mA、T-13K15＝150mA。リアクトル補償＝試験電圧÷(2πf×L)×台数。最終は現地実測で確認してください。</p>
+      </details>
     </div>
   </div>
 
-  <!-- 結果 -->
-  <div class="panel">
-    <div class="biglabel">合計充電電流（試験対象すべて）</div>
-    <div class="big"><span id="ic">—</span><span class="u">mA</span></div>
-    <div class="sub">
-      <div><div class="n" id="o_cable">—</div><div class="l">ケーブル分 mA</div></div>
-      <div><div class="n" id="o_equip">—</div><div class="l">機器分 mA</div></div>
-      <div><div class="n" id="kva">—</div><div class="l">必要容量 kVA</div></div>
-    </div>
-    <div class="sub">
-      <div><div class="n" id="o_tester">—</div><div class="l">試験器の許容 mA</div></div>
-      <div><div class="n" id="o_react">—</div><div class="l">リアクトル補償 mA</div></div>
-      <div><div class="n net" id="o_net">—</div><div class="l">試験器の負担 mA</div></div>
-    </div>
-    <div class="verdict v-ok" id="verdict">
-      <span class="dot"></span><span id="vtext">入力すると判定します</span>
+  <div class="tabpage" id="tab_table">
+    <div class="card">
+      <h2>ケーブル充電電流 早見表（mA・現在の条件）</h2>
+      <table id="reftable"></table>
+      <p class="tablenote">赤いセル＝<b>試験器の負担</b>（合計−リアクトル補償）が許容（<span id="tcap2">250</span>mA）を超える組み合わせ。追加した機器分も加味しています。</p>
     </div>
   </div>
 
-  <!-- 早見表 -->
-  <div class="card">
-    <h2>ケーブル充電電流 早見表（mA・現在の条件）</h2>
-    <table id="reftable"></table>
-    <p class="tablenote">赤いセル＝<b>試験器の負担</b>（合計−リアクトル補償）が許容（<span id="tcap2">250</span>mA）を超える組み合わせ。機器分も加味しています。</p>
+  <div class="tabpage" id="tab_kit">
+    <div class="card">
+      <h2>昇圧トランス（試験器）</h2>
+      <div id="trList"></div>
+      <button class="btn" style="width:100%;border-style:dashed" onclick="addTr()">＋ 試験器を追加</button>
+    </div>
+    <div class="card">
+      <h2>リアクトル</h2>
+      <div id="rxList"></div>
+      <button class="btn" style="width:100%;border-style:dashed" onclick="addRx()">＋ リアクトルを追加</button>
+      <p class="note" style="margin-top:8px">インダクタンス（H）を入れると、試験電圧と周波数から補償電流を自動計算します。Hが分からないときは0にして、補償電流（mA）を直接入れてください。</p>
+    </div>
+    <div class="card">
+      <div class="savebar">
+        <button class="btn fill" style="flex:1" onclick="saveKit()">💾 リストを保存</button>
+        <button class="btn red" onclick="resetKit(this)">初期に戻す</button>
+      </div>
+      <div class="saveinfo" id="kitMsg">変更したら「リストを保存」を押してください。</div>
+    </div>
   </div>
 
-  <!-- 補足 -->
-  <div class="card">
-    <h2>判定が「超過」のときの対処</h2>
-    <p class="note">
-      ① <b>リアクトルを入れる</b>　② <b>許容電流の大きい試験器</b>に変える（双興150mA→ムサシ250mA等）<br>
-      ③ ケーブルと機器を<b>分割して印加</b>する　④ ケーブルは<b>直流</b>で印加
-    </p>
-    <details>
-      <summary>データの出典と計算の中身</summary>
-      <p>合計 ＝ ケーブル ＋ 追加した機器すべて（容量性でほぼ同相のため加算）。負担 ＝ 合計 − リアクトル補償。</p>
-      <p>ケーブル：<span class="eq">I=2πfCV</span>。旧JIS(1971)＝提供資料に整合（38sq=214mA/100m＝0.22μF/km・50Hz・10,350V）。3.3kVは試験電圧5,175Vで自動計算（3.3kVケーブルの静電容量は実測値の入力推奨）。</p>
-      <p>機器：提供資料の1台あたり充電電流(mA・6kV/10,350V)×台数。<b>3.3kV(5,175V)選択時は電圧比（×0.5）で換算した概算</b>です。3.3kV機器の実測表があれば差し替え可能です。</p>
-      <p>許容：R-1230＝250mA、T-13K15＝150mA。リアクトル補償＝試験電圧÷(2πf×L)。最終は現地実測で確認してください。</p>
-    </details>
+  <div class="tabpage" id="tab_timer">
+    <div class="tmr" id="tmr">
+      <div class="clockrow">
+        <div><div class="cl">現在時刻</div><div class="cv" id="tNow">--:--:--</div></div>
+        <div><div class="cl">開始</div><div class="cv" id="tStartTime">--:--</div></div>
+        <div><div class="cl" id="tEndLbl">終了予定</div><div class="cv end" id="tEndTime">--:--</div></div>
+      </div>
+      <div class="state" id="tState">待機中（10分）</div>
+      <div class="cl">経過時間</div>
+      <div class="digits" id="tDigits">0:00</div>
+      <div class="bar"><i id="tBar"></i></div>
+      <div class="remain">残り <span id="tRemainTxt">10:00</span></div>
+      <div class="tbtns">
+        <button class="b-start" id="tStart" onclick="tToggle()">▶ 試験開始</button>
+        <button class="b-reset" onclick="tResetBtn(this)">↺ リセット</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="sw">
+        <div>
+          <div class="swt">🔊 音声案内</div>
+          <div class="swd">「試験開始」→ 30秒ごとに「〇分〇〇秒経過」→「試験終了」</div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="tVoice" checked onchange="onVoice()"><span></span></label>
+      </div>
+      <p class="note" style="margin-top:8px">※マナーモードや音量が小さいと聞こえません。動作中は画面が消えにくくなるよう設定します（対応ブラウザのみ）。他のタブを見ていても計測は続き、上の黒い枠に経過時間が出ます。</p>
+    </div>
+
+    <div class="card">
+      <h2>今回の記録</h2>
+      <ol class="log" id="tLog"><li style="list-style:none;margin-left:-18px">まだありません</li></ol>
+    </div>
   </div>
 </div>
 
@@ -252,7 +380,6 @@
     now:{"14":0.24,"22":0.27,"38":0.32,"60":0.37,"100":0.45,"150":0.52,"200":0.51,"250":0.55,"325":0.61}
   };
   var SIZES=["14","22","38","60","100","150","200","250","325"], LENGTHS=[50,100,150,200,300];
-  // 1台あたり充電電流 mA（提供資料・6kV/10350V・50Hz）
   var CAPACITOR={10:2.4,15:3.5,20:4.8,25:5.9,30:7.1,50:11.8,75:17.8,100:23.7,150:35.6,200:47.8};
   var TR1={10:3.3,20:3.8,30:10.8,50:12.2,75:16.5,100:13.2,150:14.6,200:14.1,300:16.5,500:16.4};
   var TR3={10:11.3,20:12.7,30:16.9,50:17.4,75:17.9,100:19.7,150:19.7,200:19.7,300:13.6,500:17.9};
@@ -263,25 +390,37 @@
   };
   var DEFCAP={cap:'50',tr1:'50',tr3:'50'};
 
-  function val(id){return document.getElementById(id).value;}
-  function num(id){return parseFloat(document.getElementById(id).value)||0;}
+  function $(id){return document.getElementById(id);}
+  function val(id){return $(id).value;}
+  function num(id){return parseFloat($(id).value)||0;}
   function fmt(n,d){if(!isFinite(n))return "—";return n.toLocaleString('ja-JP',{minimumFractionDigits:d,maximumFractionDigits:d});}
   function chargeMA(c,len,f,v){return 2*Math.PI*f*(c*(len/1000)*3*1e-6)*v*1000;}
 
+  function showTab(t){
+    document.querySelectorAll('#tabs button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t);});
+    document.querySelectorAll('.tabpage').forEach(function(p){p.classList.toggle('on',p.id==='tab_'+t);});
+    try{window.scrollTo(0,0);}catch(e){}
+    updateMini();
+  }
+  function toggleMore(){
+    var p=$('panel'); p.classList.toggle('open');
+    $('moreBtn').textContent=p.classList.contains('open')?'▲ 内訳を閉じる':'▼ 内訳を見る';
+  }
+
   function setVclass(kv){
     document.querySelectorAll('#vcseg button').forEach(function(b){b.classList.toggle('on',b.dataset.kv===kv);});
-    document.getElementById('volt').value = (kv==='6.6')?10350:5175;
+    $('volt').value=(kv==='6.6')?10350:5175;
     calc();
   }
   function setData(d){
     DATASET=d;
     document.querySelectorAll('#dataseg button').forEach(function(b){b.classList.toggle('on',b.dataset.d===d);});
-    if(val('cableSize')!=='manual'){document.getElementById('capManual').value=CAP[d][val('cableSize')];}
+    if(val('cableSize')!=='manual'){$('capManual').value=CAP[d][val('cableSize')];}
     calc();
   }
   function onSize(){
-    var v=val('cableSize'), wrap=document.getElementById('capManualWrap'), cm=document.getElementById('capManual');
-    if(v==='manual'){wrap.style.display='block';cm.readOnly=false;cm.focus();}
+    var v=val('cableSize'), wrap=$('capManualWrap'), cm=$('capManual');
+    if(v==='manual'){wrap.style.display='block';cm.focus();}
     else {wrap.style.display='none';cm.value=CAP[DATASET][v];}
     calc();
   }
@@ -291,40 +430,44 @@
     syncReactor(); calc();
   }
   function onTrafo(){
-    if(val('trafo')!=='manual'){document.getElementById('tester').value=val('trafo');} else {document.getElementById('tester').focus();}
+    var t=findById(KIT.tr,val('trafo'));
+    if(t){$('tester').value=t.ma;} else {$('tester').focus();}
     calc();
   }
   function onReactor(){
-    var v=val('reactor'), wrap=document.getElementById('reactWrap'), ma=document.getElementById('reactMA');
+    var v=val('reactor'), wrap=$('reactWrap'), ma=$('reactMA');
     if(v==='none'){REACT_L=null;wrap.style.display='none';ma.value=0;}
     else if(v==='manual'){REACT_L=null;wrap.style.display='block';ma.readOnly=false;}
-    else {REACT_L=parseFloat(v);wrap.style.display='block';ma.readOnly=true;}
+    else {
+      var r=findById(KIT.rx,v); wrap.style.display='block'; ma.readOnly=true;
+      if(r&&r.H>0){REACT_L=r.H;} else {REACT_L=null; ma.value=r?r.ma:0;}
+    }
     syncReactor(); calc();
   }
   function syncReactor(){
-    if(REACT_L){document.getElementById('reactMA').value=Math.round(num('volt')/(2*Math.PI*freq*REACT_L)*1000);}
+    if(REACT_L){$('reactMA').value=Math.round(num('volt')/(2*Math.PI*freq*REACT_L)*1000);}
   }
 
-  function addItem(type){
+  function addItem(type,capSel,qtySel){
     rowSeq++;
     var id='row'+rowSeq, t=TYPES[type], opts='';
     Object.keys(t.table).forEach(function(k){
-      opts+='<option value="'+k+'"'+(k===DEFCAP[type]?' selected':'')+'>'+k+' '+t.unit+'</option>';
+      opts+='<option value="'+k+'"'+(k===String(capSel||DEFCAP[type])?' selected':'')+'>'+k+' '+t.unit+'</option>';
     });
     var div=document.createElement('div');
     div.className='item on'; div.id=id; div.setAttribute('data-type',type);
     div.innerHTML=
       '<div class="item-head"><span class="nm">'+t.label+'</span>'+
-      '<button class="del" onclick="delItem(\''+id+'\')">✕ 削除</button></div>'+
+      '<span class="right"><span class="contrib rowContrib">— mA</span>'+
+      '<button class="del" onclick="delItem(\''+id+'\')">✕</button></span></div>'+
       '<div class="row">'+
         '<div class="field"><select class="rowCap" onchange="calc()">'+opts+'</select></div>'+
-        '<div class="field"><input type="number" class="rowQty" value="1" min="0" step="1" oninput="calc()" placeholder="台数"></div>'+
-      '</div>'+
-      '<div class="contribLine">寄与 <span class="rowContrib">— mA</span></div>';
-    document.getElementById('equipList').appendChild(div);
+        '<div class="field"><input type="number" class="rowQty" value="'+(qtySel!=null?qtySel:1)+'" min="0" step="1" oninput="calc()"><div class="unitlbl">台数</div></div>'+
+      '</div>';
+    $('equipList').appendChild(div);
     calc();
   }
-  function delItem(id){var e=document.getElementById(id);if(e)e.parentNode.removeChild(e);calc();}
+  function delItem(id){var e=$(id);if(e)e.parentNode.removeChild(e);calc();}
 
   function cableMA(volt){
     var len=num('cableLen'); if(len<=0) return 0;
@@ -334,73 +477,317 @@
 
   function calc(){
     syncReactor();
-    var volt=num('volt'), tester=num('tester'), react=num('reactMA');
-    var vscale=volt/10350; // 機器値は6kV/10350V基準→電圧比で換算
+    var volt=num('volt'), tester=num('tester');
+    var qty=Math.max(1,Math.floor(num('reactQty'))||1);
+    var react=num('reactMA')*(val('reactor')==='none'?0:qty);
+    var vscale=volt/10350;
 
     var cab=cableMA(volt);
-    document.getElementById('c_cable').textContent=fmt(cab,0)+' mA';
-    document.getElementById('it_cable').classList.toggle('on',cab>0);
+    $('c_cable').textContent=fmt(cab,0)+' mA';
+    $('it_cable').classList.toggle('on',cab>0);
 
     var equip=0;
     document.querySelectorAll('#equipList .item').forEach(function(rowEl){
       var type=rowEl.getAttribute('data-type');
       var capv=rowEl.querySelector('.rowCap').value;
-      var qty=parseFloat(rowEl.querySelector('.rowQty').value)||0;
-      var c=(TYPES[type].table[capv]||0)*qty*vscale;
+      var q=parseFloat(rowEl.querySelector('.rowQty').value)||0;
+      var c=(TYPES[type].table[capv]||0)*q*vscale;
       rowEl.querySelector('.rowContrib').textContent=fmt(c,1)+' mA';
       rowEl.classList.toggle('on',c>0);
       equip+=c;
     });
 
-    var ic=cab+equip, net=ic-react, kvaNeed=volt*(ic/1000)/1000;
+    var ic=cab+equip, net=Math.max(0,ic-react), kvaNeed=volt*(ic/1000)/1000;
 
-    document.getElementById('ic').textContent=fmt(ic,0);
-    document.getElementById('o_cable').textContent=fmt(cab,0);
-    document.getElementById('o_equip').textContent=fmt(equip,0);
-    document.getElementById('kva').textContent=fmt(kvaNeed,2);
-    document.getElementById('o_tester').textContent=fmt(tester,0);
-    document.getElementById('o_react').textContent=react>0?fmt(react,0):"—";
-    document.getElementById('o_net').textContent=fmt(net,0);
+    $('ic').textContent=fmt(ic,0);
+    $('o_cable').textContent=fmt(cab,0);
+    $('o_equip').textContent=fmt(equip,0);
+    $('kva').textContent=fmt(kvaNeed,2);
+    $('o_tester').textContent=fmt(tester,0);
+    $('o_tester2').textContent=fmt(tester,0);
+    $('o_react').textContent=react>0?fmt(react,0):"—";
+    $('o_net').textContent=fmt(react>0?net:ic,0);
+    $('o_volt').textContent=fmt(volt,0);
 
     var big=document.querySelector('.panel .big');
-    var vd=document.getElementById('verdict'), vt=document.getElementById('vtext');
-    var netEl=document.getElementById('o_net'), maxWithR=tester+react;
+    var vd=$('verdict'), vt=$('vtext'), netEl=$('o_net'), maxWithR=tester+react;
 
     if(ic<=0){
       big.style.color='#8fa0b3'; netEl.style.color='#eef3f8'; vd.className='verdict v-ok';
       vt.innerHTML='試験対象を入力してください<small>長さや台数を入れると判定します。</small>';
     } else if(ic<=tester){
       big.style.color='var(--ok)'; netEl.style.color='var(--ok)'; vd.className='verdict v-ok';
-      vt.innerHTML='試験器のみでOK<small>合計 '+fmt(ic,0)+'mA ≦ 許容 '+fmt(tester,0)+'mA。リアクトル不要です。</small>';
+      vt.innerHTML='試験器のみでOK<small>合計 '+fmt(ic,0)+'mA ≦ 許容 '+fmt(tester,0)+'mA。リアクトル不要。</small>';
     } else if(react>0 && net<=tester){
       big.style.color='var(--warn)'; netEl.style.color='var(--ok)'; vd.className='verdict v-warn';
-      vt.innerHTML='リアクトル併用でOK<small>合計 '+fmt(ic,0)+'mA − 補償 '+fmt(react,0)+'mA ＝ 負担 '+fmt(net,0)+'mA ≦ 許容 '+fmt(tester,0)+'mA。上限 約'+fmt(maxWithR,0)+'mA。</small>';
+      vt.innerHTML='リアクトル併用でOK<small>合計 '+fmt(ic,0)+' − 補償 '+fmt(react,0)+' ＝ 負担 '+fmt(net,0)+'mA（上限 約'+fmt(maxWithR,0)+'mA）</small>';
     } else {
       big.style.color='var(--over)'; netEl.style.color='var(--over)'; vd.className='verdict v-over';
       var lack=(react>0?net:ic)-tester;
       var hint=react>0?'リアクトルでも約'+fmt(lack,0)+'mA超過。分割印加か直流を検討。':'リアクトルを入れると上限UP（DR-1230M:+約253mA / L-13K:+約209mA、50Hz）。';
-      vt.innerHTML='許容オーバー — 対策が必要<small>'+(react>0?'負担 '+fmt(net,0):'合計 '+fmt(ic,0))+'mA ＞ 許容 '+fmt(tester,0)+'mA。'+hint+'</small>';
+      vt.innerHTML='許容オーバー — 対策が必要<small>'+hint+'</small>';
     }
-    document.getElementById('tcap2').textContent=fmt(tester,0);
+    $('tcap2').textContent=fmt(tester,0);
     buildTable(volt,tester,react,equip);
+    saveState();
   }
 
   function buildTable(volt,tester,react,equip){
-    var t=document.getElementById('reftable'), h='<tr><th>太さ</th>';
+    var h='<tr><th>太さ</th>';
     LENGTHS.forEach(function(L){h+='<th>'+L+'m</th>';});
     h+='</tr>';
     SIZES.forEach(function(sq){
       var c=CAP[DATASET][sq];
       h+='<tr><td class="size">'+sq+'sq</td>';
       LENGTHS.forEach(function(L){
-        var v=chargeMA(c,L,freq,volt), net=v+equip-react, over=net>tester;
+        var v=chargeMA(c,L,freq,volt), over=(v+equip-react)>tester;
         h+='<td class="'+(over?'hot':'')+'">'+fmt(v,0)+'</td>';
       });
       h+='</tr>';
     });
-    t.innerHTML=h;
+    $('reftable').innerHTML=h;
   }
-  calc();
+
+
+
+  /* 2回タップで実行（ポップアップを使わない確認） */
+  function twoTap(btn,fn){
+    if(btn&&btn.dataset.armed==='1'){
+      clearTimeout(btn._tm); btn.dataset.armed=''; btn.textContent=btn._orig; btn.classList.remove('armed'); fn(); return;
+    }
+    if(!btn){fn();return;}
+    btn._orig=btn.textContent; btn.dataset.armed='1'; btn.textContent='もう一度タップで実行'; btn.classList.add('armed');
+    btn._tm=setTimeout(function(){btn.dataset.armed='';btn.textContent=btn._orig;btn.classList.remove('armed');},3000);
+  }
+  function msg(id,t){var e=$(id);if(e){e.textContent=t;}}
+  /* ===== 試験器リスト・保存 ===== */
+  var LS_KIT='wvt_kit', LS_STATE='wvt_state', LS_SAVED='wvt_saved', restoring=false;
+  var KIT_DEFAULT={
+    tr:[{id:'t1',name:'ムサシ IP-R3＋R-1230',ma:250},{id:'t2',name:'双興 BCT-25K＋T-13K15',ma:150}],
+    rx:[{id:'r1',name:'ムサシ DR-1230M',H:130,ma:0},{id:'r2',name:'双興 L-13K（209mA級）',H:158,ma:0}]
+  };
+  function lsGet(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+  function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+  var KIT=lsGet(LS_KIT,null)||JSON.parse(JSON.stringify(KIT_DEFAULT));
+  function findById(arr,id){for(var i=0;i<arr.length;i++)if(arr[i].id===id)return arr[i];return null;}
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+  function newId(p){return p+Date.now().toString(36)+Math.floor(Math.random()*1000);}
+
+  function fillSelects(){
+    var tv=val('trafo'), rv=val('reactor');
+    var h='';KIT.tr.forEach(function(t){h+='<option value="'+t.id+'">'+esc(t.name)+'（'+t.ma+'mA）</option>';});
+    h+='<option value="manual">▼ 許容電流を手入力</option>';
+    $('trafo').innerHTML=h;
+    if(tv&&(tv==='manual'||findById(KIT.tr,tv)))$('trafo').value=tv;
+    h='<option value="none">なし</option>';
+    KIT.rx.forEach(function(r){h+='<option value="'+r.id+'">'+esc(r.name)+(r.H>0?'（'+r.H+'H）':'（'+r.ma+'mA）')+'</option>';});
+    h+='<option value="manual">▼ 補償電流を手入力</option>';
+    $('reactor').innerHTML=h;
+    $('reactor').value=(rv&&(rv==='none'||rv==='manual'||findById(KIT.rx,rv)))?rv:'none';
+  }
+  function renderKit(){
+    var h='';
+    KIT.tr.forEach(function(t,i){
+      h+='<div class="kitrow"><div class="kh">試験器 '+(i+1)+'<button class="btn red sm" onclick="delTr(\''+t.id+'\',this)">✕ 削除</button></div>'+
+        '<div class="row"><div class="field" style="flex:2"><input type="text" value="'+esc(t.name)+'" oninput="KIT.tr['+i+'].name=this.value" placeholder="名前・型式"></div>'+
+        '<div class="field"><input type="number" value="'+t.ma+'" oninput="KIT.tr['+i+'].ma=parseFloat(this.value)||0"><div class="unitlbl">許容 mA</div></div></div></div>';
+    });
+    $('trList').innerHTML=h||'<p class="note">まだありません</p>';
+    h='';
+    KIT.rx.forEach(function(r,i){
+      h+='<div class="kitrow"><div class="kh">リアクトル '+(i+1)+'<button class="btn red sm" onclick="delRx(\''+r.id+'\',this)">✕ 削除</button></div>'+
+        '<div class="row"><div class="field"><input type="text" value="'+esc(r.name)+'" oninput="KIT.rx['+i+'].name=this.value" placeholder="名前・型式"></div></div>'+
+        '<div class="row"><div class="field"><input type="number" value="'+r.H+'" step="1" oninput="KIT.rx['+i+'].H=parseFloat(this.value)||0"><div class="unitlbl">インダクタンス H</div></div>'+
+        '<div class="field"><input type="number" value="'+r.ma+'" step="1" oninput="KIT.rx['+i+'].ma=parseFloat(this.value)||0"><div class="unitlbl">補償 mA（H=0のとき）</div></div></div></div>';
+    });
+    $('rxList').innerHTML=h||'<p class="note">まだありません</p>';
+  }
+  function addTr(){KIT.tr.push({id:newId('t'),name:'',ma:200});renderKit();kitDirty();}
+  function addRx(){KIT.rx.push({id:newId('r'),name:'',H:0,ma:200});renderKit();kitDirty();}
+  function delTr(id,btn){twoTap(btn,function(){KIT.tr=KIT.tr.filter(function(t){return t.id!==id;});renderKit();kitDirty();});}
+  function delRx(id,btn){twoTap(btn,function(){KIT.rx=KIT.rx.filter(function(r){return r.id!==id;});renderKit();kitDirty();});}
+  function kitDirty(){$('kitMsg').textContent='変更があります。「リストを保存」を押すと計算タブに反映されます。';}
+  function saveKit(){
+    KIT.tr.forEach(function(t){if(!t.name)t.name='試験器';});
+    KIT.rx.forEach(function(r){if(!r.name)r.name='リアクトル';});
+    var ok=lsSet(LS_KIT,KIT);
+    fillSelects(); onTrafoKeep(); onReactor(); renderKit();
+    $('kitMsg').textContent=ok?'保存しました。計算タブの選択肢に反映しました。':'保存できませんでした（プライベートモード等）。今回の画面にだけ反映しました。';
+  }
+  function onTrafoKeep(){var t=findById(KIT.tr,val('trafo'));if(t)$('tester').value=t.ma;}
+  function resetKit(btn){twoTap(btn,function(){KIT=JSON.parse(JSON.stringify(KIT_DEFAULT)); saveKit();});}
+
+  /* 入力状態 */
+  function getState(){
+    var rows=[];
+    document.querySelectorAll('#equipList .item').forEach(function(el){
+      rows.push({type:el.getAttribute('data-type'),cap:el.querySelector('.rowCap').value,qty:el.querySelector('.rowQty').value});
+    });
+    var vc=document.querySelector('#vcseg button.on');
+    return {vc:vc?vc.dataset.kv:'6.6',freq:freq,data:DATASET,volt:val('volt'),size:val('cableSize'),len:val('cableLen'),
+      capM:val('capManual'),rows:rows,trafo:val('trafo'),tester:val('tester'),reactor:val('reactor'),reactMA:val('reactMA'),reactQty:val('reactQty')};
+  }
+  function setState(st){
+    restoring=true;
+    document.querySelectorAll('#vcseg button').forEach(function(b){b.classList.toggle('on',b.dataset.kv===st.vc);});
+    freq=st.freq||50; document.querySelectorAll('#freqseg button').forEach(function(b){b.classList.toggle('on',Number(b.dataset.f)===freq);});
+    DATASET=st.data||'old'; document.querySelectorAll('#dataseg button').forEach(function(b){b.classList.toggle('on',b.dataset.d===DATASET);});
+    $('volt').value=st.volt; $('cableSize').value=st.size; $('cableLen').value=st.len; $('capManual').value=st.capM;
+    $('capManualWrap').style.display=st.size==='manual'?'block':'none';
+    $('equipList').innerHTML='';
+    (st.rows||[]).forEach(function(r){if(TYPES[r.type])addItem(r.type,r.cap,r.qty);});
+    if(st.trafo==='manual'||findById(KIT.tr,st.trafo))$('trafo').value=st.trafo;
+    $('tester').value=st.tester;
+    $('reactor').value=(st.reactor==='none'||st.reactor==='manual'||findById(KIT.rx,st.reactor))?st.reactor:'none';
+    $('reactQty').value=st.reactQty||1;
+    onReactor();
+    if(st.reactor==='manual')$('reactMA').value=st.reactMA;
+    restoring=false;
+    calc();
+  }
+  function saveState(){if(!restoring)lsSet(LS_STATE,getState());}
+  function clearInputs(btn){twoTap(btn,function(){$('cableLen').value=0; $('equipList').innerHTML=''; $('reactor').value='none'; $('reactQty').value=1; onReactor(); msg('saveMsg','入力をクリアしました。');});}
+
+  /* 保存した選定 */
+  var SAVED=lsGet(LS_SAVED,[]);
+  function fillSaved(){
+    var h='<option value="">― 保存した選定（'+SAVED.length+'件）―</option>';
+    SAVED.forEach(function(x,i){h+='<option value="'+i+'">'+esc(x.name)+'（'+x.date+'・'+x.ic+'mA）</option>';});
+    $('savedSel').innerHTML=h;
+  }
+  function saveCurrent(){
+    var d=new Date(), ds=(d.getMonth()+1)+'/'+d.getDate();
+    var name=$('saveName').value.trim();
+    SAVED.unshift({name:name||'無題',date:ds,ic:$('ic').textContent,state:getState()});
+    var ok=lsSet(LS_SAVED,SAVED);
+    fillSaved(); $('savedSel').value='0'; $('saveName').value='';
+    msg('saveMsg',ok?'「'+(name||'無題')+'」を保存しました。':'保存できませんでした（プライベートモード等）。');
+  }
+  function loadSaved(){
+    var i=val('savedSel'); if(i===''){msg('saveMsg','開く選定を一覧から選んでください。');return;}
+    setState(SAVED[+i].state); msg('saveMsg','「'+SAVED[+i].name+'」を開きました。');
+  }
+  function delSaved(btn){
+    var i=val('savedSel'); if(i===''){msg('saveMsg','削除する選定を一覧から選んでください。');return;}
+    twoTap(btn,function(){var n=SAVED[+i].name;SAVED.splice(+i,1); lsSet(LS_SAVED,SAVED); fillSaved(); msg('saveMsg','「'+n+'」を削除しました。');});
+  }
+
+  /* ===== タイマー（10分固定・カウントアップ・音声案内） ===== */
+  var T_TOTAL=600, tElapsed=0, tBase=0, tStartMs=null, tTick=null, tState='idle',
+      tLastHalf=0, tStartAt=null, wakeLock=null, jaVoice=null;
+
+  function mmss(s){s=Math.max(0,Math.floor(s));var m=Math.floor(s/60),r=s%60;return m+':'+(r<10?'0':'')+r;}
+  function hm(d){return (d.getHours()<10?'0':'')+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();}
+  function hms(d){return hm(d)+':'+(d.getSeconds()<10?'0':'')+d.getSeconds();}
+
+  /* 音声 */
+  function pickVoice(){
+    try{var vs=speechSynthesis.getVoices();jaVoice=vs.filter(function(v){return /ja/i.test(v.lang);})[0]||null;}catch(e){}
+  }
+  if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+  function say(text){
+    if(!$('tVoice').checked||!('speechSynthesis' in window))return;
+    try{
+      speechSynthesis.cancel();
+      var u=new SpeechSynthesisUtterance(text);
+      u.lang='ja-JP'; if(jaVoice)u.voice=jaVoice; u.rate=1.0; u.volume=1;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function elapsedWords(sec){
+    var m=Math.floor(sec/60), s=sec%60;
+    if(m===0) return s+'秒経過';
+    if(s===0) return m+'分経過';
+    return m+'分'+s+'秒経過';
+  }
+  function onVoice(){ if($('tVoice').checked) say('音声オン'); else try{speechSynthesis.cancel();}catch(e){} }
+
+  function lockScreen(on){
+    try{
+      if(on && 'wakeLock' in navigator){navigator.wakeLock.request('screen').then(function(l){wakeLock=l;}).catch(function(){});}
+      if(!on && wakeLock){wakeLock.release();wakeLock=null;}
+    }catch(e){}
+  }
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&tState==='run')lockScreen(true);});
+
+  /* 表示 */
+  function tRender(){
+    var now=new Date();
+    $('tNow').textContent=hms(now);
+    if(tState==='idle'){
+      $('tStartTime').textContent='--:--';
+      $('tEndLbl').textContent='今始めると終了';
+      $('tEndTime').textContent=hm(new Date(now.getTime()+T_TOTAL*1000));
+    } else {
+      $('tStartTime').textContent=hm(tStartAt);
+      $('tEndLbl').textContent=tState==='done'?'終了':'終了予定';
+      var end=(tState==='done')?tEndAt:new Date(now.getTime()+(T_TOTAL-tElapsed)*1000);
+      $('tEndTime').textContent=hm(end);
+    }
+    $('tmr').className='tmr'+(tState==='idle'?'':' '+tState);
+    $('tDigits').textContent=mmss(tElapsed);
+    $('tRemainTxt').textContent=mmss(Math.ceil(T_TOTAL-tElapsed));
+    $('tBar').style.width=Math.min(100,tElapsed/T_TOTAL*100)+'%';
+    $('tBar').style.background=tState==='done'?'var(--over)':(tState==='pause'?'var(--warn)':'var(--ok)');
+    $('tState').textContent={idle:'待機中（10分）',run:'印加中',pause:'一時停止中',done:'試験終了'}[tState];
+    var b=$('tStart');
+    if(tState==='run'){b.textContent='❚❚ 一時停止';b.classList.add('pause');}
+    else{b.textContent=tState==='pause'?'▶ 再開':(tState==='done'?'▶ もう一度':'▶ 試験開始');b.classList.remove('pause');}
+    updateMini();
+  }
+  function updateMini(){
+    var onTimer=$('tab_timer').classList.contains('on');
+    $('miniTimer').classList.toggle('show',tState!=='idle'&&!onTimer);
+    $('miniTxt').textContent=tState==='done'?'試験終了':((tState==='pause'?'停止中 ':'経過 ')+mmss(tElapsed)+'（残り '+mmss(Math.ceil(T_TOTAL-tElapsed))+'）');
+  }
+
+  var tEndAt=null;
+  function tLoop(){
+    tElapsed=tBase+(Date.now()-tStartMs)/1000;
+    if(tElapsed>=T_TOTAL){tElapsed=T_TOTAL;tFinish();return;}
+    var half=Math.floor(tElapsed/30);
+    if(half>tLastHalf){tLastHalf=half;say(elapsedWords(half*30));}
+    tRender();
+  }
+  function tToggle(){
+    if(tState==='done') tReset();
+    if(tState==='run'){
+      clearInterval(tTick); tElapsed=tBase+(Date.now()-tStartMs)/1000; tBase=tElapsed;
+      tState='pause'; lockScreen(false); say('一時停止');
+    } else {
+      if(tState==='idle'){tStartAt=new Date();tLastHalf=0;say('試験開始');}
+      else say('再開');
+      tStartMs=Date.now(); tState='run';
+      clearInterval(tTick); tTick=setInterval(tLoop,200); lockScreen(true);
+    }
+    tRender();
+  }
+  function tFinish(){
+    clearInterval(tTick); tState='done'; tEndAt=new Date(); lockScreen(false);
+    say('試験終了');
+    try{if(navigator.vibrate)navigator.vibrate([400,200,400,200,800]);}catch(e){}
+    addLog(); tRender();
+  }
+  function tResetBtn(btn){ if(tState==='run') twoTap(btn,tReset); else tReset(); }
+  function tReset(){
+    clearInterval(tTick); tState='idle'; tElapsed=0; tBase=0; tLastHalf=0; lockScreen(false);
+    try{speechSynthesis.cancel();}catch(e){}
+    tRender();
+  }
+  function addLog(){
+    var ul=$('tLog'); if(ul.querySelector('li[style]')) ul.innerHTML='';
+    var li=document.createElement('li');
+    li.textContent=hm(tStartAt)+'〜'+hm(tEndAt)+'　'+fmt(num('volt'),0)+'V／合計 '+$('ic').textContent+'mA';
+    ul.appendChild(li);
+  }
+  setInterval(function(){if(tState!=='run')tRender();},1000);
+
+  fillSelects(); renderKit(); fillSaved();
+  (function(){
+    var st=lsGet(LS_STATE,null);
+    if(st){try{setState(st);}catch(e){onTrafo();}} else {onTrafo();}
+  })();
+  tRender();
 </script>
 </body>
 </html>
