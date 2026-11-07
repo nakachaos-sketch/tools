@@ -182,7 +182,7 @@
         <button class="btn red" onclick="delSaved(this)">削除</button>
       </div>
       <div class="savebar" style="margin-top:6px">
-        <input type="text" id="saveName" placeholder="保存名（例：〇〇工場 第2変電所）" style="flex:1;min-width:0;padding:8px 10px;font-size:15px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;">
+        <input type="text" id="saveName" enterkeyhint="done" placeholder="件名（例：〇〇工場 第2変電所）" oninput="nameBuf=this.value" oncompositionend="nameBuf=this.value" onkeydown="if(event.key==='Enter'&&!event.isComposing){event.preventDefault();saveCurrent();}" style="flex:1;min-width:0;padding:8px 10px;font-size:15px;border:1.5px solid var(--line);border-radius:8px;font-family:inherit;">
       </div>
       <div class="savebar" style="margin-top:6px">
         <button class="btn fill" style="flex:1" onclick="saveCurrent()">💾 今の選定を保存</button>
@@ -655,13 +655,25 @@
     SAVED.forEach(function(x,i){h+='<option value="'+i+'">'+esc(x.name)+'（'+x.date+'・'+x.ic+'mA）</option>';});
     $('savedSel').innerHTML=h;
   }
+  var nameBuf='';
   function saveCurrent(){
+    // 入力中（変換確定前）の文字を確定させてから読む
+    var f=$('saveName'); try{f.blur();}catch(e){}
+    setTimeout(doSave,120);
+  }
+  function doSave(){
+    var f=$('saveName');
     var d=new Date(), ds=(d.getMonth()+1)+'/'+d.getDate();
-    var name=$('saveName').value.trim();
-    SAVED.unshift({name:name||'無題',date:ds,ic:$('ic').textContent,state:getState()});
+    var name=(f.value||nameBuf||'').trim();
+    if(!name){
+      f.style.borderColor='#c43c34'; msg('saveMsg','件名を入れてから「保存」を押してください。');
+      try{f.focus();}catch(e){} return;
+    }
+    f.style.borderColor='';
+    SAVED.unshift({name:name,date:ds,ic:$('ic').textContent,state:getState()});
     var ok=lsSet(LS_SAVED,SAVED);
-    fillSaved(); $('savedSel').value='0'; $('saveName').value='';
-    msg('saveMsg',ok?'「'+(name||'無題')+'」を保存しました。':'保存できませんでした（プライベートモード等）。');
+    fillSaved(); $('savedSel').value='0'; f.value=''; nameBuf='';
+    msg('saveMsg',ok?'「'+name+'」を保存しました。':'保存できませんでした（プライベートモード等）。');
   }
   function loadSaved(){
     var i=val('savedSel'); if(i===''){msg('saveMsg','開く選定を一覧から選んでください。');return;}
