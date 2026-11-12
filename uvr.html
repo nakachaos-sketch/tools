@@ -69,6 +69,8 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2430;color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;z-index:20}
 /* 印刷シート(A4横・過電流継電器の成績表と同じ形)。細い罫線を出すため2倍で作って半分に縮小 */
 .pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.sw input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
 .pages{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
 .sheet{width:297mm;height:209mm;background:#fff;color:#000;padding:9mm 11mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;overflow:hidden}
 .sheet-x{width:550mm;height:382mm;transform:scale(.5);transform-origin:0 0}
@@ -159,7 +161,7 @@ function sample(){
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
-  s.projects=s.projects||[];return s;
+  s.projects=s.projects||[];s.print={hdr:true,sign:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 
@@ -329,6 +331,8 @@ function previewHTML(){
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績書',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint"><button class="btn main" data-act="doPrint">印刷する(A4横)</button>
+      <label class="sw"><input type="checkbox" data-pr="hdr" ${state.print.hdr?'checked':''}><span>工事名・受注者</span></label>
+      <label class="sw"><input type="checkbox" data-pr="sign" ${state.print.sign?'checked':''}><span>試験実施者・監督職員欄</span></label>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
       <span class="note">${pages.length}枚。印刷画面で「A4」「横」を選んでください。PDF保存も印刷画面から。</span></div>
     <div class="pages" id="pages">${pages.join('')}</div></div>`;
@@ -341,12 +345,12 @@ function sheet(p,panel,rs,mode){
   const P=k=>hasP?esc(p[k]||''):'';
   return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">不足電圧継電器(UVR)試験成績表</div>
-    <div class="s-sub"><span><b>工事名</b>${P('name')}</span><span><b>受注者</b>${P('contractor')}</span></div>
+    ${state.print.hdr?`<div class="s-sub"><span><b>工事名</b>${P('name')}</span><span><b>受注者</b>${P('contractor')}</span></div>`:''}
     <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
     ${block(rs[0],mode)}
     ${block(rs[1],mode)}
     <div class="s-foot">
-      <table class="sign"><tr><th>試験実施者</th><th>監督職員(立会者)</th></tr><tr><td>${P('tester')}</td><td>${P('witness')}</td></tr></table>
+      ${state.print.sign?`<table class="sign"><tr><th>試験実施者</th><th>監督職員(立会者)</th></tr><tr><td>${P('tester')}</td><td>${P('witness')}</td></tr></table>`:'<span></span>'}
       <div class="s-cap">（　　）内は判定範囲とする<br><span style="font-size:14pt">判定基準は使用する継電器メーカーの仕様書および特記仕様書による</span></div>
     </div>
   </div></div></div>`;
@@ -445,6 +449,7 @@ document.addEventListener('change',e=>{
     save();render();return}
   if(t.dataset.rs&&r){r[t.dataset.rs]=t.value;save();updInd();return}
   if(t.dataset.jd&&r){r.jd[t.dataset.jd]=t.value||'auto';save();updInd();return}
+  if(t.dataset.pr){state.print[t.dataset.pr]=t.checked;save();render();return}
   if(t.dataset.sqs&&r){const [i,k]=t.dataset.sqs.split('.');r.seq[+i][k]=t.value;save();return}
 });
 window.addEventListener('resize',()=>{if(view.name==='preview')fit()});
