@@ -541,7 +541,7 @@ function fitPages(){
   el.style.zoom=Math.min(1,w/pw);
 }
 function manageLines(r){
-  const s=state.settings,pts=r?[...new Set([r.p1,r.p2])].sort((a,b)=>a-b):[200,300];
+  const s=state.settings,pts=[...new Set(r?[r.p1,r.p2,700]:[200,300,700])].sort((a,b)=>a-b);
   const L=['( 最小動作電流 )',`整定タップ ±${s.tolMin}％以内`,'( 動 作 時 間 )'];
   pts.forEach(p=>L.push(`${p}％時 ±${s['tol'+p]}％以内`));
   L.push(`瞬 時 ${s.instTime}(S)以内`);
