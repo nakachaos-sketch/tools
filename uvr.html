@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>不足電圧継電器試験成績書</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* 過電流継電器アプリと同じ見た目:紺のバー、白い入力面、良=緑/否=赤 */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#1b2430; --sub:#5b6878; --line:#cfd6de;
+  --accent:#16496b; --accent-ink:#ffffff;
+  --ok:#17803d; --ok-soft:#e3f4e8; --ng:#c62828; --ng-soft:#fde8e8; --meas:#1a3fbf;
+  --font:"Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+.bar{position:sticky;top:0;z-index:5;background:var(--accent);color:var(--accent-ink);padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.bar h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{background:transparent;border:1px solid rgba(255,255,255,.5);color:var(--accent-ink);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.wrap{max-width:1400px;margin:0 auto;padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.wrap.narrow{max-width:860px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card h2{font-size:13px;margin:0;color:var(--accent);letter-spacing:.05em}
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.two-col{grid-template-columns:minmax(0,1fr)}}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:420px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+label{display:flex;flex-direction:column;gap:1px;font-size:11px;color:var(--sub);min-width:0}
+input[type=text],input[type=date],select{width:100%;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:4px;padding:5px 7px;background:#fff;font-size:15px;color:var(--ink)}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:2.3em;line-height:1.3}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:7px 13px;cursor:pointer;font-weight:500}
+.btn.main{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{border-color:var(--ng);color:var(--ng)}
+.btn.small{padding:4px 9px;font-size:13px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;width:100%}
+.item:hover{border-color:var(--accent)}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .t span{font-size:12px;color:var(--sub)}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)} .b-ng{background:var(--ng-soft);color:var(--ng)} .b-none{background:#edf0f3;color:var(--sub)}
+.grp{font-size:13px;font-weight:700;color:var(--sub);margin-top:4px}
+.note{font-size:11px;color:var(--sub);line-height:1.4}
+.empty{text-align:center;color:var(--sub);padding:20px 8px}
+/* 測定値 */
+.test{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:6px}
+.test:first-of-type{border-top:none}
+.test .nm{font-size:13px;font-weight:700}
+.test .nm small{display:block;font-weight:400;color:var(--sub);font-size:11px}
+.f{display:flex;flex-direction:column;gap:1px;min-width:0}
+.f input{font-size:16px;padding:4px 7px;color:var(--meas);font-variant-numeric:tabular-nums}
+.f .rg{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.f.ok input{border-color:var(--ok);background:var(--ok-soft)} .f.ng input{border-color:var(--ng);background:var(--ng-soft)}
+.f.ok .rg{color:var(--ok)} .f.ng .rg{color:var(--ng);font-weight:700}
+.jd{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--sub);white-space:nowrap}
+.jd select{width:auto}
+.seq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr) 70px;gap:6px;align-items:end}
+@media (max-width:560px){.seq{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2430;color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;z-index:20}
+/* 印刷シート(A4縦)。細い罫線を出すため2倍で作って半分に縮小 */
+.pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pages{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.sheet{width:210mm;height:296mm;background:#fff;color:#000;padding:12mm 13mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;overflow:hidden}
+.sheet-x{width:368mm;height:544mm;transform:scale(.5);transform-origin:0 0;display:flex;flex-direction:column;gap:7mm}
+.s-title{text-align:center;font-size:34pt;letter-spacing:.3em;font-weight:500;margin:2mm 0 4mm;padding-bottom:3mm;border-bottom:3px double #000}
+.s-h{font-size:22pt;font-weight:700;margin:0 0 -3mm;letter-spacing:.05em}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18pt;border:3px solid #000}
+table.s th,table.s td{border:1px solid #222;padding:2mm 3mm;height:15mm;line-height:1.3;vertical-align:middle}
+table.s th{background:#e3e3e3;font-weight:400;text-align:center}
+table.s td{text-align:left}
+table.s td.ctr{text-align:center}
+table.s td.v{color:#1a3fbf;text-align:center;font-size:20pt}
+table.s td.sm{font-size:16pt}
+table.s td.rg{font-size:15pt;color:#333}
+table.s tr.hd th{border-bottom:2px solid #000}
+table.s td.jg{text-align:center;font-size:22pt;color:#1a3fbf}
+table.s td.jg.ng{color:#c62828;font-weight:700}
+.s-note{font-size:14pt;color:#333}
+.s-foot{margin-top:auto;display:flex;justify-content:flex-end}
+table.sign{border-collapse:collapse;font-size:16pt;border:3px solid #000}
+table.sign th{background:#e3e3e3;font-weight:400;border:1px solid #222;padding:1.6mm 8mm}
+table.sign td{border:1px solid #222;width:48mm;height:30mm}
+@media print{
+  @page{size:A4 portrait;margin:0}
+  html,body{background:#fff}
+  .noprint{display:none!important}
+  .wrap{padding:0;max-width:none;gap:0}
+  .pages{zoom:1!important;gap:0}
+  .sheet{box-shadow:none;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+'use strict';
+const LS_KEY='uvrTest.v1';
+const SEQ_DEF=[
+  {item:'遮断器トリップ動作',desc:'継電器動作により高圧真空遮断器(VCB)が正常に開放すること',res:'正常開放'},
+  {item:'非常用発電機起動',desc:'継電器動作により非常用発電機へ自動起動指令が出力されること',res:'正常起動'},
+  {item:'警報表示',desc:'中央監視盤・盤面の一括故障(停電)警報が発報・復帰すること',res:'正常発報・復帰'}
+];
+const DEF_CRIT={opTol:'5',resetMax:'105',timePct:'70',timeTol:'10'};
+
+let state=load(),view={name:'home'},pendingConfirm=null;
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function newRelay(panel){
+  return {id:uid(),panel:panel||'高圧受電盤',devNo:'27',devName:'不足電圧継電器(UVR)',maker:'',model:'',serial:'',
+    ratedV:'110',freq:'50',setV:'80',setT:'2.0',lever:'',...DEF_CRIT,
+    m:{op:'',reset:'',time:'',disp:''},jd:{op:'auto',reset:'auto',time:'auto'},
+    seq:SEQ_DEF.map(x=>({...x,res:'',jd:''}))};
+}
+function sample(){
+  const r=newRelay('高圧受電盤');Object.assign(r,{maker:'〇〇電機',model:'〇〇〇〇',lever:'2'});
+  r.m={op:'79.5',reset:'82.0',time:'2.02',disp:'正常'};
+  r.seq=SEQ_DEF.map(x=>({...x,jd:'良'}));
+  return {id:uid(),name:'サンプル 〇〇〇〇電気設備改修工事',date:new Date().toISOString().slice(0,10),weather:'晴',temp:'20.0',hum:'50',
+    contractor:'株式会社〇〇電設',tester:'',witness:'',relays:[r]};
+}
+function load(){
+  let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
+  if(!s)s={v:1,projects:[sample()]};
+  s.projects=s.projects||[];return s;
+}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
+
+/* ===== 計算 ===== */
+function num(v){if(v==null)return NaN;let s=String(v).replace(/[０-９．－＋]/g,c=>c==='．'?'.':c==='－'?'-':c==='＋'?'+':String.fromCharCode(c.charCodeAt(0)-0xFEE0)).trim();if(s==='')return NaN;const n=Number(s);return isFinite(n)?n:NaN}
+const f1=v=>isFinite(v)?v.toFixed(1):'', f2=v=>isFinite(v)?v.toFixed(2):'';
+const sg=v=>isFinite(v)?(v>0?'+':v<0?'−':'±')+Math.abs(v).toFixed(1)+' %':'';
+function ev(r){
+  const sv=num(r.setV),st=num(r.setT),o={};
+  // 最小動作電圧
+  {const tol=num(r.opTol),lo=sv*(1-tol/100),hi=sv*(1+tol/100),x=num(r.m.op);
+   o.op={lo,hi,x,err:isFinite(x)&&sv?(x-sv)/sv*100:NaN,ok:isFinite(x)&&isFinite(lo)?(x>=lo-1e-9&&x<=hi+1e-9):null}}
+  // 復帰電圧
+  {const mx=num(r.resetMax),hi=sv*mx/100,x=num(r.m.reset);
+   o.reset={hi,x,ratio:isFinite(x)&&sv?x/sv*100:NaN,ok:isFinite(x)&&isFinite(hi)?x<=hi+1e-9:null}}
+  // 動作時間
+  {const tol=num(r.timeTol),lo=st*(1-tol/100),hi=st*(1+tol/100),x=num(r.m.time),apply=sv*num(r.timePct)/100;
+   o.time={lo,hi,x,apply,err:isFinite(x)&&st?(x-st)/st*100:NaN,ok:isFinite(x)&&isFinite(lo)?(x>=lo-1e-9&&x<=hi+1e-9):null}}
+  o.disp={ok:r.m.disp==='正常'?true:r.m.disp==='異常'?false:null};
+  return o;
+}
+function jOf(r,k,e){const m=(r.jd||{})[k];if(m&&m!=='auto')return m;const ok=(e||ev(r))[k].ok;return ok===true?'良':ok===false?'否':''}
+function allJ(r){const e=ev(r);const js=['op','reset','time','disp'].map(k=>jOf(r,k,e)).concat(r.seq.map(s=>s.jd).filter(x=>x==='良'||x==='否'));
+  return js.includes('否')?'否':js.includes('良')?'良':''}
+function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':'<span class="badge b-none">未</span>'}
+
+/* ===== 共通 ===== */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m){const t=document.createElement('div');t.className='toast noprint';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+function proj(){return state.projects.find(p=>p.id===view.pid)}
+function relay(){const p=proj();return p&&p.relays.find(r=>r.id===view.rid)}
+function go(v){view=v;pendingConfirm=null;render();window.scrollTo(0,0)}
+function wareki(d){const m=(d||'').match(/(\d+)-(\d+)-(\d+)/);if(!m)return '令和　　年　　月　　日';const y=+m[1];
+  const ry=y-2018;return `令和${ry===1?'元':ry}年${+m[2]}月${+m[3]}日`}
+function barHTML(t,back){return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(t)}</h1></div>`}
+function sel(attr,cur,opts){return `<select ${attr}>${opts.map(o=>`<option value="${esc(o)}" ${o===(cur||'')?'selected':''}>${o?esc(o):'—'}</option>`).join('')}</select>`}
+
+function render(){
+  const v=view.name,app=$('#app');
+  app.innerHTML=v==='home'?homeHTML():v==='project'?projectHTML():v==='relay'?relayHTML():previewHTML();
+  if(v==='relay')updInd();
+  if(v==='preview')fit();
+}
+
+/* --- 一覧 --- */
+function homeHTML(){
+  return `${barHTML('不足電圧継電器 試験成績書')}
+  <div class="wrap narrow">
+    <div class="btns"><button class="btn main" data-act="newProject">+ 新しい工事</button></div>
+    <input type="text" id="q" placeholder="工事名で検索" value="${esc(view.q||'')}">
+    <div class="list" id="plist">${listHTML()}</div>
+    <div class="card"><h2>用紙</h2><div class="btns"><button class="btn" data-act="blank">白紙の記入用紙</button></div>
+      <h2>バックアップ</h2><div class="btns"><button class="btn" data-act="exportJson">バックアップを保存</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
+      <div class="note">データはこの端末のブラウザに保存されます。ほかの端末で使うときは、バックアップを保存して読み込んでください。</div></div>
+  </div>`;
+}
+function listHTML(){
+  const q=(view.q||'').trim();
+  const l=state.projects.filter(p=>!q||(p.name||'').includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return l.length?l.map(p=>{const js=p.relays.map(allJ),ng=js.filter(j=>j==='否').length,ok=js.filter(j=>j==='良').length;
+    return `<button class="item" data-act="openProject" data-id="${p.id}"><div class="t"><b>${esc(p.name||'(工事名なし)')}</b><span>${esc(wareki(p.date))} ・ 継電器 ${p.relays.length}台</span></div>
+    ${ng?`<span class="badge b-ng">否 ${ng}</span>`:ok?`<span class="badge b-ok">良 ${ok}</span>`:'<span class="badge b-none">未入力</span>'}</button>`}).join('')
+    :`<div class="empty">${q?'該当する工事がありません':'工事がまだありません。'}</div>`;
+}
+
+/* --- 工事 --- */
+function projectHTML(){
+  const p=proj();if(!p)return '';
+  return `${barHTML(p.name||'工事','toHome')}
+  <div class="wrap narrow">
+    <div class="card"><h2>基本情報</h2>
+      <label>工事名<input type="text" id="pName" data-p="name" value="${esc(p.name)}"></label>
+      <div class="g4">
+        <label>試験実施日<input type="date" data-p="date" value="${esc(p.date)}"></label>
+        <label>天候${sel('data-p="weather"',p.weather,['','晴','曇り','雨','雪'])}</label>
+        <label>気温(℃)<input type="text" inputmode="decimal" data-p="temp" value="${esc(p.temp)}"></label>
+        <label>湿度(%)<input type="text" inputmode="decimal" data-p="hum" value="${esc(p.hum)}"></label>
+      </div>
+      <div class="g3">
+        <label>受注者(施工会社)<input type="text" data-p="contractor" value="${esc(p.contractor)}"></label>
+        <label>試験実施者<input type="text" data-p="tester" value="${esc(p.tester)}"></label>
+        <label>監督職員(立会者)<input type="text" data-p="witness" value="${esc(p.witness)}"></label>
+      </div>
+    </div>
+    <div class="card"><h2>継電器(1台で用紙1枚)</h2>
+      <div class="list">${p.relays.length?p.relays.map(r=>`<button class="item" data-act="openRelay" data-id="${r.id}"><div class="t"><b>${esc(r.panel||'(盤名称なし)')}</b>
+        <span>${esc(r.maker)} ${esc(r.model)} ・ ${esc(r.setV)}V ${esc(r.setT)}秒</span></div>${badge(allJ(r))}</button>`).join(''):'<div class="empty">継電器がまだありません。</div>'}</div>
+      <div class="btns"><button class="btn main" data-act="addRelay">+ 継電器を追加</button></div>
+    </div>
+    <div class="card"><h2>印刷</h2>
+      <div class="btns"><button class="btn main" data-act="pvFull">成績書(測定値入り)</button><button class="btn" data-act="pvForm">記入用紙(測定値なし)</button></div>
+      <div class="note">記入用紙には、機器・整定値・判定基準だけが入ります。</div></div>
+    <div class="card"><h2>その他</h2><div class="btns">
+      <button class="btn" data-act="dupProject">次回用に複製</button>
+      <button class="btn danger" data-act="delProject">${pendingConfirm==='delProject'?'もう一度押すと削除':'この工事を削除'}</button></div></div>
+  </div>`;
+}
+
+/* --- 継電器 --- */
+function relayHTML(){
+  const r=relay();if(!r)return '';
+  const t=(k,l,ph,dec)=>`<label>${l}<input type="text" ${dec?'inputmode="decimal"':''} data-r="${k}" value="${esc(r[k])}" ${ph?`placeholder="${ph}"`:''}></label>`;
+  const jsel=k=>`<span class="jd">判定 <span id="b-${k}"></span>${sel(`data-jd="${k}"`,r.jd[k]==='auto'?'':r.jd[k],['','良','否']).replace('<option value="" ','<option value="auto" ').replace('>—<','>自動<')}</span>`;
+  const m=(k,l)=>`<div class="f" id="f-${k}"><input type="text" inputmode="decimal" data-m="${k}" value="${esc(r.m[k])}" aria-label="${l}"><div class="rg" id="g-${k}"></div></div>`;
+  return `${barHTML((r.panel||'継電器')+' のUVR試験','toProject')}
+  <div class="wrap">
+    <div class="two-col">
+      <div class="card"><h2>機器仕様</h2>
+        <div class="g3">${t('panel','盤名称')}${t('devNo','器具番号')}${t('devName','名称')}</div>
+        <div class="g3">${t('maker','メーカー')}${t('model','型式')}${t('serial','製造番号')}</div>
+        <div class="g3">${t('ratedV','定格電圧 AC(V)','',1)}<label>周波数(Hz)${sel('data-rs="freq"',r.freq,['50','60'])}</label>${t('lever','タイムレバー')}</div>
+      </div>
+      <div class="card"><h2>整定値・判定基準</h2>
+        <div class="g2">${t('setV','動作電圧整定(タップ) V','',1)}${t('setT','動作時間整定(限時) 秒','',1)}</div>
+        <div class="g4">${t('opTol','動作電圧 ±%','',1)}${t('resetMax','復帰電圧 整定の%以下','',1)}${t('timePct','時間試験 印加%','',1)}${t('timeTol','動作時間 ±%','',1)}</div>
+        <div class="note">判定基準(許容誤差)は、メーカーの仕様書や特記仕様書に合わせて変えてください。</div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card"><h2>試験結果(単体特性試験)</h2>
+        <div class="test"><div class="nm">最小動作電圧(V)<small id="c-op"></small></div>${m('op','最小動作電圧')}${jsel('op')}</div>
+        <div class="test"><div class="nm">復帰電圧(V)<small>動作状態から電圧上昇</small></div>${m('reset','復帰電圧')}${jsel('reset')}</div>
+        <div class="test"><div class="nm">動作時間(秒)<small id="c-time"></small></div>${m('time','動作時間')}${jsel('time')}</div>
+        <div class="test"><div class="nm">動作表示・接点<small>表示灯点灯・出力接点閉路</small></div>
+          <label>実測${sel('data-m="disp"',r.m.disp,['','正常','異常'])}</label><span class="jd">判定 <span id="b-disp"></span></span></div>
+      </div>
+      <div class="card"><h2>シーケンス・連動動作試験</h2>
+        ${r.seq.map((s,i)=>`<div class="seq">
+          <label>確認項目<input type="text" data-sq="${i}.item" value="${esc(s.item)}"></label>
+          <label>確認内容<input type="text" data-sq="${i}.desc" value="${esc(s.desc)}"></label>
+          <label>結果<input type="text" data-sq="${i}.res" value="${esc(s.res)}" placeholder="${esc((SEQ_DEF[i]||{}).res||'正常')}"></label>
+          <label>判定${sel(`data-sqs="${i}.jd"`,s.jd,['','良','否','－'])}</label></div>`).join('')}
+        <div class="btns"><button class="btn small" data-act="addSeq">+ 項目を追加</button>${r.seq.length?`<button class="btn small danger" data-act="delSeq">最後の項目を削除</button>`:''}</div>
+        <div class="note">該当しない項目は、判定を「－」にしてください。結果を空欄のまま判定を「良」にすると、用紙の結果欄には薄く見えている字(正常開放など)が入ります。</div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn main" data-act="toProject">入力おわり</button>
+      <button class="btn" data-act="dupRelay">同じ設定で次の継電器を追加</button>
+      <button class="btn danger" data-act="delRelay">${pendingConfirm==='delRelay'?'もう一度押すと削除':'この継電器を削除'}</button>
+    </div>
+  </div>`;
+}
+function updInd(){
+  const r=relay();if(!r)return;const e=ev(r);
+  const set=(k,txt)=>{const f=document.getElementById('f-'+k);if(f){f.classList.toggle('ok',e[k].ok===true);f.classList.toggle('ng',e[k].ok===false)}
+    const g=document.getElementById('g-'+k);if(g)g.textContent=(e[k].ok===false?'範囲外 ':'')+txt;};
+  set('op',isFinite(e.op.lo)?`${f1(e.op.lo)}〜${f1(e.op.hi)}  ${sg(e.op.err)}`:'整定値を入力');
+  set('reset',isFinite(e.reset.hi)?`${f1(e.reset.hi)} 以下  ${isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}`:'整定値を入力');
+  set('time',isFinite(e.time.lo)?`${f2(e.time.lo)}〜${f2(e.time.hi)}  ${sg(e.time.err)}`:'整定値を入力');
+  const c1=document.getElementById('c-op');if(c1)c1.textContent=`整定タップ ${r.setV}V`;
+  const c2=document.getElementById('c-time');if(c2)c2.textContent=`${r.timePct}% 印加(${f1(e.time.apply)}V 急変)`;
+  ['op','reset','time','disp'].forEach(k=>{const b=document.getElementById('b-'+k);if(b)b.innerHTML=badge(jOf(r,k,e))});
+}
+
+/* --- 印刷 --- */
+function previewHTML(){
+  const mode=view.mode;let pages;
+  if(mode==='blank')pages=[sheet(null,null,'blank')];
+  else{const p=proj();pages=p.relays.length?p.relays.map(r=>sheet(p,r,mode)):[sheet(p,null,mode)]}
+  return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績書',mode==='blank'?'toHome':'toProject')}
+  <div class="wrap" style="max-width:none">
+    <div class="pv-bar noprint"><button class="btn main" data-act="doPrint">印刷する(A4縦)</button>
+      ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
+      <span class="note">${pages.length}枚。印刷画面で「A4」「縦」を選んでください。PDF保存も印刷画面から。</span></div>
+    <div class="pages" id="pages">${pages.join('')}</div></div>`;
+}
+function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/(210*96/25.4))}
+function sheet(p,r,mode){
+  const full=mode==='full'&&r,hasP=p&&mode!=='blank',hasR=!!r&&mode!=='blank';
+  const P=k=>hasP?esc(p[k]):'',R=k=>hasR?esc(r[k]):'';
+  const e=r?ev(r):null;
+  const date=hasP&&mode==='full'?wareki(p.date):'令和　　年　　月　　日';
+  const wx=mode==='full'&&p?`${esc(p.weather||'　')} ／ ${esc(p.temp||'　')} ℃ ／ ${esc(p.hum||'　')} %`:'　　 ／ 　　 ℃ ／ 　　 %';
+  const sv=hasR?num(r.setV):NaN,st=hasR?num(r.setT):NaN;
+  const V=(x)=>x?`${x} V`:'　　 V';
+  const jcell=(k)=>{if(!full)return '<td class="jg"></td>';const j=jOf(r,k,e);return `<td class="jg ${j==='否'?'ng':''}">${esc(j)}</td>`};
+  const meas=(v,u)=>full&&v!==''?`${esc(v)}${u}`:'';
+  const rows=`
+    <tr><td>最小動作電圧</td><td>整定タップ:${hasR?esc(r.setV)+' V':'　　 V'}</td>
+      <td class="sm">整定値の ±${hasR?esc(r.opTol):'　'}% 以内<br><span class="rg">(${isFinite(sv)?`${f1(e.op.lo)} V 〜 ${f1(e.op.hi)} V`:'　　 V 〜 　　 V'})</span></td>
+      <td class="v">${meas(r?r.m.op:'',' V')}</td><td class="v">${full?sg(e.op.err):''}</td>${jcell('op')}</tr>
+    <tr><td>復帰電圧</td><td class="sm">動作状態から電圧上昇</td>
+      <td class="sm">整定値の ${hasR?esc(r.resetMax):'　'}% 以下<br><span class="rg">(${isFinite(sv)?`${f1(e.reset.hi)} V 以下`:'　　 V 以下'})</span></td>
+      <td class="v">${meas(r?r.m.reset:'',' V')}</td><td class="v">${full&&isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}</td>${jcell('reset')}</tr>
+    <tr><td>動作時間特性</td><td class="sm">整定電圧の ${hasR?esc(r.timePct):'　'}% 印加<br><span class="rg">(${isFinite(sv)?f1(e.time.apply)+' V':'　　 V'} 急変印加)</span></td>
+      <td class="sm">整定値(${hasR?esc(r.setT):'　'}秒)の ±${hasR?esc(r.timeTol):'　'}% 以内<br><span class="rg">(${isFinite(st)?`${f2(e.time.lo)} 秒 〜 ${f2(e.time.hi)} 秒`:'　　 秒 〜 　　 秒'})</span></td>
+      <td class="v">${meas(r?r.m.time:'',' 秒')}</td><td class="v">${full?sg(e.time.err):''}</td>${jcell('time')}</tr>
+    <tr><td>動作表示・接点</td><td class="sm">継電器動作時</td><td class="sm">動作表示灯点灯・<br>出力接点閉路</td>
+      <td class="v">${full?esc(r.m.disp):''}</td><td class="ctr">－</td>${jcell('disp')}</tr>`;
+  const seq=(r?r.seq:SEQ_DEF.map(x=>({...x,res:'',jd:''})));
+  const seqRows=seq.map((s,i)=>{const show=mode!=='blank';
+    const res=full?(s.res||(s.jd==='良'?(SEQ_DEF[i]||{}).res||'正常':s.jd==='－'?'－':'')):'';
+    return `<tr><td>${show||!r?esc(s.item):''}</td><td class="sm">${show||!r?esc(s.desc):''}</td><td class="v sm">${esc(res)}</td>
+      <td class="jg ${full&&s.jd==='否'?'ng':''}">${full?esc(s.jd):''}</td></tr>`}).join('');
+  return `<div class="sheet"><div class="sheet-x">
+    <div class="s-title">不足電圧継電器(UVR)試験成績書</div>
+    <div class="s-h">1. 基本情報</div>
+    <table class="s"><colgroup><col style="width:56mm"><col><col style="width:56mm"><col></colgroup>
+      <tr><th>工 事 名</th><td colspan="3">${P('name')}</td></tr>
+      <tr><th>盤 名 称</th><td colspan="3">${R('panel')}</td></tr>
+      <tr><th>試験実施日</th><td>${date}</td><th>天候/気温/湿度</th><td>${wx}</td></tr>
+      <tr><th>受 注 者<br><span style="font-size:14pt">(施工会社)</span></th><td colspan="3">${P('contractor')}</td></tr>
+      <tr><th>試験実施者</th><td>${P('tester')}</td><th>監督職員<br><span style="font-size:14pt">(立会者)</span></th><td>${P('witness')}</td></tr>
+    </table>
+    <div class="s-h">2. 機器仕様・整定値</div>
+    <table class="s"><colgroup><col style="width:56mm"><col><col style="width:56mm"><col></colgroup>
+      <tr><th>器具番号/名称</th><td>${hasR?`${esc(r.devNo)} / ${esc(r.devName)}`:'　　 / 不足電圧継電器(UVR)'}</td><th>メーカー/型式</th><td>${hasR?`${esc(r.maker)} / ${esc(r.model)}`:'　　 /'}</td></tr>
+      <tr><th>製 造 番 号</th><td>No. ${R('serial')}</td><th>定格電圧/周波数</th><td>AC ${hasR?esc(r.ratedV):'　　'} V / ${hasR?esc(r.freq):'　　'} Hz</td></tr>
+      <tr><th>動作電圧整定値<br><span style="font-size:14pt">(タップ)</span></th><td>${V(R('setV'))}</td><th>動作時間整定値<br><span style="font-size:14pt">(限時)</span></th><td>${hasR?esc(r.setT):'　　'} 秒(タイムレバー:${hasR?esc(r.lever)||'　':'　　'})</td></tr>
+    </table>
+    <div class="s-h">3. 試験結果(単体特性試験)</div>
+    <table class="s"><colgroup><col style="width:56mm"><col style="width:70mm"><col><col style="width:46mm"><col style="width:40mm"><col style="width:26mm"></colgroup>
+      <tr class="hd"><th>試験項目</th><th>試験条件</th><th>基準値・許容範囲</th><th>実測値</th><th>誤差・比率</th><th>判定</th></tr>
+      ${rows}
+    </table>
+    <div class="s-h">4. シーケンス・連動動作試験</div>
+    <table class="s"><colgroup><col style="width:66mm"><col><col style="width:62mm"><col style="width:26mm"></colgroup>
+      <tr class="hd"><th>確認項目</th><th>確認内容</th><th>結果</th><th>判定</th></tr>
+      ${seqRows}
+    </table>
+    <div class="s-note">※ 判定基準(許容誤差)は、使用する継電器メーカーの仕様書および特記仕様書の規定による。</div>
+    <div class="s-foot"><table class="sign"><tr><th>試験実施者</th><th>監督職員</th></tr><tr><td></td><td></td></tr></table></div>
+  </div></div>`;
+}
+
+/* ===== イベント ===== */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,p=proj(),r=relay();
+  switch(a){
+    case 'toHome':go({name:'home'});break;
+    case 'toProject':go({name:'project',pid:view.pid});break;
+    case 'newProject':{const np={id:uid(),name:'新しい工事',date:new Date().toISOString().slice(0,10),weather:'',temp:'',hum:'',contractor:'',tester:'',witness:'',relays:[]};
+      state.projects.push(np);save();go({name:'project',pid:np.id});setTimeout(()=>{const i=$('#pName');if(i){i.focus();i.select()}},50);break}
+    case 'openProject':go({name:'project',pid:b.dataset.id});break;
+    case 'openRelay':go({name:'relay',pid:view.pid,rid:b.dataset.id});break;
+    case 'addRelay':{const last=p.relays[p.relays.length-1];const nr=newRelay(last?last.panel:'');
+      if(last){['devNo','devName','maker','model','ratedV','freq','setV','setT','lever','opTol','resetMax','timePct','timeTol'].forEach(k=>nr[k]=last[k]);nr.seq=last.seq.map(s=>({item:s.item,desc:s.desc,res:'',jd:''}))}
+      p.relays.push(nr);save();go({name:'relay',pid:p.id,rid:nr.id});break}
+    case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.serial='';nr.m={op:'',reset:'',time:'',disp:''};nr.jd={op:'auto',reset:'auto',time:'auto'};nr.seq.forEach(s=>{s.res='';s.jd=''});
+      p.relays.splice(p.relays.indexOf(r)+1,0,nr);save();go({name:'relay',pid:p.id,rid:nr.id});toast('次の継電器を追加しました');break}
+    case 'delRelay':if(pendingConfirm!=='delRelay'){pendingConfirm='delRelay';render();break}
+      p.relays=p.relays.filter(x=>x.id!==r.id);save();go({name:'project',pid:p.id});toast('削除しました');break;
+    case 'delProject':if(pendingConfirm!=='delProject'){pendingConfirm='delProject';render();break}
+      state.projects=state.projects.filter(x=>x.id!==p.id);save();go({name:'home'});toast('削除しました');break;
+    case 'dupProject':{const np=JSON.parse(JSON.stringify(p));np.id=uid();np.name=p.name+'(次回)';np.date='';np.weather='';np.temp='';np.hum='';
+      np.relays.forEach(x=>{x.id=uid();x.m={op:'',reset:'',time:'',disp:''};x.jd={op:'auto',reset:'auto',time:'auto'};x.seq.forEach(s=>{s.res='';s.jd=''})});
+      state.projects.push(np);save();go({name:'project',pid:np.id});toast('複製しました');break}
+    case 'addSeq':r.seq.push({item:'',desc:'',res:'',jd:''});save();render();break;
+    case 'delSeq':r.seq.pop();save();render();break;
+    case 'pvFull':go({name:'preview',pid:view.pid,mode:'full'});break;
+    case 'pvForm':go({name:'preview',pid:view.pid,mode:'form'});break;
+    case 'blank':go({name:'preview',mode:'blank'});break;
+    case 'doPrint':{const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'exportJson':{const bl=new Blob([JSON.stringify(state,null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
+      a2.href=URL.createObjectURL(bl);a2.download=`UVR試験_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+      document.body.appendChild(a2);a2.click();setTimeout(()=>{URL.revokeObjectURL(a2.href);a2.remove()},500);break}
+    case 'importJson':$('#importFile').click();break;
+  }
+});
+$('#importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.projects))throw 0;let n=0;
+    d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
+    save();render();toast(`${n}件の工事を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}e.target.value=''};rd.readAsText(f)});
+document.addEventListener('input',e=>{
+  const t=e.target,p=proj(),r=relay();
+  if(t.id==='q'){view.q=t.value;if(!e.isComposing)$('#plist').innerHTML=listHTML();return}
+  if(t.dataset.p&&p){p[t.dataset.p]=t.value;save();if(t.dataset.p==='name')$('.bar h1').textContent=t.value;return}
+  if(t.dataset.r&&r){r[t.dataset.r]=t.value;save();updInd();if(t.dataset.r==='panel')$('.bar h1').textContent=(t.value||'継電器')+' のUVR試験';return}
+  if(t.dataset.m&&r){r.m[t.dataset.m]=t.value;save();updInd();return}
+  if(t.dataset.sq&&r){const [i,k]=t.dataset.sq.split('.');r.seq[+i][k]=t.value;save();return}
+});
+document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
+document.addEventListener('change',e=>{
+  const t=e.target,r=relay();
+  if(t.dataset.rs&&r){r[t.dataset.rs]=t.value;save();return}
+  if(t.dataset.jd&&r){r.jd[t.dataset.jd]=t.value||'auto';save();updInd();return}
+  if(t.dataset.sqs&&r){const [i,k]=t.dataset.sqs.split('.');r.seq[+i][k]=t.value;save();return}
+});
+window.addEventListener('resize',()=>{if(view.name==='preview')fit()});
+window.addEventListener('beforeprint',()=>{const el=$('#pages');if(el)el.style.zoom=1});
+window.addEventListener('afterprint',()=>{if(view.name==='preview')fit()});
+render();
+</script>
+</body>
+</html>
