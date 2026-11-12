@@ -338,11 +338,10 @@ function projectHTML(){
       <label>件名<input type="text" id="pName" data-p="name" value="${esc(p.name)}"></label>
       <div class="row">
         <label>試験日<input type="date" data-p="date" value="${esc(p.date)}"></label>
-        <label>天候<input type="text" data-p="weather" value="${esc(p.weather)}" list="wl"></label>
+        <label>天候<select data-p="weather">${['','晴','曇り','雨','雪',...((p.weather&&!['晴','曇り','雨','雪'].includes(p.weather))?[p.weather]:[])].map(w=>`<option value="${esc(w)}" ${w===(p.weather||'')?'selected':''}>${w?esc(w):'—'}</option>`).join('')}</select></label>
         <label>温度(℃)<input type="text" inputmode="decimal" data-p="temp" value="${esc(p.temp)}"></label>
         <label>湿度(%)<input type="text" inputmode="decimal" data-p="hum" value="${esc(p.hum)}"></label>
       </div>
-      <datalist id="wl"><option>晴</option><option>曇</option><option>雨</option><option>雪</option></datalist>
     </div>
     <div class="card">
       <h2>継電器</h2>
