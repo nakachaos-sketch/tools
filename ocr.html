@@ -563,7 +563,7 @@ function blockHTML(r,mode){
   const cg='<colgroup>'+cols.map(w=>w?`<col style="width:${w}mm">`:'<col>').join('')+'</colgroup>';
   const setv=has?`T = ${esc(r.T)} ・ D = ${esc(r.D)} ・ I = ${esc(r.I||'ロック')}`:'';
   const head=`<tr><th colspan="2">型　　式</th><th colspan="2">製 造 者 名</th><th colspan="2">定　　格</th><th colspan="2">製 造 年 月</th><th colspan="2">製 造 番 号</th><th colspan="2">整　定　値</th></tr>
-    <tr><td colspan="2" class="big" style="height:7mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
+    <tr><td colspan="2" class="big" style="height:10mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
     <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big">${setv}</td></tr>`;
   const p1=has?r.p1:200,p2=has?r.p2:300;
   const th=`<tr class="h1"><th rowspan="3" class="rs3">回 路 名</th><th rowspan="3" class="rs3">相 別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3" class="rs3">判 定</th><th rowspan="3" class="rs3">管　理　値</th></tr>
