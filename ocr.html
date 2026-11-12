@@ -102,18 +102,20 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .s-top{display:flex;justify-content:space-between;align-items:flex-end}
 .s-panel{border:1px solid #000;background:#d9f2d9;min-width:40mm;padding:1.2mm 6mm;text-align:center;font-size:10.5pt;letter-spacing:.2em}
 .s-date{font-size:10pt}
-table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9pt;border:1.4px solid #000}
-table.s th,table.s td{border:1px solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;height:6.6mm;line-height:1.15;overflow:hidden;white-space:nowrap}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9pt;border:1.2pt solid #000}
+table.s th,table.s td{border:.4pt solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;height:6.6mm;line-height:1.15;overflow:hidden;white-space:nowrap}
 table.s th{background:#d4d4d4;font-weight:400}
 table.s th.sm{font-size:8pt;letter-spacing:-.02em}
 table.s td.cir{white-space:normal;font-size:8.5pt;line-height:1.25}
 table.s td.v{color:#1a3fbf;font-size:9.5pt}
-table.s td.c{font-size:8.5pt;border-top:1px dotted #777}
+table.s td.c{font-size:8.5pt;border-top:.4pt dotted #666}
+table.s tr.h1 th{border-top:1.2pt solid #000}
+table.s tr.h3 th,table.s th.rs3{border-bottom:.9pt solid #000}
+table.s tr.ph2 td{border-top:.7pt solid #000}
 table.s tr.m td.mt{border-bottom:none}
 table.s td.kanri{text-align:left;font-size:8pt;line-height:1.3;padding:.8mm 1.2mm;white-space:normal;vertical-align:top}
 table.s td.big{font-size:10pt}
 table.s td.note20{font-size:8pt;color:#1a3fbf;border-top:none}
-table.s .gap td{border:none;height:3mm}
 .s-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
 table.cb{border-collapse:collapse;font-size:9.5pt;border:1.4px solid #000}
 table.cb th{background:#d4d4d4;font-weight:400;border:1px solid #000;padding:1.2mm 4mm}
@@ -562,12 +564,11 @@ function blockHTML(r,mode){
   const setv=has?`T = ${esc(r.T)} ・ D = ${esc(r.D)} ・ I = ${esc(r.I||'ロック')}`:'';
   const head=`<tr><th colspan="2">型　　式</th><th colspan="2">製 造 者 名</th><th colspan="2">定　　格</th><th colspan="2">製 造 年 月</th><th colspan="2">製 造 番 号</th><th colspan="2">整　定　値</th></tr>
     <tr><td colspan="2" class="big" style="height:7mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
-    <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big">${setv}</td></tr>
-    <tr class="gap"><td colspan="12"></td></tr>`;
+    <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big">${setv}</td></tr>`;
   const p1=has?r.p1:200,p2=has?r.p2:300;
-  const th=`<tr><th rowspan="3">回 路 名</th><th rowspan="3">相 別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3">判 定</th><th rowspan="3">管　理　値</th></tr>
+  const th=`<tr class="h1"><th rowspan="3" class="rs3">回 路 名</th><th rowspan="3" class="rs3">相 別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3" class="rs3">判 定</th><th rowspan="3" class="rs3">管　理　値</th></tr>
     <tr><th colspan="3">ダイヤル　${has?esc(r.dialA):'10'}</th><th colspan="3">ダイヤル　${has?esc(dialB(r)):''}</th></tr>
-    <tr><th>(A)</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>(A)</th></tr>`;
+    <tr class="h3"><th>(A)</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>(A)</th></tr>`;
   let body='';
   ['R','T'].forEach((k,i)=>{
     const d=has?r.ph[k]:emptyPh();
@@ -576,7 +577,7 @@ function blockHTML(r,mode){
     const c=(pt,dial)=>has?(()=>{const v=charAt(r,pt,dial);return isFinite(v)?`( ${fmtChar(v)} )`:''})():'';
     const ir=has?instRef(r):{limited:false};
     const j=full?judgeOf(r,k):'';
-    body+=`<tr class="m">${i===0?`<td rowspan="4" class="cir">${has?esc(r.circuit):''}</td>`:''}<td rowspan="2" class="big">${k==='R'?'Ｒ':'Ｔ'}</td>
+    body+=`<tr class="m${i?" ph2":""}">${i===0?`<td rowspan="4" class="cir">${has?esc(r.circuit):''}</td>`:''}<td rowspan="2" class="big">${k==='R'?'Ｒ':'Ｔ'}</td>
       <td rowspan="2" class="v">${mv('min')}</td><td class="v mt">${mv('a1')}</td><td class="v mt">${mv('a2')}</td><td class="v mt">${mv('ai')}</td>
       <td class="v mt">${mv('b1')}</td><td class="v mt">${mv('b2')}</td><td class="v mt">${mv('bi')}</td><td class="v mt">${mv('inst')}</td>
       <td rowspan="2" class="v big" style="${j==='否'?'color:#c62828;font-weight:700':''}">${esc(j)}</td>
