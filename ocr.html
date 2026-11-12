@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>過電流継電器試験成績表</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* 現場の試験器パネル風:紺のバー、白い入力面、良=緑/否=赤 */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#1b2430; --sub:#5b6878; --line:#cfd6de;
+  --accent:#16496b; --accent-ink:#ffffff; --accent-soft:#e3edf5;
+  --ok:#17803d; --ok-soft:#e3f4e8; --ng:#c62828; --ng-soft:#fde8e8;
+  --meas:#1a3fbf;
+  --font:"Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+.bar{position:sticky;top:0;z-index:5;background:var(--accent);color:var(--accent-ink);padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.bar h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{background:transparent;border:1px solid rgba(255,255,255,.5);color:var(--accent-ink);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.wrap{max-width:860px;margin:0 auto;padding:14px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h2{font-size:14px;margin:0;color:var(--accent);letter-spacing:.05em}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.row>label{flex:1 1 140px;min-width:0}
+label{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--sub)}
+input[type=text],input[type=date],select{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 9px;background:#fff;font-size:16px;color:var(--ink)}
+/* iPhone/iPadのSafariで日付欄がはみ出して隣と重なるのを防ぐ */
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-width:0;max-width:100%;min-height:2.5em;line-height:1.3}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+.row>label>input,.row>label>select{min-width:0;max-width:100%}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:9px 14px;cursor:pointer;font-weight:500}
+.btn.main{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{border-color:var(--ng);color:var(--ng)}
+.btn.small{padding:5px 10px;font-size:13px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:11px 12px;cursor:pointer;text-align:left;width:100%}
+.item:hover{border-color:var(--accent)}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .t span{font-size:12px;color:var(--sub)}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)}
+.b-ng{background:var(--ng-soft);color:var(--ng)}
+.b-none{background:#edf0f3;color:var(--sub)}
+.grp{font-size:13px;font-weight:700;color:var(--sub);display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.note{font-size:12px;color:var(--sub)}
+.empty{text-align:center;color:var(--sub);padding:24px 8px}
+/* 測定値入力 */
+.phase{border:1px solid var(--line);border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:10px}
+.phase-h{display:flex;align-items:center;gap:10px}
+.phase-h b{font-size:18px;color:var(--accent);width:28px}
+.phase-h .jd{margin-left:auto;display:flex;align-items:center;gap:6px}
+.phase-h select{width:auto;padding:4px 6px;font-size:14px}
+.sub{font-size:12px;font-weight:700;color:var(--sub);border-bottom:1px dashed var(--line);padding-bottom:2px}
+.fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.f{display:flex;flex-direction:column;gap:2px;min-width:0}
+.f .lb{font-size:12px;color:var(--sub);display:flex;justify-content:space-between;gap:4px}
+.f .lb em{font-style:normal;color:var(--ink);font-weight:500}
+.f input{font-size:17px;padding:7px 8px;font-variant-numeric:tabular-nums;color:var(--meas)}
+.f .rg{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums;line-height:1.3;min-height:1.3em}
+.f.ok input{border-color:var(--ok);background:var(--ok-soft)}
+.f.ng input{border-color:var(--ng);background:var(--ng-soft)}
+.f.ok .rg{color:var(--ok)} .f.ng .rg{color:var(--ng);font-weight:700}
+.fgrid.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:420px){.fgrid{gap:6px}.f input{font-size:16px;padding:6px}}
+.mono{font-variant-numeric:tabular-nums}
+.tolgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2430;color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;z-index:20}
+/* 継電器入力画面(コンパクト・左右2列) */
+.wrap.cmp{max-width:1400px;gap:8px;padding-top:8px;padding-bottom:12px}
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.two-col{grid-template-columns:minmax(0,1fr)}}
+.cmp .card{padding:8px 10px;gap:6px}
+.cmp .card h2{font-size:13px}
+.cmp label{font-size:11px;gap:1px}
+.cmp input[type=text],.cmp select{font-size:14px;padding:4px 6px;border-radius:4px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cmp .note{font-size:11px;line-height:1.35}
+.cmp .phase{gap:4px}
+.cmp .phase-h b{font-size:16px}
+.cmp .phase-h select{font-size:13px;padding:2px 4px}
+.cmp .sub{font-size:11px;padding-bottom:0}
+.cmp .fgrid{gap:6px}
+.cmp .f .lb{font-size:11px}
+.cmp .f input{font-size:15px;padding:3px 6px}
+.cmp .f .rg{font-size:10.5px}
+.cmp .btns .btn{padding:6px 12px}
+/* 印刷シート */
+.pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pages{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.sheet{width:297mm;height:209mm;background:#fff;color:#000;padding:9mm 11mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none}
+.sheet-in{border:1.6px solid #000;height:100%;padding:6mm 6mm 5mm;display:flex;flex-direction:column;gap:3mm}
+.s-title{text-align:center;font-size:17pt;letter-spacing:.55em;font-weight:500;margin:1mm 0 2mm}
+.s-top{display:flex;justify-content:space-between;align-items:flex-end}
+.s-panel{border:1px solid #000;background:#d9f2d9;min-width:40mm;padding:1.2mm 6mm;text-align:center;font-size:10.5pt;letter-spacing:.2em}
+.s-date{font-size:10pt}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9pt;border:1.4px solid #000}
+table.s th,table.s td{border:1px solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;height:6.6mm;line-height:1.15;overflow:hidden;white-space:nowrap}
+table.s th{background:#d4d4d4;font-weight:400}
+table.s th.sm{font-size:8pt;letter-spacing:-.02em}
+table.s td.cir{white-space:normal;font-size:8.5pt;line-height:1.25}
+table.s td.v{color:#1a3fbf;font-size:9.5pt}
+table.s td.c{font-size:8.5pt;border-top:1px dotted #777}
+table.s tr.m td.mt{border-bottom:none}
+table.s td.kanri{text-align:left;font-size:8pt;line-height:1.3;padding:.8mm 1.2mm;white-space:normal;vertical-align:top}
+table.s td.big{font-size:10pt}
+table.s td.note20{font-size:8pt;color:#1a3fbf}
+table.s .gap td{border:none;height:3mm}
+.s-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
+table.cb{border-collapse:collapse;font-size:9.5pt;border:1.4px solid #000}
+table.cb th{background:#d4d4d4;font-weight:400;border:1px solid #000;padding:1.2mm 4mm}
+table.cb td{border:1px solid #000;width:22mm;text-align:center;color:#1a3fbf}
+.s-cap{font-size:9pt;padding-right:4mm}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{background:#fff}
+  .noprint{display:none!important}
+  .wrap{padding:0;max-width:none;gap:0}
+  .pages{zoom:1!important;gap:0}
+  .sheet{box-shadow:none;break-after:page;page-break-after:always}
+  .sheet:last-child{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+'use strict';
+/* ========== 基本データ ========== */
+const LS_KEY='ocrTest.v1';
+const DEF_SET={tolMin:10,tol200:17,tol300:17,tol700:12,instTime:0.15,tolInst:15,instLimit:20,round:'floor',showInstTol:false};
+const POINTS=[200,300,700];
+// 限時特性 (I=整定に対する倍数M, D=ダイヤル)  すべて ×D/10
+const CHARS={
+  VI:{label:'強反限時 VI',f:'13.5/(M−1)'},
+  NI:{label:'反限時 NI',f:'0.14/(M^0.02−1)'},
+  EI:{label:'超反限時 EI',f:'80/(M²−1)'},
+  LI:{label:'長反限時 LI',f:'120/(M−1)'},
+  DT:{label:'定限時 DT',f:'2秒'},
+  DO:{label:'静止形 DO',f:'62.1875/(M−0.5)²+0.05'},
+  NSNI:{label:'反限時(日新)',f:'3/(M−1)+1.7'},
+  NSLI:{label:'長反限時(日新)',f:'150/(M−1)+3'},
+  TABLE:{label:'手入力(ダイヤル10の値)',f:'ダイヤル10の値×D/10'}
+};
+const BUILTIN=[
+  {id:'omron-k2oc-acn',maker:'オムロン',name:'K2OC-ACN',rating:'5A・50Hz',chars:['VI','NI','EI','DT','DO'],def:'VI',builtin:true},
+  {id:'omron-k2oc-avn',maker:'オムロン',name:'K2OC-AVN',rating:'5A・50Hz',chars:['VI','NI','EI','DT','DO'],def:'VI',builtin:true},
+  {id:'nissin-ns4r25',maker:'日新電機',name:'NS-4R25',rating:'5A・50Hz',chars:['NSNI','EI','NSLI'],def:'NSNI',builtin:true},
+  {id:'nissin-ns4r35',maker:'日新電機',name:'NS-4R35',rating:'5A・50Hz',chars:['NSNI','EI','NSLI'],def:'NSNI',builtin:true},
+  {id:'nissin-ns2c15',maker:'日新電機',name:'NS-2C15',rating:'5A・50Hz',chars:['NSNI','EI','NSLI'],def:'NSNI',builtin:true},
+  {id:'generic',maker:'',name:'標準特性(IEC式)',rating:'',chars:['NI','VI','EI','LI','DT'],def:'VI',builtin:true},
+  {id:'manual',maker:'',name:'手入力(その他の型式)',rating:'',chars:['TABLE'],def:'TABLE',builtin:true}
+];
+
+/* ========== 状態 ========== */
+let state=load();
+let view={name:'home'};
+let pendingConfirm=null;
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function emptyPh(){return {min:'',a1:'',a2:'',ai:'',b1:'',b2:'',bi:'',inst:''}}
+function newRelay(panel){
+  return {id:uid(),panel:panel||'受電盤',circuit:'',modelId:'omron-k2oc-acn',model:'K2OC-ACN',maker:'オムロン',rating:'5A・50Hz',
+    made:'',serial:'',charType:'VI',table:{},T:'5',D:'1',I:'',dialA:'10',dialB:'',p1:200,p2:300,
+    ph:{R:emptyPh(),T:emptyPh()},jd:{R:'auto',T:'auto'},cb:''};
+}
+function sample(){
+  const mk=(panel,circuit,serial,R,T)=>{const r=newRelay(panel);Object.assign(r,{circuit,serial,made:'2025年',I:'50',cb:'良'});
+    const f=a=>({min:a[0],a1:'',a2:'',ai:'',b1:a[1],b2:a[2],bi:a[3],inst:a[4]});r.ph={R:f(R),T:f(T)};return r};
+  return {id:uid(),name:'サンプル(2026年2月 年次点検)',date:'2026-02-11',weather:'晴',temp:'10',hum:'53',
+    relays:[mk('受電盤','受電盤','',['5.00','1.36','0.68','0.056','20.2'],['5.00','1.35','0.67','0.052','20.1']),
+      mk('高圧分岐盤','第１変電設備','',['5.00','1.37','0.68','0.050','19.0'],['5.00','1.36','0.67','0.056','19.0']),
+      mk('高圧分岐盤','第２変電設備','',['4.95','1.26','0.49','0.053','19.3'],['4.95','1.26','0.46','0.053','19.4'])]};
+}
+function load(){
+  let s=null;
+  try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
+  if(!s){s={v:1,projects:[sample()],models:[],settings:{...DEF_SET}}}
+  s.settings={...DEF_SET,...(s.settings||{})};
+  s.models=s.models||[];s.projects=s.projects||[];
+  return s;
+}
+function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした(ブラウザの保存領域)')}}
+
+/* ========== 計算 ========== */
+function num(v){
+  if(v===undefined||v===null)return NaN;
+  let s=String(v).replace(/[０-９．－]/g,c=>c==='．'?'.':c==='－'?'-':String.fromCharCode(c.charCodeAt(0)-0xFEE0)).trim();
+  if(s==='')return NaN; const n=Number(s); return isFinite(n)?n:NaN;
+}
+function allModels(){return [...BUILTIN,...state.models]}
+function getModel(id){return allModels().find(m=>m.id===id)}
+function charAt(r,p,D){
+  D=num(D); if(!(D>0))return NaN;
+  const M=p/100,k=D/10;
+  switch(r.charType){
+    case 'VI':return 13.5/(M-1)*k;
+    case 'NI':return 0.14/(Math.pow(M,0.02)-1)*k;
+    case 'EI':return 80/(M*M-1)*k;
+    case 'LI':return 120/(M-1)*k;
+    case 'DT':return 2*k;
+    case 'DO':return 62.1875/Math.pow(M-0.5,2)*k+0.05;
+    case 'NSNI':return (3/(M-1)+1.7)*k;
+    case 'NSLI':return (150/(M-1)+3)*k;
+    case 'TABLE':{const v=num((r.table||{})[p]);return v*k}
+  }
+  return NaN;
+}
+function fmtChar(v){
+  if(!isFinite(v))return '';
+  if(state.settings.round==='floor')return (Math.floor(v*100+1e-7)/100).toFixed(2);
+  return v.toFixed(2);
+}
+function dialB(r){return (r.dialB!==''&&r.dialB!=null)?r.dialB:r.D}
+function tolFor(p){return num(state.settings['tol'+p])}
+function instRef(r){
+  const I=num(r.I),L=num(state.settings.instLimit);
+  if(!(I>0))return {ref:NaN,limited:false};
+  if(L>0&&I>L)return {ref:L,limited:true};
+  return {ref:I,limited:false};
+}
+function band(ref,tol){if(!isFinite(ref)||!isFinite(tol))return null;return {lo:ref*(1-tol/100),hi:ref*(1+tol/100)}}
+// 1相分の評価
+function evalPhase(r,k){
+  const d=r.ph[k]||emptyPh(),out={};
+  const chk=(key,ref,tol,dec)=>{
+    const b=band(ref,tol),x=num(d[key]);
+    out[key]={ref,b,dec,ok:(b&&isFinite(x))?(x>=b.lo-1e-9&&x<=b.hi+1e-9):null,x};
+  };
+  chk('min',num(r.T),num(state.settings.tolMin),2);
+  const cA1=charAt(r,r.p1,r.dialA),cA2=charAt(r,r.p2,r.dialA),cB1=charAt(r,r.p1,dialB(r)),cB2=charAt(r,r.p2,dialB(r));
+  chk('a1',cA1,tolFor(r.p1),2);chk('a2',cA2,tolFor(r.p2),2);chk('b1',cB1,tolFor(r.p1),2);chk('b2',cB2,tolFor(r.p2),2);
+  const it=num(state.settings.instTime);
+  ['ai','bi'].forEach(key=>{const x=num(d[key]);out[key]={max:it,ok:(isFinite(x)&&isFinite(it))?x<=it+1e-9:null,x}});
+  const ir=instRef(r);chk('inst',ir.ref,num(state.settings.tolInst),1);out.inst.limited=ir.limited;
+  return out;
+}
+function judgeOf(r,k){
+  const m=(r.jd||{})[k]||'auto';
+  if(m!=='auto')return m;
+  const e=evalPhase(r,k);let any=false,bad=false;
+  Object.values(e).forEach(v=>{if(v.ok===true)any=true;if(v.ok===false)bad=true});
+  return bad?'否':(any?'良':'');
+}
+function relayJudge(r){const a=judgeOf(r,'R'),b=judgeOf(r,'T');if(a==='否'||b==='否')return '否';if(a==='良'||b==='良')return '良';return ''}
+function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':'<span class="badge b-none">未</span>'}
+
+/* ========== 共通 ========== */
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(msg){const t=document.createElement('div');t.className='toast noprint';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+function proj(){return state.projects.find(p=>p.id===view.pid)}
+function relay(){const p=proj();return p&&p.relays.find(r=>r.id===view.rid)}
+function go(v){view=v;pendingConfirm=null;render();window.scrollTo(0,0)}
+function fmtDate(d){if(!d)return '';const m=d.match(/(\d+)-(\d+)-(\d+)/);return m?`${+m[1]}年${+m[2]}月${+m[3]}日`:d}
+function panels(p){const out=[];p.relays.forEach(r=>{if(!out.includes(r.panel))out.push(r.panel)});return out}
+
+/* ========== 画面描画 ========== */
+function render(){
+  const app=$('#app');
+  const v=view.name;
+  if(v==='home')app.innerHTML=homeHTML();
+  else if(v==='project')app.innerHTML=projectHTML();
+  else if(v==='relay')app.innerHTML=relayHTML();
+  else if(v==='preview')app.innerHTML=previewHTML();
+  else if(v==='models')app.innerHTML=modelsHTML();
+  else if(v==='settings')app.innerHTML=settingsHTML();
+  if(v==='relay')updateInd();
+  if(v==='preview')fitPages();
+}
+function barHTML(title,back){
+  return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(title)}</h1></div>`;
+}
+
+/* --- 件名一覧 --- */
+function homeHTML(){
+  return `${barHTML('過電流継電器 試験成績表')}
+  <div class="wrap">
+    <div class="btns"><button class="btn main" data-act="newProject">+ 新しい件名</button></div>
+    <input type="text" id="q" placeholder="件名で検索" value="${esc(view.q||'')}">
+    <div class="list" id="plist">${homeListHTML()}</div>
+    <div class="card">
+      <h2>用紙・設定</h2>
+      <div class="btns">
+        <button class="btn" data-act="blankPrint">白紙の記入用紙</button>
+        <button class="btn" data-act="openModels">型式の登録</button>
+        <button class="btn" data-act="openSettings">管理値の設定</button>
+      </div>
+      <h2>バックアップ</h2>
+      <div class="btns">
+        <button class="btn" data-act="exportJson">バックアップを保存</button>
+        <button class="btn" data-act="importJson">バックアップを読込</button>
+      </div>
+      <div class="note">データはこの端末のブラウザに保存されます。機種変更や別のパソコンで使うときは、バックアップを保存して読み込んでください。</div>
+    </div>
+  </div>`;
+}
+
+function homeListHTML(){
+  const q=(view.q||'').trim();
+  const list=state.projects.filter(p=>!q||(p.name||'').includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return list.length?list.map(p=>{
+      const js=p.relays.map(relayJudge),ng=js.filter(j=>j==='否').length,ok=js.filter(j=>j==='良').length;
+      return `<button class="item" data-act="openProject" data-id="${p.id}"><div class="t"><b>${esc(p.name||'(件名なし)')}</b>
+        <span>${esc(fmtDate(p.date)||'日付未入力')} ・ 継電器 ${p.relays.length}台</span></div>
+        ${ng?`<span class="badge b-ng">否 ${ng}</span>`:ok?`<span class="badge b-ok">良 ${ok}</span>`:'<span class="badge b-none">未入力</span>'}</button>`}).join('')
+      :`<div class="empty">${q?'該当する件名がありません':'件名がまだありません。「+ 新しい件名」から作成します。'}</div>`;
+}
+
+/* --- 件名詳細 --- */
+function projectHTML(){
+  const p=proj();if(!p)return '';
+  const ps=panels(p);
+  return `${barHTML(p.name||'件名','toHome')}
+  <div class="wrap">
+    <div class="card">
+      <h2>件名・試験条件</h2>
+      <label>件名<input type="text" id="pName" data-p="name" value="${esc(p.name)}"></label>
+      <div class="row">
+        <label>試験日<input type="date" data-p="date" value="${esc(p.date)}"></label>
+        <label>天候<input type="text" data-p="weather" value="${esc(p.weather)}" list="wl"></label>
+        <label>温度(℃)<input type="text" inputmode="decimal" data-p="temp" value="${esc(p.temp)}"></label>
+        <label>湿度(%)<input type="text" inputmode="decimal" data-p="hum" value="${esc(p.hum)}"></label>
+      </div>
+      <datalist id="wl"><option>晴</option><option>曇</option><option>雨</option><option>雪</option></datalist>
+    </div>
+    <div class="card">
+      <h2>継電器</h2>
+      ${ps.length?ps.map(pn=>`<div class="grp"><span>${esc(pn)}</span><button class="btn small" data-act="previewPanel" data-panel="${esc(pn)}">この盤だけ印刷</button></div>
+        <div class="list">${p.relays.filter(r=>r.panel===pn).map(r=>`<button class="item" data-act="openRelay" data-id="${r.id}">
+          <div class="t"><b>${esc(r.circuit||'(回路名なし)')}</b><span>${esc(r.model)} ・ No.${esc(r.serial||'—')} ・ T=${esc(r.T)} D=${esc(r.D)} I=${esc(r.I||'—')}</span></div>
+          R ${badge(judgeOf(r,'R'))} T ${badge(judgeOf(r,'T'))}</button>`).join('')}</div>`).join('')
+        :'<div class="empty">継電器がまだありません。</div>'}
+      <div class="btns"><button class="btn main" data-act="addRelay">+ 継電器を追加</button></div>
+      <div class="note">同じ盤名の継電器は、1枚の用紙に2台ずつ印刷されます。</div>
+    </div>
+    <div class="card">
+      <h2>印刷</h2>
+      <div class="btns">
+        <button class="btn main" data-act="previewFull">成績表(測定値入り)</button>
+        <button class="btn" data-act="previewForm">記入用紙(測定値なし)</button>
+      </div>
+      <div class="note">記入用紙には型式・整定値・特性曲線値( )だけが入ります。現場で手書きする用です。</div>
+    </div>
+    <div class="card">
+      <h2>その他</h2>
+      <div class="btns">
+        <button class="btn" data-act="dupProject">次回用に複製</button>
+        <button class="btn danger" data-act="delProject">${pendingConfirm==='delProject'?'もう一度押すと削除':'この件名を削除'}</button>
+      </div>
+      <div class="note">「次回用に複製」は機器情報と整定値だけを写し、測定値と試験日を空にした新しい件名を作ります。</div>
+    </div>
+  </div>`;
+}
+
+/* --- 継電器編集 --- */
+function relayHTML(){
+  const p=proj(),r=relay();if(!r)return '';
+  const m=getModel(r.modelId);
+  const pl=panels(p);
+  const opt=(arr,cur)=>arr.map(x=>`<option value="${x}" ${String(x)===String(cur)?'selected':''}>${x}%</option>`).join('');
+  const charOpts=Object.keys(CHARS).map(k=>`<option value="${k}" ${k===r.charType?'selected':''}>${CHARS[k].label}${m&&m.chars.includes(k)?'':' ※'}</option>`).join('');
+  const usedPts=[...new Set([r.p1,r.p2])];
+  return `${barHTML((r.circuit||'継電器')+' の試験','toProject')}
+  <div class="wrap cmp">
+    <div class="two-col">
+    <div class="card">
+      <h2>機器</h2>
+      <div class="g3">
+        <label>盤名(用紙の左上)<input type="text" data-r="panel" value="${esc(r.panel)}" list="pl"></label>
+        <label>回路名<input type="text" data-r="circuit" value="${esc(r.circuit)}"></label>
+        <label>メーカー型式(特性値が自動で入る)
+          <select data-rs="modelId">${allModels().map(x=>`<option value="${x.id}" ${x.id===r.modelId?'selected':''}>${esc((x.maker?x.maker+' ':'')+x.name)}</option>`).join('')}</select></label>
+        <label>型式<input type="text" data-r="model" value="${esc(r.model)}"></label>
+        <label>製造者名<input type="text" data-r="maker" value="${esc(r.maker)}"></label>
+        <label>定格<input type="text" data-r="rating" value="${esc(r.rating)}"></label>
+        <label>製造年月<input type="text" data-r="made" value="${esc(r.made)}" placeholder="2025年"></label>
+        <label>製造番号<input type="text" data-r="serial" value="${esc(r.serial)}"></label>
+        <label>限時特性<select data-rs="charType">${charOpts}</select></label>
+      </div>
+      <datalist id="pl">${pl.map(x=>`<option>${esc(x)}</option>`).join('')}</datalist>
+      <div class="note">式:${esc(CHARS[r.charType].f)} × D/10 ${m&&!m.chars.includes(r.charType)?' (※この型式の標準外の特性です)':''}</div>
+      ${r.charType==='TABLE'?`<div class="g3">${usedPts.map(pt=>`<label>ダイヤル10・${pt}%の値(S)<input type="text" inputmode="decimal" data-tb="${pt}" value="${esc((r.table||{})[pt]||'')}"></label>`).join('')}</div>
+        <div class="note">メーカー資料の「ダイヤル(レバー)10」の動作時間を入れてください。他のダイヤルは比例で計算します。</div>`:''}
+    </div>
+    <div class="card">
+      <h2>整定値・試験条件</h2>
+      <div class="g3">
+        <label>T 限時タップ(A)<input type="text" inputmode="decimal" data-r="T" value="${esc(r.T)}"></label>
+        <label>D ダイヤル<input type="text" inputmode="decimal" data-r="D" value="${esc(r.D)}"></label>
+        <label>I 瞬時(A)<input type="text" inputmode="decimal" data-r="I" value="${esc(r.I)}" placeholder="なしは空欄"></label>
+      </div>
+      <div class="g4">
+        <label>試験ダイヤル①<input type="text" inputmode="decimal" data-r="dialA" value="${esc(r.dialA)}"></label>
+        <label>試験ダイヤル②<input type="text" inputmode="decimal" data-r="dialB" value="${esc(r.dialB)}" placeholder="空欄=D"></label>
+        <label>試験電流①<select data-rs="p1">${opt(POINTS,r.p1)}</select></label>
+        <label>試験電流②<select data-rs="p2">${opt(POINTS,r.p2)}</select></label>
+      </div>
+      <div class="g3">
+        <label>遮断器 連動試験<select data-rs="cb"><option value="" ${!r.cb?'selected':''}>—</option><option ${r.cb==='良'?'selected':''}>良</option><option ${r.cb==='否'?'selected':''}>否</option></select></label>
+      </div>
+      <div class="note" id="instNote"></div>
+    </div>
+    </div>
+    <div class="two-col">${['R','T'].map(k=>phaseHTML(r,k)).join('')}</div>
+    <div class="btns">
+      <button class="btn main" data-act="toProject">入力おわり</button>
+      <button class="btn" data-act="dupRelay">同じ設定で次の継電器を追加</button>
+      <button class="btn danger" data-act="delRelay">${pendingConfirm==='delRelay'?'もう一度押すと削除':'この継電器を削除'}</button>
+    </div>
+  </div>`;
+}
+function phaseHTML(r,k){
+  const d=r.ph[k];
+  const f=(key,label)=>`<div class="f" id="f-${k}-${key}"><div class="lb"><span>${label}</span><em id="c-${k}-${key}"></em></div>
+    <input type="text" inputmode="decimal" data-ph="${k}.${key}" value="${esc(d[key])}" aria-label="${k}相 ${label}"><div class="rg" id="g-${k}-${key}"></div></div>`;
+  const j=(r.jd||{})[k]||'auto';
+  return `<div class="card phase">
+    <div class="phase-h"><b>${k}</b><span class="note">相</span>
+      <span class="jd"><span id="jd-${k}"></span><select data-jd="${k}" aria-label="${k}相の判定">
+        <option value="auto" ${j==='auto'?'selected':''}>自動判定</option><option ${j==='良'?'selected':''}>良</option><option ${j==='否'?'selected':''}>否</option></select></span></div>
+    <div class="fgrid">${f('min','最小動作電流(A)')}${f('inst','瞬時動作電流(A)')}</div>
+    <div class="sub">ダイヤル ${esc(r.dialA)} の動作時間(S)</div>
+    <div class="fgrid">${f('a1',r.p1+'%')}${f('a2',r.p2+'%')}${f('ai','瞬時')}</div>
+    <div class="sub">ダイヤル ${esc(dialB(r))} の動作時間(S)</div>
+    <div class="fgrid">${f('b1',r.p1+'%')}${f('b2',r.p2+'%')}${f('bi','瞬時')}</div>
+  </div>`;
+}
+function updateInd(){
+  const r=relay();if(!r)return;
+  ['R','T'].forEach(k=>{
+    const e=evalPhase(r,k);
+    Object.keys(e).forEach(key=>{
+      const it=e[key],box=document.getElementById(`f-${k}-${key}`);if(!box)return;
+      box.classList.toggle('ok',it.ok===true);box.classList.toggle('ng',it.ok===false);
+      const c=document.getElementById(`c-${k}-${key}`),g=document.getElementById(`g-${k}-${key}`);
+      let ctext='',gtext='';
+      if(key==='ai'||key==='bi'){gtext=isFinite(it.max)?`${it.max}秒以内`:''}
+      else if(key==='min'){gtext=it.b?`整定${it.ref}A → ${it.b.lo.toFixed(2)}〜${it.b.hi.toFixed(2)}`:'T未入力'}
+      else if(key==='inst'){gtext=it.b?`${it.limited?it.ref+'Aで試験':'整定'+it.ref+'A'} → ${it.b.lo.toFixed(1)}〜${it.b.hi.toFixed(1)}`:'I未入力'}
+      else {ctext=isFinite(it.ref)?`(${fmtChar(it.ref)})`:'';gtext=it.b?`${it.b.lo.toFixed(2)}〜${it.b.hi.toFixed(2)}`:'特性値なし'}
+      if(it.ok===false)gtext='範囲外 '+gtext;
+      c.textContent=ctext;g.textContent=gtext;
+    });
+    const jb=document.getElementById('jd-'+k);if(jb)jb.innerHTML=badge(judgeOf(r,k));
+  });
+  const n=document.getElementById('instNote');
+  if(n){const ir=instRef(r);n.textContent=ir.limited?`瞬時の整定 ${r.I}A が ${state.settings.instLimit}A を超えるため、${ir.ref}Aで試験として判定します(用紙に「(${ir.ref}Aで試験)」と記載)。`:''}
+}
+
+/* --- 型式登録 --- */
+function modelsHTML(){
+  const um=state.models;
+  return `${barHTML('型式の登録','toHome')}
+  <div class="wrap">
+    <div class="card">
+      <h2>登録済みの型式</h2>
+      <div class="list">${BUILTIN.map(m=>`<div class="item" style="cursor:default"><div class="t"><b>${esc((m.maker?m.maker+' ':'')+m.name)}</b><span>${m.chars.map(c=>CHARS[c].label).join(' / ')}(標準)</span></div></div>`).join('')}
+      ${um.map(m=>`<div class="item" style="cursor:default"><div class="t"><b>${esc((m.maker?m.maker+' ':'')+m.name)}</b><span>${m.def==='TABLE'?`ダイヤル10: ${POINTS.map(p=>p+'%='+(m.table[p]||'—')).join(' ')}`:CHARS[m.def].label}</span></div>
+        <button class="btn small danger" data-act="delModel" data-id="${m.id}">${pendingConfirm==='delModel:'+m.id?'もう一度':'削除'}</button></div>`).join('')}</div>
+    </div>
+    <div class="card">
+      <h2>型式を追加</h2>
+      <div class="row">
+        <label>製造者名<input type="text" id="nmMaker"></label>
+        <label>型式<input type="text" id="nmName"></label>
+        <label>定格<input type="text" id="nmRating" value="5A・50Hz"></label>
+      </div>
+      <label>限時特性<select id="nmChar">${Object.keys(CHARS).map(k=>`<option value="${k}" ${k==='TABLE'?'selected':''}>${CHARS[k].label}(${esc(CHARS[k].f)})</option>`).join('')}</select></label>
+      <div class="row">${POINTS.map(p=>`<label>ダイヤル10・${p}%(S)<input type="text" inputmode="decimal" id="nmT${p}"></label>`).join('')}</div>
+      <div class="note">「手入力」を選んだときは、メーカー資料の特性曲線からダイヤル(レバー)10の動作時間を入れてください。式の特性を選んだときは空欄で構いません。</div>
+      <div class="btns"><button class="btn main" data-act="addModel">登録する</button></div>
+    </div>
+  </div>`;
+}
+
+/* --- 管理値設定 --- */
+function settingsHTML(){
+  const s=state.settings;
+  const f=(k,l)=>`<label>${l}<input type="text" inputmode="decimal" data-s="${k}" value="${esc(s[k])}"></label>`;
+  return `${barHTML('管理値の設定','toHome')}
+  <div class="wrap">
+    <div class="card">
+      <h2>判定に使う管理値</h2>
+      <div class="tolgrid">
+        ${f('tolMin','最小動作電流 ±%')}${f('tol200','200%時 ±%')}${f('tol300','300%時 ±%')}${f('tol700','700%時 ±%')}
+        ${f('instTime','瞬時 動作時間 (S)以内')}${f('tolInst','瞬時動作電流 ±%')}${f('instLimit','瞬時の試験上限 (A)')}
+      </div>
+      <label>特性曲線値の端数<select data-ss="round"><option value="floor" ${s.round==='floor'?'selected':''}>小数2桁で切り捨て(0.675→0.67)</option><option value="round" ${s.round==='round'?'selected':''}>小数2桁で四捨五入(0.675→0.68)</option></select></label>
+      <label>瞬時動作電流の管理値を用紙に書く<select data-ss="showInstTol"><option value="" ${!s.showInstTol?'selected':''}>書かない</option><option value="1" ${s.showInstTol?'selected':''}>書く</option></select></label>
+      <div class="btns"><button class="btn" data-act="resetSettings">初期値に戻す</button></div>
+      <div class="note">初期値:最小動作電流±10%、200%・300%時±17%、700%時±12%、瞬時0.15秒以内、瞬時電流±15%、試験上限20A。<br>瞬時の整定が試験上限を超えるときは、上限の電流で試験したものとして判定し、用紙に「(20Aで試験)」と書きます。</div>
+    </div>
+  </div>`;
+}
+
+/* --- 印刷プレビュー --- */
+function previewHTML(){
+  const mode=view.mode; // full / form / blank
+  let pages;
+  if(mode==='blank'){pages=[sheetHTML(null,'',[null,null],'blank')]}
+  else{
+    const p=proj();
+    const ps=view.panel?[view.panel]:panels(p);
+    pages=[];
+    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);for(let i=0;i<rs.length;i+=2)pages.push(sheetHTML(p,pn,[rs[i],rs[i+1]||null],mode))});
+  }
+  const back=mode==='blank'?'toHome':'toProject';
+  return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',back)}
+  <div class="wrap" style="max-width:none">
+    <div class="pv-bar noprint">
+      <button class="btn main" data-act="doPrint">印刷する(A4横)</button>
+      ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'previewForm':'previewFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
+      <span class="note">${pages.length}枚。印刷画面で「用紙:A4」「横」「余白なし」(または既定)を選んでください。PDF保存も印刷画面から。</span>
+    </div>
+    <div class="pages" id="pages">${pages.join('')}</div>
+  </div>`;
+}
+function fitPages(){
+  const el=$('#pages');if(!el)return;
+  const w=el.parentElement.clientWidth-2;const pw=297*96/25.4;
+  el.style.zoom=Math.min(1,w/pw);
+}
+function manageLines(r){
+  const s=state.settings,pts=r?[...new Set([r.p1,r.p2])].sort((a,b)=>a-b):[200,300];
+  const L=['( 最小動作電流 )',`整定タップ ±${s.tolMin}％以内`,'( 動 作 時 間 )'];
+  pts.forEach(p=>L.push(`${p}％時 ±${s['tol'+p]}％以内`));
+  L.push(`瞬 時 ${s.instTime}(S)以内`);
+  if(s.showInstTol){L.push('( 瞬時動作電流 )',`整定値 ±${s.tolInst}％以内`)}
+  return L.map(esc).join('<br>');
+}
+function sheetHTML(p,panel,rs,mode){
+  const dateLine=(p&&mode!=='blank')?(()=>{const m=(p.date||'').match(/(\d+)-(\d+)-(\d+)/);
+      const ds=m?`${+m[1]}年 ${+m[2]}月 ${+m[3]}日`:'　　　年　　月　　日';
+      const v=(x)=>mode==='form'?'　　':esc(x||'　');
+      return mode==='form'?`　　　年　　月　　日 ・ 天候　　 ・ 温度　　℃ ・ 湿度　　％`:`${ds} ・ 天候 ${v(p.weather)} ・ 温度 ${v(p.temp)}℃ ・ 湿度 ${v(p.hum)}％`})()
+    :'　　　年　　月　　日 ・ 天候　　 ・ 温度　　℃ ・ 湿度　　％';
+  const cbs=rs.filter(Boolean).map(r=>r.cb).filter(Boolean);
+  const cb=mode==='full'?(cbs.includes('否')?'否':cbs.length?'良':''):'';
+  return `<div class="sheet"><div class="sheet-in">
+    <div class="s-title">過電流継電器試験成績表</div>
+    <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${dateLine}</div></div>
+    ${blockHTML(rs[0],mode)}
+    ${blockHTML(rs[1],mode)}
+    <div class="s-foot"><table class="cb"><tr><th>遮断器 連動試験</th><td>${esc(cb)}</td></tr></table><div class="s-cap">動作時間の（　　）内は限時特性曲線値とする</div></div>
+  </div></div>`;
+}
+function blockHTML(r,mode){
+  const has=!!r,full=mode==='full'&&has;
+  const cols=[19,11,20,18,18,18,18,18,18,23,13,0];
+  const cg='<colgroup>'+cols.map(w=>w?`<col style="width:${w}mm">`:'<col>').join('')+'</colgroup>';
+  const setv=has?`T = ${esc(r.T)} ・ D = ${esc(r.D)} ・ I = ${esc(r.I||'ロック')}`:'';
+  const head=`<tr><th colspan="2">型　　式</th><th colspan="2">製 造 者 名</th><th colspan="2">定　　格</th><th colspan="2">製 造 年 月</th><th colspan="2">製 造 番 号</th><th colspan="2">整　定　値</th></tr>
+    <tr><td colspan="2" class="big" style="height:7mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
+    <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big">${setv}</td></tr>
+    <tr class="gap"><td colspan="12"></td></tr>`;
+  const p1=has?r.p1:200,p2=has?r.p2:300;
+  const th=`<tr><th rowspan="3">回 路 名</th><th rowspan="3">相 別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3">判 定</th><th rowspan="3">管　理　値</th></tr>
+    <tr><th colspan="3">ダイヤル　${has?esc(r.dialA):'10'}</th><th colspan="3">ダイヤル　${has?esc(dialB(r)):''}</th></tr>
+    <tr><th>(A)</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>(A)</th></tr>`;
+  let body='';
+  ['R','T'].forEach((k,i)=>{
+    const d=has?r.ph[k]:emptyPh();
+    const mv=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
+      if(key==='min'&&isFinite(n))return n.toFixed(2);if(key==='inst'&&isFinite(n))return n.toFixed(1);return esc(v)};
+    const c=(pt,dial)=>has?(()=>{const v=charAt(r,pt,dial);return isFinite(v)?`( ${fmtChar(v)} )`:''})():'';
+    const ir=has?instRef(r):{limited:false};
+    const j=full?judgeOf(r,k):'';
+    body+=`<tr class="m">${i===0?`<td rowspan="4" class="cir">${has?esc(r.circuit):''}</td>`:''}<td rowspan="2" class="big">${k==='R'?'Ｒ':'Ｔ'}</td>
+      <td rowspan="2" class="v">${mv('min')}</td><td class="v mt">${mv('a1')}</td><td class="v mt">${mv('a2')}</td><td class="v mt">${mv('ai')}</td>
+      <td class="v mt">${mv('b1')}</td><td class="v mt">${mv('b2')}</td><td class="v mt">${mv('bi')}</td><td class="v mt">${mv('inst')}</td>
+      <td rowspan="2" class="v big" style="${j==='否'?'color:#c62828;font-weight:700':''}">${esc(j)}</td>
+      ${i===0?`<td rowspan="4" class="kanri">${manageLines(r)}</td>`:''}</tr>
+      <tr><td class="c">${c(p1,r&&r.dialA)}</td><td class="c">${c(p2,r&&r.dialA)}</td><td class="c"></td>
+      <td class="c">${c(p1,r&&dialB(r))}</td><td class="c">${c(p2,r&&dialB(r))}</td><td class="c"></td>
+      <td class="c note20">${ir.limited?`（${ir.ref}Aで試験）`:''}</td></tr>`;
+  });
+  return `<table class="s">${cg}${head}${th}${body}</table>`;
+}
+
+/* ========== イベント ========== */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,p=proj();
+  switch(a){
+    case 'toHome':go({name:'home'});break;
+    case 'toProject':go({name:'project',pid:view.pid});break;
+    case 'newProject':{const np={id:uid(),name:'新しい件名',date:new Date().toISOString().slice(0,10),weather:'',temp:'',hum:'',relays:[]};
+      state.projects.push(np);save();go({name:'project',pid:np.id});setTimeout(()=>{const i=$('#pName');if(i){i.focus();i.select()}},50);break}
+    case 'openProject':go({name:'project',pid:b.dataset.id});break;
+    case 'openRelay':go({name:'relay',pid:view.pid,rid:b.dataset.id});break;
+    case 'addRelay':{const last=p.relays[p.relays.length-1];const r=newRelay(last?last.panel:'受電盤');
+      if(last){['modelId','model','maker','rating','charType','T','D','I','dialA','dialB','p1','p2','made'].forEach(k=>r[k]=last[k]);r.table={...(last.table||{})}}
+      p.relays.push(r);save();go({name:'relay',pid:p.id,rid:r.id});break}
+    case 'dupRelay':{const cur=relay();const r=JSON.parse(JSON.stringify(cur));r.id=uid();r.circuit='';r.serial='';r.ph={R:emptyPh(),T:emptyPh()};r.jd={R:'auto',T:'auto'};r.cb='';
+      const idx=p.relays.indexOf(cur);p.relays.splice(idx+1,0,r);save();go({name:'relay',pid:p.id,rid:r.id});toast('次の継電器を追加しました');break}
+    case 'delRelay':if(pendingConfirm!=='delRelay'){pendingConfirm='delRelay';render();break}
+      p.relays=p.relays.filter(r=>r.id!==view.rid);save();go({name:'project',pid:p.id});toast('削除しました');break;
+    case 'delProject':if(pendingConfirm!=='delProject'){pendingConfirm='delProject';render();break}
+      state.projects=state.projects.filter(x=>x.id!==p.id);save();go({name:'home'});toast('削除しました');break;
+    case 'dupProject':{const np=JSON.parse(JSON.stringify(p));np.id=uid();np.name=p.name+'(次回)';np.date='';np.weather='';np.temp='';np.hum='';
+      np.relays.forEach(r=>{r.id=uid();r.ph={R:emptyPh(),T:emptyPh()};r.jd={R:'auto',T:'auto'};r.cb=''});
+      state.projects.push(np);save();go({name:'project',pid:np.id});toast('複製しました');break}
+    case 'previewFull':go({name:'preview',pid:view.pid,mode:'full'});break;
+    case 'previewForm':go({name:'preview',pid:view.pid,mode:'form'});break;
+    case 'previewPanel':go({name:'preview',pid:view.pid,mode:'full',panel:b.dataset.panel});break;
+    case 'blankPrint':go({name:'preview',mode:'blank'});break;
+    case 'doPrint':{const el=$('#pages');const z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'openModels':go({name:'models'});break;
+    case 'openSettings':go({name:'settings'});break;
+    case 'resetSettings':state.settings={...DEF_SET};save();render();toast('初期値に戻しました');break;
+    case 'addModel':{const name=$('#nmName').value.trim();if(!name){toast('型式を入れてください');break}
+      const ch=$('#nmChar').value,table={};POINTS.forEach(pt=>{const v=$('#nmT'+pt).value.trim();if(v)table[pt]=v});
+      if(ch==='TABLE'&&!Object.keys(table).length){toast('ダイヤル10の値を入れてください');break}
+      state.models.push({id:'u'+uid(),maker:$('#nmMaker').value.trim(),name,rating:$('#nmRating').value.trim(),chars:[ch],def:ch,table});
+      save();render();toast('登録しました');break}
+    case 'delModel':{const k='delModel:'+b.dataset.id;if(pendingConfirm!==k){pendingConfirm=k;render();break}
+      state.models=state.models.filter(m=>m.id!==b.dataset.id);save();pendingConfirm=null;render();break}
+    case 'exportJson':{const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});
+      const a2=document.createElement('a');const d=new Date();
+      a2.href=URL.createObjectURL(blob);a2.download=`継電器試験_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+      document.body.appendChild(a2);a2.click();setTimeout(()=>{URL.revokeObjectURL(a2.href);a2.remove()},500);break}
+    case 'importJson':$('#importFile').click();break;
+  }
+});
+$('#importFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.projects))throw 0;
+      let n=0;d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
+      (d.models||[]).forEach(m=>{if(!state.models.find(x=>x.id===m.id))state.models.push(m)});
+      if(d.settings)state.settings={...DEF_SET,...d.settings};
+      save();render();toast(`${n}件の件名を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}
+    e.target.value=''};
+  rd.readAsText(f);
+});
+document.addEventListener('input',e=>{
+  const t=e.target,p=proj(),r=relay();
+  if(t.id==='q'){view.q=t.value;if(!e.isComposing){const l=$('#plist');if(l)l.innerHTML=homeListHTML()}return}
+  if(t.dataset.p&&p){p[t.dataset.p]=t.value;save();if(t.dataset.p==='name')$('.bar h1').textContent=t.value;return}
+  if(t.dataset.r&&r){r[t.dataset.r]=t.value;save();updateInd();
+    if(t.dataset.r==='circuit')$('.bar h1').textContent=(t.value||'継電器')+' の試験';
+    if(t.dataset.r==='dialA'||t.dataset.r==='dialB'||t.dataset.r==='D'){document.querySelectorAll('.phase').forEach((el,i)=>{const s=el.querySelectorAll('.sub');s[0].textContent=`ダイヤル ${r.dialA} の動作時間(S)`;s[1].textContent=`ダイヤル ${dialB(r)} の動作時間(S)`})}
+    return}
+  if(t.dataset.ph&&r){const [k,key]=t.dataset.ph.split('.');r.ph[k][key]=t.value;save();updateInd();return}
+  if(t.dataset.tb&&r){r.table=r.table||{};r.table[t.dataset.tb]=t.value;save();updateInd();return}
+  if(t.dataset.s){state.settings[t.dataset.s]=t.value;save();return}
+});
+document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;const l=$('#plist');if(l)l.innerHTML=homeListHTML()}});
+document.addEventListener('change',e=>{
+  const t=e.target,r=relay();
+  if(t.dataset.rs&&r){
+    const k=t.dataset.rs,v=t.value;
+    if(k==='modelId'){const m=getModel(v);r.modelId=v;if(m){if(!m.id.startsWith('generic')&&m.id!=='manual'){r.model=m.name;r.maker=m.maker}if(m.rating)r.rating=m.rating;r.charType=m.def;if(m.table)r.table={...m.table}}}
+    else if(k==='p1'||k==='p2')r[k]=+v;
+    else r[k]=v;
+    save();render();return}
+  if(t.dataset.jd&&r){r.jd=r.jd||{};r.jd[t.dataset.jd]=t.value;save();updateInd();return}
+  if(t.dataset.ss){state.settings[t.dataset.ss]=t.dataset.ss==='showInstTol'?!!t.value:t.value;save();return}
+});
+window.addEventListener('resize',()=>{if(view.name==='preview')fitPages()});
+window.addEventListener('beforeprint',()=>{const el=$('#pages');if(el)el.style.zoom=1});
+window.addEventListener('afterprint',()=>{if(view.name==='preview')fitPages()});
+render();
+</script>
+</body>
+</html>
