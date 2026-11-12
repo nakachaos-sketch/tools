@@ -119,8 +119,8 @@ table.s td.setc{padding:0}
 .svs{display:flex;height:100%;align-items:stretch}
 .sv{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.6mm}
 .sv+.sv{border-left:.4pt dotted #888}
-.sv-v{font-size:10pt;min-height:1.2em;text-align:left;width:62%}
-.sv-l{width:62%;text-align:left}
+.sv-v{font-size:10pt;min-height:1.2em;text-align:center}
+.sv-l{text-align:center}
 .sv-l{font-size:6.5pt;color:#9a9a9a;letter-spacing:.05em}
 table.s td.note20{font-size:8pt;color:#1a3fbf;border-top:none}
 .s-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
@@ -569,7 +569,7 @@ function blockHTML(r,mode){
   const cols=[19,11,20,18,18,18,18,18,18,23,13,0];
   const cg='<colgroup>'+cols.map(w=>w?`<col style="width:${w}mm">`:'<col>').join('')+'</colgroup>';
   const sp=(k,v,lb)=>`<div class="sv"><div class="sv-v">${k} = ${v}</div><div class="sv-l">${lb}</div></div>`;
-  const setv=`<div class="svs">${sp('T',has?esc(r.T):'','限時電流')}${sp('D',has?esc(r.D):'','動作時間')}${sp('I',has?esc(r.I||'ロック'):'','瞬時電流')}</div>`;
+  const setv=`<div class="svs">${sp('T',has?esc(r.T):'','限時電流 (A)')}${sp('D',has?esc(r.D):'','動作時間 (s)')}${sp('I',has?esc(r.I||'ロック'):'','瞬時電流 (A)')}</div>`;
   const head=`<tr><th colspan="2">型　　式</th><th colspan="2">製 造 者 名</th><th colspan="2">定　　格</th><th colspan="2">製 造 年 月</th><th colspan="2">製 造 番 号</th><th colspan="2">整　定　値</th></tr>
     <tr><td colspan="2" class="big" style="height:10mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
     <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big setc">${setv}</td></tr>`;
