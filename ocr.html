@@ -96,38 +96,39 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 /* 印刷シート */
 .pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .pages{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
-.sheet{width:297mm;height:209mm;background:#fff;color:#000;padding:9mm 11mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none}
-.sheet-in{border:1.6px solid #000;height:100%;padding:6mm 6mm 5mm;display:flex;flex-direction:column;gap:3mm}
-.s-title{text-align:center;font-size:17pt;letter-spacing:.55em;font-weight:500;margin:1mm 0 2mm}
+/* 細い罫線を出すため、2倍の大きさで作って半分に縮小する(ブラウザは1px未満の線を描けないため) */
+.sheet{width:297mm;height:209mm;background:#fff;color:#000;padding:9mm 11mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;overflow:hidden}
+.sheet-x{width:550mm;height:382mm;transform:scale(.5);transform-origin:0 0}
+.sheet-in{border:4px solid #000;height:100%;padding:12mm 12mm 10mm;display:flex;flex-direction:column;gap:6mm}
+.s-title{text-align:center;font-size:34pt;letter-spacing:.55em;font-weight:500;margin:2mm 0 4mm}
 .s-top{display:flex;justify-content:space-between;align-items:flex-end}
-.s-panel{border:1px solid #000;background:#d9f2d9;min-width:40mm;padding:1.2mm 6mm;text-align:center;font-size:10.5pt;letter-spacing:.2em}
-.s-date{font-size:10pt}
-table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:9pt;border:1.2pt solid #000}
-table.s th,table.s td{border:.4pt solid #000;text-align:center;vertical-align:middle;padding:0 .5mm;height:6.6mm;line-height:1.15;overflow:hidden;white-space:nowrap}
+.s-panel{border:2px solid #000;background:#d9f2d9;min-width:80mm;padding:2.4mm 12mm;text-align:center;font-size:21pt;letter-spacing:.2em}
+.s-date{font-size:20pt}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18pt;border:3px solid #000}
+table.s th,table.s td{border:1px solid #222;text-align:center;vertical-align:middle;padding:0 1mm;height:13.2mm;line-height:1.15;overflow:hidden;white-space:nowrap}
 table.s th{background:#d4d4d4;font-weight:400}
-table.s th.sm{font-size:8pt;letter-spacing:-.02em}
-table.s td.cir{white-space:normal;font-size:8.5pt;line-height:1.25}
-table.s td.v{color:#1a3fbf;font-size:9.5pt}
-table.s td.c{font-size:8.5pt;border-top:.4pt dotted #666}
-table.s tr.h1 th{border-top:1.2pt solid #000}
-table.s tr.h3 th,table.s th.rs3{border-bottom:.9pt solid #000}
-table.s tr.ph2 td{border-top:.7pt solid #000}
+table.s th.sm{font-size:16pt;letter-spacing:-.02em}
+table.s td.cir{white-space:normal;font-size:17pt;line-height:1.25}
+table.s td.v{color:#1a3fbf;font-size:19pt}
+table.s td.c{font-size:17pt;border-top:1px dotted #777}
+table.s tr.h1 th{border-top:3px solid #000}
+table.s tr.h3 th,table.s th.rs3{border-bottom:2px solid #000}
+table.s tr.ph2 td{border-top:2px solid #000}
 table.s tr.m td.mt{border-bottom:none}
-table.s td.kanri{text-align:left;font-size:8pt;line-height:1.3;padding:.8mm 1.2mm;white-space:normal;vertical-align:top}
-table.s td.big{font-size:10pt}
+table.s td.kanri{text-align:left;font-size:16pt;line-height:1.3;padding:1.6mm 2.4mm;white-space:normal;vertical-align:top}
+table.s td.big{font-size:20pt}
 table.s td.setc{padding:0}
 .svs{display:flex;height:100%;align-items:stretch}
-.sv{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:.6mm}
-.sv+.sv{border-left:.4pt dotted #888}
-.sv-v{font-size:10pt;min-height:1.2em;text-align:center}
-.sv-l{text-align:center}
-.sv-l{font-size:6.5pt;color:#9a9a9a;letter-spacing:.05em}
-table.s td.note20{font-size:8pt;color:#1a3fbf;border-top:none}
+.sv{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:1.2mm}
+.sv+.sv{border-left:1px dotted #888}
+.sv-v{font-size:20pt;min-height:1.2em;text-align:center}
+.sv-l{font-size:13pt;color:#9a9a9a;letter-spacing:.05em;text-align:center}
+table.s td.note20{font-size:16pt;color:#1a3fbf;border-top:none}
 .s-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end}
-table.cb{border-collapse:collapse;font-size:9.5pt;border:1.4px solid #000}
-table.cb th{background:#d4d4d4;font-weight:400;border:1px solid #000;padding:1.2mm 4mm}
-table.cb td{border:1px solid #000;width:22mm;text-align:center;color:#1a3fbf}
-.s-cap{font-size:9pt;padding-right:4mm}
+table.cb{border-collapse:collapse;font-size:19pt;border:3px solid #000}
+table.cb th{background:#d4d4d4;font-weight:400;border:1px solid #222;padding:2.4mm 8mm}
+table.cb td{border:1px solid #222;width:44mm;text-align:center;color:#1a3fbf}
+.s-cap{font-size:18pt;padding-right:8mm}
 @media print{
   @page{size:A4 landscape;margin:0}
   html,body{background:#fff}
@@ -556,22 +557,22 @@ function sheetHTML(p,panel,rs,mode){
     :'　　　年　　月　　日 ・ 天候　　 ・ 温度　　℃ ・ 湿度　　％';
   const cbs=rs.filter(Boolean).map(r=>r.cb).filter(Boolean);
   const cb=mode==='full'?(cbs.includes('否')?'否':cbs.length?'良':''):'';
-  return `<div class="sheet"><div class="sheet-in">
+  return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">過電流継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${dateLine}</div></div>
     ${blockHTML(rs[0],mode)}
     ${blockHTML(rs[1],mode)}
     <div class="s-foot"><table class="cb"><tr><th>遮断器 連動試験</th><td>${esc(cb)}</td></tr></table><div class="s-cap">動作時間の（　　）内は限時特性曲線値とする</div></div>
-  </div></div>`;
+  </div></div></div>`;
 }
 function blockHTML(r,mode){
   const has=!!r,full=mode==='full'&&has;
-  const cols=[19,11,20,18,18,18,18,18,18,23,13,0];
+  const cols=[38,22,40,36,36,36,36,36,36,46,26,0];
   const cg='<colgroup>'+cols.map(w=>w?`<col style="width:${w}mm">`:'<col>').join('')+'</colgroup>';
   const sp=(k,v,lb)=>`<div class="sv"><div class="sv-v">${k} = ${v}</div><div class="sv-l">${lb}</div></div>`;
   const setv=`<div class="svs">${sp('T',has?esc(r.T):'','限時電流 (A)')}${sp('D',has?esc(r.D):'','動作時間 (s)')}${sp('I',has?esc(r.I||'ロック'):'','瞬時電流 (A)')}</div>`;
   const head=`<tr><th colspan="2">型　　式</th><th colspan="2">製 造 者 名</th><th colspan="2">定　　格</th><th colspan="2">製 造 年 月</th><th colspan="2">製 造 番 号</th><th colspan="2">整　定　値</th></tr>
-    <tr><td colspan="2" class="big" style="height:10mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
+    <tr><td colspan="2" class="big" style="height:20mm">${has?esc(r.model):''}</td><td colspan="2" class="big">${has?esc(r.maker):''}</td><td colspan="2" class="big">${has?esc(r.rating):''}</td>
     <td colspan="2" class="big">${has?esc(r.made):''}</td><td colspan="2" class="big">${has?esc(r.serial):''}</td><td colspan="2" class="big setc">${setv}</td></tr>`;
   const p1=has?r.p1:200,p2=has?r.p2:300;
   const th=`<tr class="h1"><th rowspan="3" class="rs3">回 路 名</th><th rowspan="3" class="rs3">相 別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3" class="rs3">判 定</th><th rowspan="3" class="rs3">管　理　値</th></tr>
