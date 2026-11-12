@@ -161,7 +161,7 @@ function sample(){
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
-  s.projects=s.projects||[];s.print={hdr:true,sign:true,...(s.print||{})};return s;
+  s.projects=s.projects||[];s.print={hdr:true,sign:true,lever:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 
@@ -333,6 +333,7 @@ function previewHTML(){
     <div class="pv-bar noprint"><button class="btn main" data-act="doPrint">印刷する(A4横)</button>
       <label class="sw"><input type="checkbox" data-pr="hdr" ${state.print.hdr?'checked':''}><span>工事名・受注者</span></label>
       <label class="sw"><input type="checkbox" data-pr="sign" ${state.print.sign?'checked':''}><span>試験実施者・監督職員欄</span></label>
+      <label class="sw"><input type="checkbox" data-pr="lever" ${state.print.lever?'checked':''}><span>タイムレバー</span></label>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
       <span class="note">${pages.length}枚。印刷画面で「A4」「横」を選んでください。PDF保存も印刷画面から。</span></div>
     <div class="pages" id="pages">${pages.join('')}</div></div>`;
@@ -362,7 +363,7 @@ function block(r,mode){
   const info=`<table class="s"><colgroup><col style="width:84mm"><col style="width:84mm"><col style="width:70mm"><col style="width:62mm"><col style="width:70mm"><col></colgroup>
     <tr><th>型　　式</th><th>製 造 者 名</th><th>定　　格</th><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
     <tr><td class="big">${has?esc(r.model):''}</td><td class="big">${has?esc(r.maker):''}</td><td class="big">${rated}</td><td class="big">${has?esc(r.made||''):''}</td><td class="big">${has?esc(r.serial):''}</td>
-    <td class="big setc"><div class="svs">${sp('',has?esc(r.setV)+' V':'　　 V','動作電圧')}${sp('',has?esc(r.setT)+' s':'　　 s','動作時間')}${sp('',has?esc(r.lever||'—'):'','タイムレバー')}</div></td></tr></table>`;
+    <td class="big setc"><div class="svs">${sp('',has?esc(r.setV)+' V':'　　 V','動作電圧')}${sp('',has?esc(r.setT)+' s':'　　 s','動作時間')}${state.print.lever?sp('',has?esc(r.lever||'—'):'','タイムレバー'):''}</div></td></tr></table>`;
   const seq=r?r.seq:SEQ_DEF.map(x=>({...x,res:'',jd:''}));
   const n=seq.length;
   const mv=(v,dec)=>{if(!full||v==='')return '';const x=num(v);return isFinite(x)?x.toFixed(dec):esc(v)};
