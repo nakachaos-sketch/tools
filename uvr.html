@@ -113,13 +113,21 @@ const SEQ_DEF=[
   {item:'非常用発電機起動',desc:'継電器動作により非常用発電機へ自動起動指令が出力されること',res:'正常起動'},
   {item:'警報表示',desc:'中央監視盤・盤面の一括故障(停電)警報が発報・復帰すること',res:'正常発報・復帰'}
 ];
-const DEF_CRIT={opTol:'5',resetMax:'105',timePct:'70',timeTol:'10'};
+const DEF_CRIT={opTol:'5',resetMax:'105',resetBase:'set',timePct:'70',timeTol:'10',timeMin:''};
+// メーカー型式(判定基準はメーカー資料による)
+const MODELS=[
+  {id:'other',label:'その他(手入力)'},
+  {id:'k2uv-avn',maker:'オムロン',model:'K2UV-AVN',freq:null,taps:'60〜100V(5V刻み)/0.1〜5.0秒',crit:{opTol:'5',resetMax:'105',resetBase:'meas',timePct:'70',timeTol:'10',timeMin:'0.05'}},
+  {id:'k2uv-av2',maker:'オムロン',model:'K2UV-AV2',freq:null,taps:'60〜100V(5V刻み)/0.1〜5.0秒 制御電源DC24V',crit:{opTol:'5',resetMax:'105',resetBase:'meas',timePct:'70',timeTol:'10',timeMin:'0.05'}},
+  {id:'k2uv-av3',maker:'オムロン',model:'K2UV-AV3',freq:null,taps:'60〜100V(5V刻み)/0.1〜5.0秒 制御電源DC100/110V',crit:{opTol:'5',resetMax:'105',resetBase:'meas',timePct:'70',timeTol:'10',timeMin:'0.05'}},
+  {id:'muv-a3v-r',maker:'三菱電機',model:'MUV-A3V-R',freq:null,taps:'60〜100V(5V刻み)/0.1〜5.0秒',crit:{opTol:'5',resetMax:'105',resetBase:'meas',timePct:'70',timeTol:'10',timeMin:'0.02'}}
+];
 
 let state=load(),view={name:'home'},pendingConfirm=null;
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
 function newRelay(panel){
   return {id:uid(),panel:panel||'高圧受電盤',devNo:'27',devName:'不足電圧継電器(UVR)',maker:'',model:'',serial:'',
-    ratedV:'110',freq:'50',setV:'80',setT:'2.0',lever:'',...DEF_CRIT,
+    modelId:'other',ratedV:'110',freq:'50',setV:'80',setT:'2.0',lever:'',...DEF_CRIT,
     m:{op:'',reset:'',time:'',disp:''},jd:{op:'auto',reset:'auto',time:'auto'},
     seq:SEQ_DEF.map(x=>({...x,res:'',jd:''}))};
 }
@@ -147,10 +155,10 @@ function ev(r){
   {const tol=num(r.opTol),lo=sv*(1-tol/100),hi=sv*(1+tol/100),x=num(r.m.op);
    o.op={lo,hi,x,err:isFinite(x)&&sv?(x-sv)/sv*100:NaN,ok:isFinite(x)&&isFinite(lo)?(x>=lo-1e-9&&x<=hi+1e-9):null}}
   // 復帰電圧
-  {const mx=num(r.resetMax),hi=sv*mx/100,x=num(r.m.reset);
-   o.reset={hi,x,ratio:isFinite(x)&&sv?x/sv*100:NaN,ok:isFinite(x)&&isFinite(hi)?x<=hi+1e-9:null}}
+  {const meas=r.resetBase==='meas',base=meas?num(r.m.op):sv,mx=num(r.resetMax),hi=base*mx/100,x=num(r.m.reset);
+   o.reset={hi,x,meas,ratio:isFinite(x)&&base?x/base*100:NaN,ok:isFinite(x)&&isFinite(hi)?x<=hi+1e-9:null}}
   // 動作時間
-  {const tol=num(r.timeTol),lo=st*(1-tol/100),hi=st*(1+tol/100),x=num(r.m.time),apply=sv*num(r.timePct)/100;
+  {const tol=num(r.timeTol),mn=num(r.timeMin),dd=Math.max(st*tol/100,isFinite(mn)?mn:0),lo=st-dd,hi=st+dd,x=num(r.m.time),apply=sv*num(r.timePct)/100;
    o.time={lo,hi,x,apply,err:isFinite(x)&&st?(x-st)/st*100:NaN,ok:isFinite(x)&&isFinite(lo)?(x>=lo-1e-9&&x<=hi+1e-9):null}}
   o.disp={ok:r.m.disp==='正常'?true:r.m.disp==='異常'?false:null};
   return o;
@@ -243,13 +251,16 @@ function relayHTML(){
   <div class="wrap">
     <div class="two-col">
       <div class="card"><h2>機器仕様</h2>
+        <label>メーカー型式(選ぶと判定基準が入ります)<select data-model="1">${MODELS.map(x=>`<option value="${x.id}" ${x.id===(r.modelId||'other')?'selected':''}>${esc((x.maker?x.maker+' ':'')+(x.model||x.label))}</option>`).join('')}</select></label>
+        ${(()=>{const md=MODELS.find(x=>x.id===r.modelId);return md&&md.taps?`<div class="note">整定範囲:${esc(md.taps)}</div>`:''})()}
         <div class="g3">${t('panel','盤名称')}${t('devNo','器具番号')}${t('devName','名称')}</div>
         <div class="g3">${t('maker','メーカー')}${t('model','型式')}${t('serial','製造番号')}</div>
         <div class="g3">${t('ratedV','定格電圧 AC(V)','',1)}<label>周波数(Hz)${sel('data-rs="freq"',r.freq,['50','60'])}</label>${t('lever','タイムレバー')}</div>
       </div>
       <div class="card"><h2>整定値・判定基準</h2>
         <div class="g2">${t('setV','動作電圧整定(タップ) V','',1)}${t('setT','動作時間整定(限時) 秒','',1)}</div>
-        <div class="g4">${t('opTol','動作電圧 ±%','',1)}${t('resetMax','復帰電圧 整定の%以下','',1)}${t('timePct','時間試験 印加%','',1)}${t('timeTol','動作時間 ±%','',1)}</div>
+        <div class="g3">${t('opTol','動作電圧 ±%','',1)}${t('resetMax','復帰電圧 %以下','',1)}<label>復帰電圧の基準${sel('data-rs="resetBase"',r.resetBase||'set',['set','meas']).replace('>set<','>整定値<').replace('>meas<','>動作値(実測)<')}</label></div>
+        <div class="g3">${t('timePct','時間試験 印加%','',1)}${t('timeTol','動作時間 ±%','',1)}${t('timeMin','時間の最小誤差(秒)','なし',1)}</div>
         <div class="note">判定基準(許容誤差)は、メーカーの仕様書や特記仕様書に合わせて変えてください。</div>
       </div>
     </div>
@@ -283,7 +294,7 @@ function updInd(){
   const set=(k,txt)=>{const f=document.getElementById('f-'+k);if(f){f.classList.toggle('ok',e[k].ok===true);f.classList.toggle('ng',e[k].ok===false)}
     const g=document.getElementById('g-'+k);if(g)g.textContent=(e[k].ok===false?'範囲外 ':'')+txt;};
   set('op',isFinite(e.op.lo)?`${f1(e.op.lo)}〜${f1(e.op.hi)}  ${sg(e.op.err)}`:'整定値を入力');
-  set('reset',isFinite(e.reset.hi)?`${f1(e.reset.hi)} 以下  ${isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}`:'整定値を入力');
+  set('reset',isFinite(e.reset.hi)?`${f1(e.reset.hi)} 以下  ${isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}`:(e.reset.meas?'先に最小動作電圧を入力':'整定値を入力'));
   set('time',isFinite(e.time.lo)?`${f2(e.time.lo)}〜${f2(e.time.hi)}  ${sg(e.time.err)}`:'整定値を入力');
   const c1=document.getElementById('c-op');if(c1)c1.textContent=`整定タップ ${r.setV}V`;
   const c2=document.getElementById('c-time');if(c2)c2.textContent=`${r.timePct}% 印加(${f1(e.time.apply)}V 急変)`;
@@ -318,10 +329,10 @@ function sheet(p,r,mode){
       <td class="sm">整定値の ±${hasR?esc(r.opTol):'　'}% 以内<br><span class="rg">(${isFinite(sv)?`${f1(e.op.lo)} V 〜 ${f1(e.op.hi)} V`:'　　 V 〜 　　 V'})</span></td>
       <td class="v">${meas(r?r.m.op:'',' V')}</td><td class="v">${full?sg(e.op.err):''}</td>${jcell('op')}</tr>
     <tr><td>復帰電圧</td><td class="sm">動作状態から電圧上昇</td>
-      <td class="sm">整定値の ${hasR?esc(r.resetMax):'　'}% 以下<br><span class="rg">(${isFinite(sv)?`${f1(e.reset.hi)} V 以下`:'　　 V 以下'})</span></td>
+      <td class="sm">${hasR&&r.resetBase==='meas'?'動作値':'整定値'}の ${hasR?esc(r.resetMax):'　'}% 以下<br><span class="rg">(${(full||!(hasR&&r.resetBase==='meas'))&&isFinite(e&&e.reset.hi)&&hasR?`${f1(e.reset.hi)} V 以下`:'　　 V 以下'})</span></td>
       <td class="v">${meas(r?r.m.reset:'',' V')}</td><td class="v">${full&&isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}</td>${jcell('reset')}</tr>
     <tr><td>動作時間特性</td><td class="sm">整定電圧の ${hasR?esc(r.timePct):'　'}% 印加<br><span class="rg">(${isFinite(sv)?f1(e.time.apply)+' V':'　　 V'} 急変印加)</span></td>
-      <td class="sm">整定値(${hasR?esc(r.setT):'　'}秒)の ±${hasR?esc(r.timeTol):'　'}% 以内<br><span class="rg">(${isFinite(st)?`${f2(e.time.lo)} 秒 〜 ${f2(e.time.hi)} 秒`:'　　 秒 〜 　　 秒'})</span></td>
+      <td class="sm">整定値(${hasR?esc(r.setT):'　'}秒)の ±${hasR?esc(r.timeTol):'　'}% 以内${hasR&&num(r.timeMin)>0?`<span style="font-size:13pt">(最小±${Math.round(num(r.timeMin)*1000)}ms)</span>`:''}<br><span class="rg">(${isFinite(st)?`${f2(e.time.lo)} 秒 〜 ${f2(e.time.hi)} 秒`:'　　 秒 〜 　　 秒'})</span></td>
       <td class="v">${meas(r?r.m.time:'',' 秒')}</td><td class="v">${full?sg(e.time.err):''}</td>${jcell('time')}</tr>
     <tr><td>動作表示・接点</td><td class="sm">継電器動作時</td><td class="sm">動作表示灯点灯・<br>出力接点閉路</td>
       <td class="v">${full?esc(r.m.disp):''}</td><td class="ctr">－</td>${jcell('disp')}</tr>`;
@@ -372,7 +383,7 @@ document.addEventListener('click',e=>{
     case 'openProject':go({name:'project',pid:b.dataset.id});break;
     case 'openRelay':go({name:'relay',pid:view.pid,rid:b.dataset.id});break;
     case 'addRelay':{const last=p.relays[p.relays.length-1];const nr=newRelay(last?last.panel:'');
-      if(last){['devNo','devName','maker','model','ratedV','freq','setV','setT','lever','opTol','resetMax','timePct','timeTol'].forEach(k=>nr[k]=last[k]);nr.seq=last.seq.map(s=>({item:s.item,desc:s.desc,res:'',jd:''}))}
+      if(last){['modelId','devNo','devName','maker','model','ratedV','freq','setV','setT','lever','opTol','resetMax','resetBase','timePct','timeTol','timeMin'].forEach(k=>nr[k]=last[k]);nr.seq=last.seq.map(s=>({item:s.item,desc:s.desc,res:'',jd:''}))}
       p.relays.push(nr);save();go({name:'relay',pid:p.id,rid:nr.id});break}
     case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.serial='';nr.m={op:'',reset:'',time:'',disp:''};nr.jd={op:'auto',reset:'auto',time:'auto'};nr.seq.forEach(s=>{s.res='';s.jd=''});
       p.relays.splice(p.relays.indexOf(r)+1,0,nr);save();go({name:'relay',pid:p.id,rid:nr.id});toast('次の継電器を追加しました');break}
@@ -410,7 +421,10 @@ document.addEventListener('input',e=>{
 document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
 document.addEventListener('change',e=>{
   const t=e.target,r=relay();
-  if(t.dataset.rs&&r){r[t.dataset.rs]=t.value;save();return}
+  if(t.dataset.model&&r){const md=MODELS.find(x=>x.id===t.value);r.modelId=t.value;
+    if(md&&md.maker){r.maker=md.maker;r.model=md.model;r.ratedV='110';Object.assign(r,md.crit)}
+    save();render();return}
+  if(t.dataset.rs&&r){r[t.dataset.rs]=t.value;save();updInd();return}
   if(t.dataset.jd&&r){r.jd[t.dataset.jd]=t.value||'auto';save();updInd();return}
   if(t.dataset.sqs&&r){const [i,k]=t.dataset.sqs.split('.');r.seq[+i][k]=t.value;save();return}
 });
