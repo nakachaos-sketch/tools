@@ -419,6 +419,7 @@ document.addEventListener('change',e=>{
   const t=e.target,r=item();
   if(t.dataset.rc&&r){r[t.dataset.rc]=t.checked;save();return}
   if(t.dataset.fr&&r){setPath(r,t.dataset.fr,t.value);save();render();return}
+  if(t.dataset.fr2&&r){setPath(r,t.dataset.fr2,t.value);save();render();return}
   if(t.dataset.pr){state.print[t.dataset.pr]=t.checked;save();render();return}
 });
 window.addEventListener('resize',()=>{if(view.name==='preview')fit()});
