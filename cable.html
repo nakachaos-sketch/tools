@@ -352,15 +352,18 @@ function diagSVG(method){
     const w0=wrapAt(N,0,wrapY,blue),w1=wrapAt(N,1,wrapY,blue),w2=wrapAt(N,2,wrapY,blue);s+=w0.svg+w1.svg+w2.svg;
     s+=`<path d="M${tG[0]} ${tG[1]-7} V${wrapY} H${w0.x-7} M${w0.x+7} ${wrapY+2} Q ${(w0.x+w1.x)/2} ${wrapY+16} ${w1.x-7} ${wrapY+2} M${w1.x+7} ${wrapY+2} Q ${(w1.x+w2.x)/2} ${wrapY+16} ${w2.x-7} ${wrapY+2}" stroke="${blue}" stroke-width="2.2" fill="none"/>`;
     s+=lbl(R-10,22,'LINE:3相一括',red,'end');
-    s+=lbl(372,24,'端子間は20cm以上離す',ink)+arrow(392,30,T+8,lugY+4,ink);
-    s+=lbl(552,F.top+14,'遠端は開放',ink);
+    s+=lbl(500,F.top-12,'遠端は開放',ink,'middle');
     note=w0;
   }
+  // LINE(端子)とガード(巻付け)の間隔
+  {const bx=coreX(N.cx,R,N.split,N.top,96)-16,y1=N.top+24,y2=wrapY-8;
+   s+=`<g stroke="${ink}" stroke-width="1.3"><line x1="${bx}" y1="${y1}" x2="${bx}" y2="${y2}"/><line x1="${bx-4}" y1="${y1}" x2="${bx+4}" y2="${y1}"/><line x1="${bx-4}" y1="${y2}" x2="${bx+4}" y2="${y2}"/></g>`;
+   s+=`<text font-size="11" fill="${ink}" text-anchor="end"><tspan x="${bx-5}" y="82">LINEとガード間は</tspan><tspan x="${bx-5}" y="96">20cm以上離す</tspan></text>`}
   s+=lbl(300,N.cl+52,'近端','#555','middle')+lbl(500,F.cl+30,'遠端','#555','middle');
   s+='</g>';
   // 左上の注記(巻付け線)
-  s+=`<text font-size="11.5" fill="${blue}"><tspan x="6" y="62">1.6φ程度の錫引き銅線を</tspan><tspan x="6" y="78">巻付け、ガードと接続する</tspan></text>`;
-  s+=arrow(150,84,note.x+OX-10,wrapY-6,blue);
+  s+=`<text font-size="11.5" fill="${blue}"><tspan x="6" y="58">1.6φ程度の裸銅線を</tspan><tspan x="6" y="74">巻付け、ガードと接続する</tspan></text>`;
+  s+=arrow(96,82,note.x+OX-10,wrapY-4,blue);
   return s+'</svg>';
 }
 
