@@ -143,7 +143,14 @@ table.cb td{border:1px solid #222;width:44mm;text-align:center;color:#1a3fbf}
   .sheet:last-child{break-after:auto;page-break-after:auto}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
-@media print{.pp .sheet{zoom:.7;margin:10mm 0 0 0}}
+/* 用紙の向き:A4縦は横向きの成績表を70%に縮めて縦の用紙の上に置く */
+.pg{display:contents}
+.pp .pg{display:block;width:210mm;height:296mm;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);padding-top:10mm;overflow:hidden;flex:none}
+.pp .pg .sheet{zoom:.7;box-shadow:none;margin:0}
+.seg{display:inline-flex;border:1px solid var(--accent);border-radius:6px;overflow:hidden}
+.seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+@media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
 </style>
 </head>
 <body>
@@ -296,7 +303,7 @@ function render(){
   else if(v==='models')app.innerHTML=modelsHTML();
   else if(v==='settings')app.innerHTML=settingsHTML();
   if(v==='relay')updateInd();
-  if(v==='preview')fitPages();
+  if(v==='preview'){setPortrait(getOrient()==='P');fitPages()}
 }
 function barHTML(title,back){
   return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(title)}</h1></div>`;
@@ -538,16 +545,16 @@ function previewHTML(){
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',back)}
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint">
-      <button class="btn main" data-act="doPrint">印刷する(A4横)</button><button class="btn main" data-act="doPrintP">印刷する(A4縦)</button>
+      <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'previewForm':'previewFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      <span class="note">${pages.length}枚。印刷画面で「用紙:A4」「横」「余白なし」(または既定)を選んでください。PDF保存も印刷画面から。</span>
+      <span class="note">${pages.length}枚。印刷画面で「用紙:A4」「${getOrient()==='P'?'縦':'横'}」「余白なし」(または既定)を選んでください。PDF保存も印刷画面から。</span>
     </div>
-    <div class="pages" id="pages">${pages.join('')}</div>
+    <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div>
   </div>`;
 }
 function fitPages(){
   const el=$('#pages');if(!el)return;
-  const w=el.parentElement.clientWidth-2;const pw=297*96/25.4;
+  const w=el.parentElement.clientWidth-2;const pw=(getOrient()==='P'?210:297)*96/25.4;
   el.style.zoom=Math.min(1,w/pw);
 }
 function manageLines(r){
@@ -609,6 +616,9 @@ function blockHTML(r,mode){
 
 /* ========== イベント ========== */
 // 用紙の向き(A4縦のときは横向きの用紙を縮小して上に置く)
+const ORK='tools.printOrient';
+function getOrient(){try{const v=localStorage.getItem(ORK);if(v)return v==='P'?'P':'L'}catch(e){}return window.__orient||'L'}
+function setOrient(o){try{localStorage.setItem(ORK,o)}catch(e){}window.__orient=o}
 function setPortrait(on){document.documentElement.classList.toggle('pp',on);let st=document.getElementById('ppst');
   if(on&&!st){st=document.createElement('style');st.id='ppst';st.textContent='@page{size:A4 portrait;margin:0}';document.head.appendChild(st)}
   if(!on&&st)st.remove()}
@@ -638,7 +648,8 @@ document.addEventListener('click',e=>{
     case 'previewForm':go({name:'preview',pid:view.pid,mode:'form'});break;
     case 'previewPanel':go({name:'preview',pid:view.pid,mode:'full',panel:b.dataset.panel});break;
     case 'blankPrint':go({name:'preview',mode:'blank'});break;
-    case 'doPrint':case 'doPrintP':{setPortrait(a==='doPrintP');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'orientL':case 'orientP':setOrient(a==='orientP'?'P':'L');render();break;
+    case 'doPrint':{setPortrait(getOrient()==='P');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
     case 'openModels':go({name:'models'});break;
     case 'openSettings':go({name:'settings'});break;
     case 'resetSettings':state.settings={...DEF_SET};save();render();toast('初期値に戻しました');break;

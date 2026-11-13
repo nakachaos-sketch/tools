@@ -124,7 +124,14 @@ table.sign td{border:1px solid #222;width:70mm;height:14mm;text-align:center;col
   .sheet:last-child{break-after:auto;page-break-after:auto}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
-@media print{.pp .sheet{zoom:.7;margin:10mm 0 0 0}}
+/* 用紙の向き:A4縦は横向きの成績表を70%に縮めて縦の用紙の上に置く */
+.pg{display:contents}
+.pp .pg{display:block;width:210mm;height:296mm;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.15);padding-top:10mm;overflow:hidden;flex:none}
+.pp .pg .sheet{zoom:.7;box-shadow:none;margin:0}
+.seg{display:inline-flex;border:1px solid var(--accent);border-radius:6px;overflow:hidden}
+.seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+@media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
 </style>
 </head>
 <body>
@@ -209,7 +216,7 @@ function render(){
   const v=view.name,app=$('#app');
   app.innerHTML=v==='home'?homeHTML():v==='project'?projectHTML():v==='relay'?relayHTML():previewHTML();
   if(v==='relay')updInd();
-  if(v==='preview')fit();
+  if(v==='preview'){setPortrait(getOrient()==='P');fit()}
 }
 
 /* --- 一覧 --- */
@@ -335,15 +342,15 @@ function previewHTML(){
     if(!pages.length)pages.push(sheet(p,'',[null,null],mode))}
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績書',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
-    <div class="pv-bar noprint"><button class="btn main" data-act="doPrint">印刷する(A4横)</button><button class="btn main" data-act="doPrintP">印刷する(A4縦)</button>
+    <div class="pv-bar noprint"><span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
       <label class="sw"><input type="checkbox" data-pr="hdr" ${state.print.hdr?'checked':''}><span>工事名・受注者</span></label>
       <label class="sw"><input type="checkbox" data-pr="sign" ${state.print.sign?'checked':''}><span>試験実施者・監督職員欄</span></label>
       <label class="sw"><input type="checkbox" data-pr="lever" ${state.print.lever?'checked':''}><span>タイムレバー</span></label>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      <span class="note">${pages.length}枚。印刷画面で「A4」「横」を選んでください。PDF保存も印刷画面から。</span></div>
-    <div class="pages" id="pages">${pages.join('')}</div></div>`;
+      <span class="note">${pages.length}枚。印刷画面で「A4」「${getOrient()==='P'?'縦':'横'}」を選んでください。PDF保存も印刷画面から。</span></div>
+    <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
-function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/(297*96/25.4))}
+function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/((getOrient()==='P'?210:297)*96/25.4))}
 function sheet(p,panel,rs,mode){
   const hasP=p&&mode!=='blank',full=mode==='full';
   const date=(()=>{if(!(p&&full))return '令和　　年　　月　　日';return wareki(p.date).replace(/年/,'年 ').replace(/月/,'月 ')})();
@@ -403,6 +410,9 @@ function block(r,mode){
 
 /* ===== イベント ===== */
 // 用紙の向き(A4縦のときは横向きの用紙を縮小して上に置く)
+const ORK='tools.printOrient';
+function getOrient(){try{const v=localStorage.getItem(ORK);if(v)return v==='P'?'P':'L'}catch(e){}return window.__orient||'L'}
+function setOrient(o){try{localStorage.setItem(ORK,o)}catch(e){}window.__orient=o}
 function setPortrait(on){document.documentElement.classList.toggle('pp',on);let st=document.getElementById('ppst');
   if(on&&!st){st=document.createElement('style');st.id='ppst';st.textContent='@page{size:A4 portrait;margin:0}';document.head.appendChild(st)}
   if(!on&&st)st.remove()}
@@ -432,7 +442,8 @@ document.addEventListener('click',e=>{
     case 'pvFull':go({name:'preview',pid:view.pid,mode:'full'});break;
     case 'pvForm':go({name:'preview',pid:view.pid,mode:'form'});break;
     case 'blank':go({name:'preview',mode:'blank'});break;
-    case 'doPrint':case 'doPrintP':{setPortrait(a==='doPrintP');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'orientL':case 'orientP':setOrient(a==='orientP'?'P':'L');render();break;
+    case 'doPrint':{setPortrait(getOrient()==='P');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
     case 'exportJson':{const bl=new Blob([JSON.stringify(state,null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
       a2.href=URL.createObjectURL(bl);a2.download=`UVR試験_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
       document.body.appendChild(a2);a2.click();setTimeout(()=>{URL.revokeObjectURL(a2.href);a2.remove()},500);break}
