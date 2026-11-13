@@ -179,7 +179,7 @@ const APP={
         mk(['高圧分岐盤VCB二次側 〜','第1変電設備 DS一次側','三線一括'],'3.0','30',{label:'第1変電用 高圧ケーブル',type:'耐火6KV FPT 100sq',len:'13',maker:'住電HSTケーブル',year:'2025'})]}},
   itemTitle(r){return [r.l1,r.l2].filter(Boolean).join(' ')||'試験回路'},
   itemSub(r){return `${r.testV||'—'}V ・ ${r.time||'—'}分`+(r.cable&&r.cable.type?' ・ '+r.cable.type:'')},
-  judge(r){if(r.jd&&r.jd!=='auto')return r.jd;const k=irChk(r);if(k.b===false||k.a===false)return '否';const any=r.rows.some(x=>x.lk!==''||x.ex!=='');return any&&r.irA!==''?'良':''},
+  judge(r){if(r.jd&&r.jd!=='auto')return r.jd;const k=irChk(r);if(k.b===false||k.a===false)return '否';if(lkChk(r).over)return '要確認';const any=r.rows.some(x=>x.lk!==''||x.ex!=='');return any&&r.irA!==''?'良':''},
   editorHTML(r){
     const t=(k,l,ph,dec)=>`<label>${l}<input type="text" ${dec?'inputmode="decimal"':''} data-f="${k}" value="${esc(k.split('.').reduce((o,x)=>o?o[x]:'',r)||'')}" ${ph?`placeholder="${esc(ph)}"`:''}></label>`;
     return `<div class="two-col">
@@ -194,15 +194,18 @@ const APP={
     </div>
     <div class="two-col">
       <div class="card"><h2>経過時間ごとの測定値</h2>
-        ${r.rows.map((x,i)=>`<div class="g3">${t(`rows.${i}.t`,'経過時間(分)','',1)}${t(`rows.${i}.ex`,'励磁電流(A)','',1)}${t(`rows.${i}.lk`,'漏洩電流(mA)','',1)}</div>`).join('')}
+        ${r.rows.map((x,i)=>`<div class="g3">${t(`rows.${i}.t`,'経過時間(分)','',1)}${t(`rows.${i}.ex`,'励磁電流(A)','',1)}<div class="f" id="f-lk-${i}">${t(`rows.${i}.lk`,'漏洩電流(mA)','',1)}</div></div>`).join('')}
         <div class="note">試験電圧は最大使用電圧の1.5倍(6.6kV系:6900V×1.5=10350V)。</div></div>
       <div class="card"><h2>ケーブル(用紙の下に表で出ます)</h2>
         ${t('cable.label','名称','例) 引込用 高圧ケーブル')}
         <div class="g4">${t('cable.type','種類','例) 6kV CVT 38sq')}${t('cable.len','亘長(m)','',1)}${t('cable.maker','製造者名')}${t('cable.year','製造年','',1)}</div>
-        <div class="note">ケーブルがない回路は空欄のままにしてください。</div></div>
+        <div class="g3">${t('cable.cap','静電容量(μF/km・1相)',capAuto(r)?capAuto(r)+' (自動)':'太さから自動',1)}<label>周波数(Hz)${sel('data-fr="freq"',r.freq||'50',['50','60'])}</label><div class="rg" id="calcI" style="align-self:end"></div></div>
+        <div class="note">漏洩電流の目安=三線一括の充電電流(I=2πfCV、旧JIS C 3606-1971 の静電容量)。測定値が計算値より10%以上多いと赤字・「要確認」になります。ケーブルがない回路は空欄のままにしてください。</div></div>
     </div>`;
   },
-  updInd(r){if(!r)return;const k=irChk(r);[['irB',k.b],['irA',k.a]].forEach(([id,ok])=>{const f=document.getElementById('f-'+id);if(f){f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)}});
+  updInd(r){if(!r)return;const L=lkChk(r);r.rows.forEach((x,i)=>{const f=document.getElementById('f-lk-'+i);if(f){const o=L.ok[i];f.classList.toggle('ok',o===true);f.classList.toggle('ng',o===false)}});
+    const ci=document.getElementById('calcI');if(ci)ci.innerHTML=isFinite(L.calc)?`充電電流(計算) <b>${L.calc.toFixed(0)} mA</b><br>上限(+10%) ${L.lim.toFixed(0)} mA`:'計算できません(太さ・亘長・試験電圧)';
+    const k=irChk(r);[['irB',k.b],['irA',k.a]].forEach(([id,ok])=>{const f=document.getElementById('f-'+id);if(f){f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)}});
     const n=document.getElementById('jnote');if(n)n.innerHTML=`判定 ${badge(APP.judge(r))}　自動のときは、絶縁抵抗が判定値(${k.min} MΩ)未満なら「否」、測定値と耐圧後の絶縁抵抗が入っていれば「良」になります。`},
   onAct(a,b,r){if(a==='v66'||a==='v33'){r.testV=a==='v66'?'10350':'5175';save();render()}},
   sheet(p,its,mode,PO){
@@ -215,12 +218,13 @@ const APP={
       const j=full&&r?APP.judge(r):'';
       return rows.map((x,i)=>`<tr class="${i===0?'c1':'cn'}"><td class="rn">${esc(lines[i]||'')}</td>
         ${i===0?`<td rowspan="${n}" class="v">${has?esc(r.testV):''}</td><td rowspan="${n}" class="v">${has?esc(r.time):''}</td>`:''}
-        <td class="v">${has?esc(x.t):''}</td><td class="v">${F(x.ex)}</td><td class="v">${F(x.lk)}</td>
-        ${i===0?`<td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irB||''),irChk(r).b===false):''}</td><td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irA||''),irChk(r).a===false):''}</td><td rowspan="${n}" class="jg">${j==='否'?ngv('否',true):esc(j)}</td>`:''}</tr>`).join('')}).join('');
+        <td class="v">${has?esc(x.t):''}</td><td class="v">${F(x.ex)}</td><td class="v">${full&&r?ngv(esc(x.lk||''),lkChk(r).ok[i]===false):''}</td>
+        ${i===0?`<td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irB||''),irChk(r).b===false):''}</td><td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irA||''),irChk(r).a===false):''}</td><td rowspan="${n}" class="jg">${j==='否'||j==='要確認'?ngv(j,true):esc(j)}</td>`:''}</tr>`).join('')}).join('');
     const cabs=state.print.cable?its.filter(r=>mode==='blank'||(r&&r.cable&&(r.cable.label||r.cable.type))).map(r=>{const c=r&&mode!=='blank'?r.cable:{};
-      return `<table class="s ct"><colgroup><col style="width:25%"><col style="width:22%"><col style="width:16%"><col style="width:20%"><col></colgroup>
-        <tr><td rowspan="2" class="cl">${esc(c.label||'')}</td><th>種　類</th><th>亘　長</th><th>製 造 者 名</th><th>製 造 年</th></tr>
-        <tr><td>${esc(c.type||'')}</td><td>${c.len?esc(c.len)+' m':'　　m'}</td><td>${esc(c.maker||'')}</td><td>${c.year?esc(c.year)+' 年':'　　年'}</td></tr></table>`}).join(''):'';
+      const ic=r&&mode!=='blank'?lkChk(r).calc:NaN;
+      return `<table class="s ct"><colgroup><col style="width:23%"><col style="width:20%"><col style="width:12%"><col style="width:18%"><col style="width:12%"><col></colgroup>
+        <tr><td rowspan="2" class="cl">${esc(c.label||'')}</td><th>種　類</th><th>亘　長</th><th>製 造 者 名</th><th>製 造 年</th><th>充電電流(計算)</th></tr>
+        <tr><td>${esc(c.type||'')}</td><td>${c.len?esc(c.len)+' m':'　　m'}</td><td>${esc(c.maker||'')}</td><td>${c.year?esc(c.year)+' 年':'　　年'}</td><td>${isFinite(ic)?ic.toFixed(0)+' mA':'　　mA'}</td></tr></table>`}).join(''):'';
     return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
       <div class="s-title">絶縁耐力試験成績表</div>
       <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
@@ -235,6 +239,13 @@ const APP={
 // 絶縁抵抗の判定値:指定がなければ「使用電圧(kV)+1 MΩ」(試験電圧から使用電圧を推定)
 function irMinAuto(r){const v=num(r.testV);const kv=isFinite(v)?(v>=9000?6.6:v>=4000?3.3:Math.round(v/1.5/100)/10):6.6;return Math.round((kv+1)*10)/10}
 function irChk(r){const m=num(r.irMin),min=isFinite(m)?m:irMinAuto(r);const c=x=>{const v=num(x);return isFinite(v)?v>=min:null};return {min,b:c(r.irB),a:c(r.irA)}}
+
+// 旧JIS C 3606-1971 の静電容量(μF/km・1相) ※耐圧試験計算ツールと同じ
+const CAP_OLD={14:0.16,22:0.19,38:0.22,60:0.26,100:0.32,150:0.38,200:0.39,250:0.41,325:0.45};
+function capAuto(r){const m=String((r.cable||{}).type||'').match(/(\d+)\s*(sq|mm)/i);return m&&CAP_OLD[+m[1]]?CAP_OLD[+m[1]]:null}
+function lkChk(r){const c=r.cable||{},cap=isFinite(num(c.cap))?num(c.cap):capAuto(r),len=num(c.len),v=num(r.testV),f=num(r.freq||'50');
+  const calc=cap&&isFinite(len)&&isFinite(v)?2*Math.PI*f*(cap*1e-6*len/1000*3)*v*1000:NaN,lim=calc*1.1;
+  const ok=r.rows.map(x=>{const y=num(x.lk);return isFinite(y)&&isFinite(lim)?y<lim+1e-9:null});return {calc,lim,ok,over:ok.includes(false)}}
 
 'use strict';
 /* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
@@ -256,7 +267,7 @@ function go(v){view=v;pendingConfirm=null;render();window.scrollTo(0,0)}
 function fmtDate(d){const m=(d||'').match(/(\d+)-(\d+)-(\d+)/);return m?`${+m[1]}年 ${+m[2]}月 ${+m[3]}日`:''}
 function barHTML(t,back){return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(t)}</h1></div>`}
 function sel(attr,cur,opts,labels){return `<select ${attr}>${opts.map((o,i)=>`<option value="${esc(o)}" ${o===(cur||'')?'selected':''}>${labels?labels[i]:(o?esc(o):'—')}</option>`).join('')}</select>`}
-function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':j==='要注意'?'<span class="badge b-ng">要注意</span>':'<span class="badge b-none">未</span>'}
+function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':(j==='要注意'||j==='要確認')?`<span class="badge b-ng">${j}</span>`:'<span class="badge b-none">未</span>'}
 const ngv=(t,bad)=>bad?`<span class="ngv">${t}</span>`:t;
 function chunkN(rs,n){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===n){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 const ORK='tools.printOrient';

@@ -415,7 +415,7 @@ function go(v){view=v;pendingConfirm=null;render();window.scrollTo(0,0)}
 function fmtDate(d){const m=(d||'').match(/(\d+)-(\d+)-(\d+)/);return m?`${+m[1]}年 ${+m[2]}月 ${+m[3]}日`:''}
 function barHTML(t,back){return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(t)}</h1></div>`}
 function sel(attr,cur,opts,labels){return `<select ${attr}>${opts.map((o,i)=>`<option value="${esc(o)}" ${o===(cur||'')?'selected':''}>${labels?labels[i]:(o?esc(o):'—')}</option>`).join('')}</select>`}
-function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':j==='要注意'?'<span class="badge b-ng">要注意</span>':'<span class="badge b-none">未</span>'}
+function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':(j==='要注意'||j==='要確認')?`<span class="badge b-ng">${j}</span>`:'<span class="badge b-none">未</span>'}
 const ngv=(t,bad)=>bad?`<span class="ngv">${t}</span>`:t;
 function chunkN(rs,n){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===n){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 const ORK='tools.printOrient';
