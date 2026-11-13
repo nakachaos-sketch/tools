@@ -307,64 +307,60 @@ function calc(r){
 /* ===== 試験方法の結線図(SVG) ===== */
 function diagSVG(method){
   const red='#d32f2f',blue='#1565c0',grn='#2e7d32',ink='#333',core='#9aa3ad';
-  const W=600,H=300;
-  // 端末:x中心, 3心の位置, 上端y
-  const term=(cx,sc)=>{const xs=[cx-50*sc,cx,cx+50*sc],top=50,split=170,cl=200;
+  const W=660,H=300,OX=60; // 左に注記用の余白
+  const gnd=(x,y)=>`<g stroke="${grn}" stroke-width="2"><line x1="${x-10}" y1="${y}" x2="${x+10}" y2="${y}"/><line x1="${x-6}" y1="${y+5}" x2="${x+6}" y2="${y+5}"/><line x1="${x-2.5}" y1="${y+10}" x2="${x+2.5}" y2="${y+10}"/></g>`;
+  // 心線(2次ベジェ)上のyに対するxを求める
+  const coreX=(cx,x,split,top,y)=>{const y0=split,y1=split-20,y2=top+20;let lo=0,hi=1;for(let k=0;k<40;k++){const t=(lo+hi)/2,yy=(1-t)*(1-t)*y0+2*(1-t)*t*y1+t*t*y2;if(yy>y)lo=t;else hi=t}const t=(lo+hi)/2;return (1-t)*(1-t)*cx+2*(1-t)*t*x+t*t*x};
+  const term=(cx,sc,near)=>{const xs=[cx-50*sc,cx,cx+50*sc],top=50,split=170,cl=200;
     let g='';xs.forEach(x=>{g+=`<path d="M${cx} ${split} Q ${x} ${split-20} ${x} ${top+20}" stroke="${core}" stroke-width="${7*sc}" fill="none" stroke-linecap="round"/>`;
       g+=`<rect x="${x-5*sc}" y="${top}" width="${10*sc}" height="${22*sc}" rx="2" fill="#fff" stroke="${ink}" stroke-width="1.6"/><circle cx="${x}" cy="${top+6*sc}" r="${2*sc}" fill="${ink}"/>`;
       for(let k=0;k<3;k++)g+=`<ellipse cx="${x}" cy="${top+34*sc+k*9*sc}" rx="${9*sc}" ry="${2.6*sc}" fill="#fff" stroke="${ink}" stroke-width="1.3"/>`});
     g+=`<line x1="${cx}" y1="${split}" x2="${cx}" y2="${H-40}" stroke="${core}" stroke-width="${12*sc}" stroke-linecap="round"/>`;
     g+=`<rect x="${cx-22*sc}" y="${cl}" width="${44*sc}" height="${14*sc}" rx="2" fill="#e8ecef" stroke="${ink}" stroke-width="1.6"/>`;
-    const gx=cx-34*sc,gy=cl+7*sc;g+=`<path d="M${cx-22*sc} ${gy} H${gx} V${gy+26}" stroke="${grn}" stroke-width="2" fill="none"/>`+gnd(gx,gy+26);
-    return {xs,top,cl,g}};
-  const gnd=(x,y)=>`<g stroke="${grn}" stroke-width="2"><line x1="${x-10}" y1="${y}" x2="${x+10}" y2="${y}"/><line x1="${x-6}" y1="${y+5}" x2="${x+6}" y2="${y+5}"/><line x1="${x-2.5}" y1="${y+10}" x2="${x+2.5}" y2="${y+10}"/></g>`;
-  const wrap=(x,y,c)=>`<g stroke="${c}" stroke-width="2.4">${[0,1,2,3].map(k=>`<line x1="${x-7}" y1="${y+k*4-2}" x2="${x+7}" y2="${y+k*4+2}"/>`).join('')}</g>`;
-  const N=term(300,1),F=term(500,.8);
-  const lugY=N.top+6,wrapY=N.top+78;
-  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans JP, sans-serif">`;
-  // ケーブル(遠端へ)
+    if(near){g+=`<path d="M${cx-22} ${cl+11} H${cx-44} V${cl+36}" stroke="${grn}" stroke-width="2" fill="none"/>`+gnd(cx-44,cl+36)}
+    else{const gx=cx-34*sc,gy=cl+7*sc;g+=`<path d="M${cx-22*sc} ${gy} H${gx} V${gy+26}" stroke="${grn}" stroke-width="2" fill="none"/>`+gnd(gx,gy+26)}
+    return {xs,top,cl,split,g,cx}};
+  const wrapAt=(T,i,y,c)=>{const x=coreX(T.cx,T.xs[i],T.split,T.top,y);return {x,svg:`<g stroke="${c}" stroke-width="2.4">${[0,1,2,3].map(k=>{const yy=y-6+k*4,xx=coreX(T.cx,T.xs[i],T.split,T.top,yy);return `<line x1="${xx-7}" y1="${yy-2}" x2="${xx+7}" y2="${yy+2}"/>`}).join('')}</g>`}};
+  const N=term(300,1,true),F=term(500,.8,false);
+  const lugY=N.top+6,wrapY=128;
+  const lbl=(x,y,t,c,a='start')=>`<text x="${x}" y="${y}" font-size="11.5" fill="${c||ink}" text-anchor="${a}">${t}</text>`;
+  const arrow=(x1,y1,x2,y2,c)=>`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.3" marker-end="url(#ah-${c.slice(1)})"/>`;
+  let s=`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" font-family="Noto Sans JP, sans-serif"><defs>${[red,blue,grn,ink].map(c=>`<marker id="ah-${c.slice(1)}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="${c}"/></marker>`).join('')}</defs><g transform="translate(${OX},0)">`;
   s+=`<path d="M300 ${H-40} Q300 ${H-12} 330 ${H-12} H470 Q500 ${H-12} 500 ${H-40}" stroke="${core}" stroke-width="11" fill="none"/>`;
-  s+=`<text x="400" y="${H-20}" font-size="11" text-anchor="middle" fill="${ink}">ケーブル</text>`;
-  s+=N.g+F.g;
-  // 計器
+  s+=lbl(400,H-20,'ケーブル',ink,'middle')+N.g+F.g;
   s+=`<rect x="14" y="150" width="140" height="92" rx="10" fill="#f6f8fa" stroke="${ink}" stroke-width="1.8"/>
-    <text x="84" y="214" font-size="14" text-anchor="middle" fill="${ink}" font-weight="700">絶縁抵抗計</text>
-    <rect x="44" y="222" width="80" height="10" rx="2" fill="#dfe5ea"/>`;
+    <text x="84" y="214" font-size="14" text-anchor="middle" fill="${ink}" font-weight="700">絶縁抵抗計</text><rect x="44" y="222" width="80" height="10" rx="2" fill="#dfe5ea"/>`;
   const tL=[130,150],tG=[84,150],tE=[38,150];
   [[tE,'E',grn],[tG,'G',blue],[tL,'L',red]].forEach(([p,l,c])=>{s+=`<circle cx="${p[0]}" cy="${p[1]}" r="7" fill="#fff" stroke="${c}" stroke-width="2.4"/><text x="${p[0]}" y="${p[1]+24}" font-size="12" text-anchor="middle" font-weight="700" fill="${c}">${l}</text>`});
-  // EARTH → 近端のシース(クランプ)
-  s+=`<path d="M${tE[0]} ${tE[1]-7} V128 H5 V256 H262 V${N.cl+7} H${300-22}" stroke="${grn}" stroke-width="2.4" fill="none"/>`;
-  const lbl=(x,y,t,c,a='start')=>`<text x="${x}" y="${y}" font-size="11.5" fill="${c||ink}" text-anchor="${a}">${t}</text>`;
+  // EARTH → 近端シース
+  s+=`<path d="M${tE[0]} ${tE[1]-7} V128 H-2 V262 H222 V${N.cl+4} H${300-22}" stroke="${grn}" stroke-width="2.4" fill="none"/>`;
+  const [R,S,T]=N.xs,[fR,fS]=F.xs;
+  let note='';
   if(method==='1'){
-    const [R,S,T]=N.xs,[fR,fS,fT]=F.xs;
-    // LINE → R相
     s+=`<path d="M${tL[0]} ${tL[1]-7} V30 H${R} V${lugY}" stroke="${red}" stroke-width="2.6" fill="none"/>`;
-    // GUARD → R相の巻付け、S相を遠端までのガード線に
-    s+=wrap(R,wrapY,blue)+`<path d="M${tG[0]} ${tG[1]-7} V${wrapY+6} H${R-7}" stroke="${blue}" stroke-width="2.4" fill="none"/>`;
-    s+=`<path d="M${S} ${lugY} Q ${S-30} ${lugY+30} ${R+8} ${wrapY+4}" stroke="${blue}" stroke-width="2" fill="none" stroke-dasharray="0"/>`;
-    // T相は接地
+    const w=wrapAt(N,0,wrapY,blue);s+=w.svg+`<path d="M${tG[0]} ${tG[1]-7} V${wrapY} H${w.x-7}" stroke="${blue}" stroke-width="2.4" fill="none"/>`;
+    s+=`<path d="M${S} ${lugY} Q ${S-30} ${lugY+30} ${w.x+7} ${wrapY+2}" stroke="${blue}" stroke-width="2" fill="none"/>`;
     s+=`<path d="M${T} ${lugY} C ${T+40} ${lugY+40} ${T+30} ${N.cl-20} ${300+22} ${N.cl+7}" stroke="${grn}" stroke-width="2.2" fill="none"/>`;
-    // 遠端:S相(ガード線)→R相の巻付け
-    const fw=F.top+66;s+=wrap(fR,fw,blue)+`<path d="M${fS} ${F.top+5} Q ${fS-24} ${F.top+30} ${fR+7} ${fw+4}" stroke="${blue}" stroke-width="2" fill="none"/>`;
-    s+=lbl(R-6,22,'LINE:試験する相','#d32f2f','end').replace('x="'+(R-6)+'"','x="'+(R-56)+'"');
-    s+=lbl(358,lugY+64,'試験相以外は接地',grn);
-    s+=lbl(fS-30,F.top-10,'ガード線として使用',blue);
-    s+=lbl(146,wrapY+24,'錫引き銅線を巻付け',blue);
+    const fw=wrapAt(F,0,F.top+70,blue);s+=fw.svg+`<path d="M${fS} ${F.top+5} Q ${fS-24} ${F.top+30} ${fw.x+7} ${F.top+72}" stroke="${blue}" stroke-width="2" fill="none"/>`;
+    s+=lbl(R-40,22,'LINE:試験する相',red,'end').replace(`x="${R-40}"`,`x="${R-10}"`);
+    s+=lbl(372,24,'試験する相以外は接地',grn)+arrow(392,30,T+8,lugY+4,grn);
+    s+=lbl(596,24,'ガード線として使用',blue,'end')+arrow(540,30,fS+3,F.top+2,blue);
+    note=w;
   }else{
-    const [R,S,T]=N.xs;
-    // 3相一括 → LINE
     s+=`<path d="M${R} ${lugY} Q ${(R+S)/2} ${lugY-22} ${S} ${lugY} Q ${(S+T)/2} ${lugY-22} ${T} ${lugY}" stroke="${red}" stroke-width="2.4" fill="none"/>`;
     s+=`<path d="M${tL[0]} ${tL[1]-7} V30 H${R-14} Q ${R-4} 30 ${R} ${lugY}" stroke="${red}" stroke-width="2.6" fill="none"/>`;
-    // GUARD → 3相すべての巻付け
-    s+=wrap(R,wrapY,blue)+wrap(S,wrapY,blue)+wrap(T,wrapY,blue);
-    s+=`<path d="M${tG[0]} ${tG[1]-7} V${wrapY+6} H${R-7} M${R+7} ${wrapY+6} Q ${(R+S)/2} ${wrapY+18} ${S-7} ${wrapY+6} M${S+7} ${wrapY+6} Q ${(S+T)/2} ${wrapY+18} ${T-7} ${wrapY+6}" stroke="${blue}" stroke-width="2.2" fill="none"/>`;
-    s+=lbl(R-56,22,'LINE:3相一括','#d32f2f');
-    s+=lbl(362,lugY+64,'20cm以上離す',ink);
-    s+=lbl(146,wrapY+24,'錫引き銅線を巻付け',blue);
-    s+=lbl(470,F.top-10,'遠端は開放',ink);
+    const w0=wrapAt(N,0,wrapY,blue),w1=wrapAt(N,1,wrapY,blue),w2=wrapAt(N,2,wrapY,blue);s+=w0.svg+w1.svg+w2.svg;
+    s+=`<path d="M${tG[0]} ${tG[1]-7} V${wrapY} H${w0.x-7} M${w0.x+7} ${wrapY+2} Q ${(w0.x+w1.x)/2} ${wrapY+16} ${w1.x-7} ${wrapY+2} M${w1.x+7} ${wrapY+2} Q ${(w1.x+w2.x)/2} ${wrapY+16} ${w2.x-7} ${wrapY+2}" stroke="${blue}" stroke-width="2.2" fill="none"/>`;
+    s+=lbl(R-10,22,'LINE:3相一括',red,'end');
+    s+=lbl(372,24,'端子間は20cm以上離す',ink)+arrow(392,30,T+8,lugY+4,ink);
+    s+=lbl(552,F.top+14,'遠端は開放',ink);
+    note=w0;
   }
-  s+=lbl(300,N.cl+34,'近端','#555','middle')+lbl(500,F.cl+30,'遠端','#555','middle');
-  s+=lbl(326,N.cl+11,'シース接地',grn);
+  s+=lbl(300,N.cl+52,'近端','#555','middle')+lbl(500,F.cl+30,'遠端','#555','middle');
+  s+='</g>';
+  // 左上の注記(巻付け線)
+  s+=`<text font-size="11.5" fill="${blue}"><tspan x="6" y="62">1.6φ程度の錫引き銅線を</tspan><tspan x="6" y="78">巻付け、ガードと接続する</tspan></text>`;
+  s+=arrow(150,84,note.x+OX-10,wrapY-6,blue);
   return s+'</svg>';
 }
 
