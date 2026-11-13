@@ -156,6 +156,41 @@ table.cb.sg td{width:62mm;height:12mm}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
 .npg{display:inline-flex;align-self:flex-start;width:auto}
+/* 過電流 A4縦専用レイアウト(縮小しない・1枚に2台) */
+.sheet.p{width:210mm;height:296mm;padding:9mm 10mm}
+.sheet.p .sheet-x{width:380mm;height:556mm}
+.sheet.p .sheet-in{padding:10mm 10mm 8mm;gap:6mm}
+.sheet.p .s-title{font-size:30pt;letter-spacing:.35em;margin:2mm 0 1mm}
+.sheet.p .s-date{font-size:17pt}
+.sheet.p .s-panel{font-size:18pt;padding:1.6mm 10mm;min-width:64mm}
+.sheet.p .blk{display:flex;flex-direction:column;margin-top:5mm}
+.sheet.p table.s{font-size:16pt}
+.sheet.p table.s.mn{border-top:none}
+.sheet.p table.s th,.sheet.p table.s td{height:15mm}
+.sheet.p table.s th{font-size:15pt}
+.sheet.p table.s th.sm{font-size:13pt}
+.sheet.p table.s tr.m td,.sheet.p table.s tr.m+tr td{height:21mm}
+.sheet.p table.s td.big{font-size:17pt}
+.sheet.p table.s td.ib{height:24mm}
+.sheet.p table.s td.v{font-size:17pt}
+.sheet.p table.s td.c{font-size:15pt}
+.sheet.p table.s td.cir{font-size:15pt}
+.sheet.p table.s td.note20{font-size:13pt}
+.sheet.p .sv-v{font-size:16pt}.sheet.p .sv-l{font-size:11pt}
+.sheet.p table.s tr.km th{border-top:2px solid #000;font-size:15pt}
+.sheet.p table.s tr.km td{border-top:2px solid #000}
+.sheet.p table.s td.kanri1{text-align:left;font-size:13.5pt;white-space:normal;line-height:1.35;padding:1.5mm 3mm;height:15mm}
+.sheet.p table.s td.kanri1 b{font-weight:500;margin-right:1.5mm}
+.sheet.p table.cb{font-size:16pt}
+.sheet.p table.cb th{padding:1.8mm 5mm}
+.sheet.p table.cb td{width:36mm}
+.sheet.p table.cb.sg td{width:52mm;height:11mm}
+.sheet.p .s-foot{flex-direction:column;align-items:flex-start;gap:3mm}
+.sheet.p .s-fl{gap:6mm}
+.sheet.p .s-cap{font-size:15pt;align-self:flex-end}
+.pp .pg{display:contents}
+.pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+@media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
 </style>
 </head>
 <body>
@@ -585,11 +620,12 @@ function sheetHTML(p,panel,rs,mode){
     :'　　　年　　月　　日 ・ 天候　　 ・ 温度　　℃ ・ 湿度　　％';
   const cbs=rs.filter(Boolean).map(r=>r.cb).filter(Boolean);
   const cb=mode==='full'?(cbs.includes('否')?'否':cbs.length?'良':''):'';
-  return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
+  const PO=getOrient()==='P';
+  return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">過電流継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${dateLine}</div></div>
-    ${blockHTML(rs[0],mode)}
-    ${blockHTML(rs[1],mode)}
+    ${PO?blockP(rs[0],mode):blockHTML(rs[0],mode)}
+    ${PO?blockP(rs[1],mode):blockHTML(rs[1],mode)}
     <div class="s-foot"><div class="s-fl"><table class="cb"><tr><th>遮断器 連動試験</th><td>${esc(cb)}</td></tr></table>${state.print.sign?`<table class="cb sg"><tr><th>試験実施者</th><td>${p&&mode==='full'?esc(p.tester||''):''}</td><th>監督職員(立会者)</th><td>${p&&mode==='full'?esc(p.witness||''):''}</td></tr></table>`:''}</div><div class="s-cap">動作時間の（　　）内は限時特性曲線値とする</div></div>
   </div></div></div>`;
 }
@@ -624,6 +660,41 @@ function blockHTML(r,mode){
       <td class="c note20">${ir.limited?`（${ir.ref}Aで試験）`:''}</td></tr>`;
   });
   return `<table class="s">${cg}${head}${th}${body}</table>`;
+}
+
+// A4縦用:管理値は表の下に1行で、型式などの欄は別の表に
+function blockP(r,mode){
+  const has=!!r,full=mode==='full'&&has;
+  const sp=(k,v,lb)=>`<div class="sv"><div class="sv-v">${k} = ${v}</div><div class="sv-l">${lb}</div></div>`;
+  const setv=`<div class="svs">${sp('T',has?esc(r.T):'','限時電流 (A)')}${sp('D',has?esc(r.D):'','動作時間 (s)')}${sp('I',has?esc(r.I||'ロック'):'','瞬時電流 (A)')}</div>`;
+  const info=`<table class="s"><colgroup><col style="width:54mm"><col style="width:54mm"><col style="width:50mm"><col style="width:50mm"><col style="width:56mm"><col></colgroup>
+    <tr><th>型　式</th><th>製造者名</th><th>定　格</th><th>製造年月</th><th>製造番号</th><th>整　定　値</th></tr>
+    <tr><td class="big ib">${has?esc(r.model):''}</td><td class="big">${has?esc(r.maker):''}</td><td class="big">${has?esc(r.rating):''}</td><td class="big">${has?esc(r.made):''}</td><td class="big">${has?esc(r.serial):''}</td><td class="big setc">${setv}</td></tr></table>`;
+  const p1=has?r.p1:200,p2=has?r.p2:300;
+  const cg='<colgroup><col style="width:42mm"><col style="width:18mm"><col style="width:36mm">'+'<col style="width:31mm">'.repeat(6)+'<col style="width:42mm"><col></colgroup>';
+  const th=`<tr class="h1"><th rowspan="3" class="rs3">回 路 名</th><th rowspan="3" class="rs3">相別</th><th rowspan="2" class="sm">最小動作電流</th><th colspan="6">動　作　時　間　　(S)</th><th rowspan="2" class="sm">瞬時動作電流</th><th rowspan="3" class="rs3">判 定</th></tr>
+    <tr><th colspan="3">ダイヤル　${has?esc(r.dialA):'10'}</th><th colspan="3">ダイヤル　${has?esc(dialB(r)):''}</th></tr>
+    <tr class="h3"><th>(A)</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>${p1} ％</th><th>${p2} ％</th><th>瞬 時</th><th>(A)</th></tr>`;
+  let body='';
+  ['R','T'].forEach((k,i)=>{
+    const d=has?r.ph[k]:emptyPh();
+    const mv=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
+      if(key==='min'&&isFinite(n))return n.toFixed(2);if(key==='inst'&&isFinite(n))return n.toFixed(1);return esc(v)};
+    const c=(pt,dial)=>has?(()=>{const v=charAt(r,pt,dial);return isFinite(v)?`( ${fmtChar(v)} )`:''})():'';
+    const ir=has?instRef(r):{limited:false};
+    const j=full?judgeOf(r,k):'';
+    body+=`<tr class="m${i?" ph2":""}">${i===0?`<td rowspan="4" class="cir">${has?esc(r.circuit):''}</td>`:''}<td rowspan="2" class="big">${k==='R'?'Ｒ':'Ｔ'}</td>
+      <td rowspan="2" class="v">${mv('min')}</td><td class="v mt">${mv('a1')}</td><td class="v mt">${mv('a2')}</td><td class="v mt">${mv('ai')}</td>
+      <td class="v mt">${mv('b1')}</td><td class="v mt">${mv('b2')}</td><td class="v mt">${mv('bi')}</td><td class="v mt">${mv('inst')}</td>
+      <td rowspan="2" class="v big" style="${j==='否'?'color:#c62828;font-weight:700':''}">${esc(j)}</td></tr>
+      <tr><td class="c">${c(p1,r&&r.dialA)}</td><td class="c">${c(p2,r&&r.dialA)}</td><td class="c"></td>
+      <td class="c">${c(p1,r&&dialB(r))}</td><td class="c">${c(p2,r&&dialB(r))}</td><td class="c"></td>
+      <td class="c note20">${ir.limited?`（${ir.ref}Aで試験）`:''}</td></tr>`;
+  });
+  const st=state.settings,pts=[...new Set(r?[r.p1,r.p2,700]:[200,300,700])].sort((a,b)=>a-b);
+  const km=`<b>最小動作電流</b> 整定タップ ±${st.tolMin}％以内　<b>動作時間</b> ${pts.map(x=>`${x}％時 ±${st['tol'+x]}％`).join('・')}以内　<b>瞬時</b> ${st.instTime}(S)以内${st.showInstTol?`　<b>瞬時動作電流</b> 整定値 ±${st.tolInst}％以内`:''}`;
+  const kr=`<tr class="km"><th colspan="2">管理値</th><td colspan="9" class="kanri1">${km}</td></tr>`;
+  return `<div class="blk">${info}<table class="s mn">${cg}${th}${body}${kr}</table></div>`;
 }
 
 /* ========== イベント ========== */
