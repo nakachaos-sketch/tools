@@ -195,6 +195,7 @@ table.crit small{color:var(--sub)}
 .sheet.p .mid.pm .fm .fr span:first-child{padding:0 1.5mm}
 .sheet.p .mid.pm table.s.jt td{font-size:12pt;height:10mm}
 .sheet.p .mid.pm table.s.jt td.l:last-child{white-space:normal;line-height:1.25;padding:1mm 1.5mm}
+.ib table.s:first-child:not(:last-child){border-bottom:none}
 
 </style>
 </head>
@@ -264,7 +265,7 @@ const APP={
     const info=`<table class="s"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:8%"><col style="width:14%"><col style="width:8%"><col style="width:17%"><col style="width:9%"><col></colgroup>
       <tr><th>ケーブル種類</th><td>${V('type')}</td><th>亘　長</th><td>${has&&r.len?esc(r.len)+' m':'　　m'}</td><th>製 造 年</th><td>${has&&r.year?esc(r.year)+' 年':'　　年'}</td><th>製造者名</th><td style="font-size:15pt">${V('maker')}</td></tr></table>`;
     const IL=p&&mode!=='blank'&&p.insts&&p.insts.length?p.insts:[{}];
-    const instT=state.print.inst?`<table class="s"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:8%"><col style="width:14%"><col style="width:8%"><col style="width:17%"><col style="width:9%"><col></colgroup>
+    const instT=true?`<table class="s"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:8%"><col style="width:14%"><col style="width:8%"><col style="width:17%"><col style="width:9%"><col></colgroup>
       ${IL.map(x=>`<tr><th>測定計器</th><td>${esc(x.name||'')}</td><th>型 式</th><td>${esc(x.model||'')}</td><th>定 格</th><td style="font-size:15pt">${esc([x.r1,x.r2].filter(Boolean).join(' / '))}</td><th>製造者</th><td style="font-size:14pt;white-space:normal;line-height:1.1">${esc(x.maker||'')}${x.year?` (${esc(x.year)}年)`:''}</td></tr>`).join('')}</table>`:'';
     const cg='<col style="width:7%">'+('<col style="width:5.6%"><col style="width:5.6%"><col style="width:5.8%"><col style="width:5.8%"><col style="width:5.2%">').repeat(3)+'<col>';
     const phH=ph=>`<th colspan="5" class="phh ph-${ph}">${ph}　相</th>`;
@@ -499,7 +500,7 @@ function previewHTML(){
       <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${!PO?'on':''}">A4横</button><button data-act="orientP" class="${PO?'on':''}">A4縦</button></span>
       <button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      ${sw('inst',APP.instInline?'測定計器':'測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
+      ${APP.instInline?'':sw('inst','測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
       <span class="note">${pages.length}枚。印刷画面で「A4」「${PO?'縦':'横'}」を選んでください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
