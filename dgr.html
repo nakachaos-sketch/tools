@@ -166,6 +166,7 @@ table.x.sg{border-collapse:collapse}
 table.x.sg td{width:70mm;height:12mm}
 .sheet.p table.x.sg{font-size:16pt}
 .npg{display:inline-flex;align-self:flex-start;width:auto}
+.ngv{color:#c62828!important;font-weight:700}
 </style>
 </head>
 <body>
@@ -442,7 +443,8 @@ function sheet(p,r,mode,parts){
   const same=(x,cv)=>x!==''&&(x===cv||num(x)===num(cv));
   const cur=k=>has?String(r['set'+k]).trim():'';
   const row6=(k,val,dec)=>{const L=list(k),cv=cur(k);let idx=L.findIndex(x=>same(x,cv));if(PO&&idx<0){idx=L.findIndex(x=>x==='');if(idx<0)idx=L.length-1}
-    return L.map((x,i)=>`<td class="v">${full&&i===idx?esc(val):''}</td>`).join('')};
+    const ng=full&&e&&e[{V:'v',I:'i',T:'t'}[k]].ok===false;const vv=ng?`<span class="ngv">${esc(val)}</span>`:esc(val);
+    return L.map((x,i)=>`<td class="v">${full&&i===idx?vv:''}</td>`).join('')};
   const head6=k=>{const L=list(k),cv=cur(k);return L.map(x=>`<td class="${has&&same(x,cv)?'on':''}">${esc(x)}</td>`).join('')};
   const J=k=>{if(!full)return '<td class="jg" rowspan="2"></td>';const j=jOf(r,k,e);return `<td class="jg ${j==='否'?'ng':''}" rowspan="2">${esc(j)}</td>`};
   const cnd=s=>has?s:'';
@@ -459,8 +461,8 @@ function sheet(p,r,mode,parts){
     <tr><td class="l">電 流 整 定 値 (A)</td>${head6('I')}${PO?'':'<td></td>'}${J('i')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setI)} (A) の場合`:'整定値　　(A) の場合'}<br>${has&&isFinite(e.i.lo)?`${fx(e.i.lo,3)} ～ ${fx(e.i.hi,3)} (A)`:'　　 ～ 　　 (A)'}</td></tr>
     <tr><td class="l">動 作 電 流　　(A)</td>${row6('I',M.i)}${PO?'':`<td class="v">${full&&notfound('I')?esc(M.i):''}</td>`}</tr>
     ${SEC('位 相 特 性 試 験',`Vo = ${c.phVo} (V) ・ Io = ${c.phIo} (A)`)}
-    <tr><td class="l" rowspan="2">動 作 角 度　　(°)</td><td>進み</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?esc(M.lead):''}</td>${J('ph')}<td class="k" rowspan="2" style="line-height:1.7">進み ： ${has?esc(r.leadLo||'　'):'　'}° ～ ${has?esc(r.leadHi||'　'):'　'}°<br>遅れ ： ${has?esc(r.lagLo||'　'):'　'}° ～ ${has?esc(r.lagHi||'　'):'　'}°</td></tr>
-    <tr><td>遅れ</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?esc(M.lag):''}</td></tr>
+    <tr><td class="l" rowspan="2">動 作 角 度　　(°)</td><td>進み</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?(e.lead.ok===false?`<span class="ngv">${esc(M.lead)}</span>`:esc(M.lead)):''}</td>${J('ph')}<td class="k" rowspan="2" style="line-height:1.7">進み ： ${has?esc(r.leadLo||'　'):'　'}° ～ ${has?esc(r.leadHi||'　'):'　'}°<br>遅れ ： ${has?esc(r.lagLo||'　'):'　'}° ～ ${has?esc(r.lagHi||'　'):'　'}°</td></tr>
+    <tr><td>遅れ</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?(e.lag.ok===false?`<span class="ngv">${esc(M.lag)}</span>`:esc(M.lag)):''}</td></tr>
     ${SEC('動 作 時 間 試 験',`Vo = ${c.tVo} (V) ・ Io = ${c.tIo} (A) ・ Φ = ${c.tPhi} (°)`)}
     <tr><td class="l">時 間 整 定 値 (S)</td>${head6('T')}${PO?'':'<td></td>'}${J('t')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setT)} (S) の場合`:'整定値　　(S) の場合'}<br>${has&&trTxt(r,'(S)')?trTxt(r,'(S)'):'　　 ～ 　　 (S)'}</td></tr>
     <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}${PO?'':`<td class="v">${full&&notfound('T')?esc(M.t):''}</td>`}</tr>

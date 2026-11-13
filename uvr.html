@@ -164,6 +164,7 @@ table.sign td{border:1px solid #222;width:70mm;height:14mm;text-align:center;col
 .pp .pg{display:contents}
 .pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 @media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
+.ngv{color:#c62828!important;font-weight:700}
 </style>
 </head>
 <body>
@@ -433,6 +434,7 @@ function block(r,mode,PO){
   const n=seq.length;
   const mv=(v,dec)=>{if(!full||v==='')return '';const x=num(v);return isFinite(x)?x.toFixed(dec):esc(v)};
   const rng=(t)=>has?`( ${t} )`:'';
+  const mvk=(k,dec)=>{const t=mv(r?r.m[k]:'',dec);return t&&e&&e[k]&&e[k].ok===false?`<span class="ngv">${t}</span>`:t};
   const J=k=>{if(!full)return '';return jOf(r,k,e)};
   const oj=(()=>{if(!full)return '';const js=['op','reset','time','disp'].map(J);return js.includes('否')?'否':js.includes('良')?'良':''})();
   const opR=has&&isFinite(e.op.lo)?`${f1(e.op.lo)}〜${f1(e.op.hi)}`:'';
@@ -446,10 +448,10 @@ function block(r,mode,PO){
       <th rowspan="2" class="rs2 sm">動作表示<br>・接点</th><th rowspan="2" class="rs2">判 定</th>${PO?'':'<th rowspan="2" class="rs2">管　理　値</th>'}</tr>
     <tr class="h2"><th>(V)</th><th>誤 差</th><th>(V)</th><th>比 率</th><th>(S)</th><th>誤 差</th></tr>
     <tr><td rowspan="2" class="cir">${has?esc(r.circuit||r.panel||''):''}</td>
-      <td class="v">${mv(r?r.m.op:'',1)}</td><td class="v" rowspan="2">${full?sg(e.op.err):''}</td>
-      <td class="v">${mv(r?r.m.reset:'',1)}</td><td class="v" rowspan="2">${full&&isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}</td>
-      <td class="v">${mv(r?r.m.time:'',2)}</td><td class="v" rowspan="2">${full?sg(e.time.err):''}</td>
-      <td class="v" rowspan="2">${full?esc(r.m.disp):''}</td>
+      <td class="v">${mvk('op',1)}</td><td class="v" rowspan="2">${full?sg(e.op.err):''}</td>
+      <td class="v">${mvk('reset',1)}</td><td class="v" rowspan="2">${full&&isFinite(e.reset.ratio)?e.reset.ratio.toFixed(1)+' %':''}</td>
+      <td class="v">${mvk('time',2)}</td><td class="v" rowspan="2">${full?sg(e.time.err):''}</td>
+      <td class="v" rowspan="2">${full?(r.m.disp==='異常'?`<span class="ngv">異常</span>`:esc(r.m.disp)):''}</td>
       <td rowspan="2" class="jg ${oj==='否'?'ng':''}">${esc(oj)}</td>
       ${PO?'':`<td rowspan="${2+n}" class="kanri">${kan}</td>`}</tr>
     <tr><td class="c">${rng(opR)}</td><td class="c">${rng(rsR)}</td><td class="c">${rng(tmR)}</td></tr>

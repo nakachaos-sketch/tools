@@ -194,6 +194,7 @@ table.cb.sg td{width:62mm;height:12mm}
 .pp .pg{display:contents}
 .pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 @media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
+.ngv{color:#c62828!important;font-weight:700}
 </style>
 </head>
 <body>
@@ -651,8 +652,10 @@ function blockHTML(r,mode){
   let body='';
   ['R','T'].forEach((k,i)=>{
     const d=has?r.ph[k]:emptyPh();
-    const mv=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
+    const evp=full?evalPhase(r,k):{};
+    const mv0=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
       if(key==='min'&&isFinite(n))return n.toFixed(2);if(key==='inst'&&isFinite(n))return n.toFixed(1);return esc(v)};
+    const mv=key=>{const t=mv0(key);return t&&evp[key]&&evp[key].ok===false?`<span class="ngv">${t}</span>`:t};
     const c=(pt,dial)=>has?(()=>{const v=charAt(r,pt,dial);return isFinite(v)?`( ${fmtChar(v)} )`:''})():'';
     const ir=has?instRef(r):{limited:false};
     const j=full?judgeOf(r,k):'';
@@ -700,8 +703,10 @@ function blockP(r,mode){
   let body='';
   ['R','T'].forEach((k,i)=>{
     const d=has?r.ph[k]:emptyPh();
-    const mv=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
+    const evp=full?evalPhase(r,k):{};
+    const mv0=key=>{if(!full)return '';const v=d[key];if(v==='')return '';const n=num(v);
       if(key==='min'&&isFinite(n))return n.toFixed(2);if(key==='inst'&&isFinite(n))return n.toFixed(1);return esc(v)};
+    const mv=key=>{const t=mv0(key);return t&&evp[key]&&evp[key].ok===false?`<span class="ngv">${t}</span>`:t};
     const c=(pt,dial)=>has?(()=>{const v=charAt(r,pt,dial);return isFinite(v)?`( ${fmtChar(v)} )`:''})():'';
     const ir=has?instRef(r):{limited:false};
     const j=full?judgeOf(r,k):'';
