@@ -458,11 +458,11 @@ function sheet(p,r,mode,parts){
   </div>`;
   if(parts){const blank='<td colspan="3" class="nob"></td>';
     const ir=P.ir?`<th class="ft">トリップコイル絶縁抵抗</th><td class="fv" colspan="2">${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`:blank;
-    const sw=P.sw?`<th class="ft" colspan="2">開閉器 連動試験</th><td class="fv">${full?esc(M.sw):''}</td>`:blank;
+    const sw=P.sw?`<th class="ft" colspan="2">開閉器 連動試験</th><td class="fv" colspan="2">${full?esc(M.sw):''}</td>`:'<td colspan="4" class="nob"></td>';
     const so=P.so?`<th class="ft" colspan="2">SO 動作試験</th><td class="fv">${full?esc(M.so):''}</td>`:blank;
 
     const mainP=main.replace(/(<t[hd] class="l"[^>]*>)([^<]*)(<\/t[hd]>)/g,(m,a,b,c)=>a+`<span class="jl">${b.replace(/[ 　]/g,'')}</span>`+c);
-    return {date,wx,body:`<div class="blk">${info}${mainP}${P.ir||P.sw||P.so?`<table class="s fx"><colgroup>${cg}</colgroup><tr>${ir}${sw}${so}</tr></table>`:''}</div>`}}
+    return {date,wx,body:`<div class="blk">${info}${mainP}${P.ir||P.sw||P.so?`<table class="s fx"><colgroup>${'<col style="width:70mm">'+'<col style="width:28mm">'.repeat(6)+'<col style="width:26mm"><col style="width:26mm"><col>'}</colgroup><tr>${ir}${sw}${so}</tr></table>`:''}</div>`}}
   return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
