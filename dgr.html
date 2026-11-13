@@ -128,12 +128,10 @@ const LS_KEY='dgrTest.v1';
 // 型式ごとの整定値の目盛り(用紙の「整定値」行に並ぶ)
 const L=(x)=>x.join(',');
 const MODELS=[
-  {id:'togami-ltr-k-d',maker:'戸上電機',model:'LTR-K-D',V:['2','5','7.5','10'],I:['0.2','0.3','0.4','0.6'],T:['0.1','0.2','0.3','0.5'],
+  {id:'togami-ltr-r-d',maker:'戸上電機',model:'LTR-R-D',V:['2','5','7.5','10'],I:['0.2','0.3','0.4','0.6'],T:['0.1','0.2','0.3','0.4','0.5'],
+    note:'LTR-R-D/DO/DF/DOT/RS-DO など方向性LTR-R系(時間整定5段)。基準はLTR-P-D形の説明書による',
     crit:{vBase:'3800',vTol:'25',iTol:'10',leadLo:'105',leadHi:'135',lagLo:'45',lagHi:'75',phaseIo:'2',phi:'30',timeRule:'togami'}},
   {id:'togami-ltr-p-d',maker:'戸上電機',model:'LTR-P-D',V:['2','5','7.5','10'],I:['0.2','0.3','0.4','0.6'],T:['0.1','0.2','0.3','0.5'],
-    crit:{vBase:'3800',vTol:'25',iTol:'10',leadLo:'105',leadHi:'135',lagLo:'45',lagHi:'75',phaseIo:'2',phi:'30',timeRule:'togami'}},
-  {id:'togami-ltr-r-d',maker:'戸上電機',model:'LTR-R-DO',V:['2','5','7.5','10'],I:['0.2','0.3','0.4','0.6'],T:['0.1','0.2','0.3','0.4','0.5'],
-    note:'LTR-R-D/DO/DF/DOT/RS-DO など方向性LTR-R系。基準はLTR-P-D形の説明書による',
     crit:{vBase:'3800',vTol:'25',iTol:'10',leadLo:'105',leadHi:'135',lagLo:'45',lagHi:'75',phaseIo:'2',phi:'30',timeRule:'togami'}},
   {id:'togami-chz-e-do',maker:'戸上電機',model:'CHZ-E-DO',V:['2','5','7.5','10'],I:['0.2','0.3','0.4','0.6'],T:['0.1','0.2','0.3','0.5'],
     note:'高圧絶縁監視機能付SOG(SOG部)。基準はLTR-P-D形の説明書による',
@@ -170,7 +168,8 @@ function sample(){
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
-  s.projects=s.projects||[];s.print={ir:true,sw:true,so:true,...(s.print||{})};return s;
+  s.projects=s.projects||[];
+  s.projects.forEach(p=>p.relays.forEach(r=>{if(r.modelId==='togami-ltr-k-d'){r.modelId='togami-ltr-r-d';if(r.model==='LTR-K-D')r.model='LTR-R-D';r.listT='0.1,0.2,0.3,0.4,0.5'}}));s.print={ir:true,sw:true,so:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 
