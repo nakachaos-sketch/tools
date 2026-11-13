@@ -145,6 +145,12 @@ table.s.ct td.cl{background:#ccffff;font-size:18pt}
 .sheet.p table.s.ct th{font-size:13pt}
 .sheet.p .cabs{gap:3mm}
 
+.kj-top{margin-bottom:6px}
+.kj{display:flex;flex-wrap:wrap;gap:4px 12px;justify-content:space-between;padding:8px 10px;border-radius:8px;margin-bottom:6px;border:1.5px solid}
+.kj-ok{background:#e6f5ea;border-color:#7cc08f}.kj-ok b{color:#1d7a3a}
+.kj-warn{background:#fff6e0;border-color:#e2b850}.kj-warn b{color:#9a6a00}
+.kj-ng{background:#fde8e8;border-color:#e08a8a}.kj-ng b{color:#c62828}
+
 </style>
 </head>
 <body>
@@ -207,10 +213,14 @@ const APP={
         ${q.type==='other'?t(`equips.${i}.name`,'名称','例) 計器用変圧器')+t(`equips.${i}.ma`,'充電電流(mA)','',1):`<label>容量(${q.type==='cap'?'kvar':'kVA'})${sel(`data-fr="equips.${i}.cap"`,q.cap,Object.keys(EQ[q.type].t))}</label>${t(`equips.${i}.qty`,'台数','1',1)}`}
         <div class="btns" style="align-items:end"><button class="btn small danger" data-act="delEq" data-i="${i}">削除</button></div></div>`).join('')||'<div class="empty">機器がありません(ケーブルだけの回路はこのままで)。</div>'}
       <div class="btns"><button class="btn small" data-act="addEq">+ 機器を追加</button></div>
-      <div class="note">機器の充電電流は、耐圧試験計算ツールと同じ目安値(10350V のときの値を試験電圧で換算)です。ケーブルと合計して判定に使います。</div></div>`;
+      <div class="note">機器の充電電流は、耐圧試験計算ツールと同じ目安値(10350V のときの値を試験電圧で換算)です。ケーブルと合計して判定に使います。</div></div>
+    <div class="card"><h2>試験器・リアクトルの判定(耐圧試験計算ツールと同じ計算)</h2>
+      <div id="kitJ"></div>
+      <div class="note">試験器・リアクトルの一覧は、耐圧試験計算ツールの「手持ちの試験器」で登録したものを使います。<a href="./index.html" target="_blank">耐圧試験計算ツールを開く</a></div></div>`;
   },
   updInd(r){if(!r)return;const L=lkChk(r);r.rows.forEach((x,i)=>{const f=document.getElementById('f-lk-'+i);if(f){const o=L.ok[i];f.classList.toggle('ok',o===true);f.classList.toggle('ng',o===false)}});
     const ci=document.getElementById('calcI');if(ci)ci.innerHTML=isFinite(L.calc)?`充電電流(計算) <b>${L.calc.toFixed(0)} mA</b>${L.eq>0?`<br><small>ケーブル ${isFinite(L.cab)?L.cab.toFixed(0):0} + 機器 ${L.eq.toFixed(0)}</small>`:''}<br>上限(+10%) ${L.lim.toFixed(0)} mA`:'計算できません(太さ・亘長・試験電圧)';
+    const kj=document.getElementById('kitJ');if(kj)kj.innerHTML=kitHTML(r,L);
     const k=irChk(r);[['irB',k.b],['irA',k.a]].forEach(([id,ok])=>{const f=document.getElementById('f-'+id);if(f){f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)}});
     const n=document.getElementById('jnote');if(n)n.innerHTML=`判定 ${badge(APP.judge(r))}　自動のときは、絶縁抵抗が判定値(${k.min} MΩ)未満なら「否」。漏洩電流が「計算値+10%以上」または「1回目より10%以上増えた」ときは「要確認」。測定値と耐圧後の絶縁抵抗が入っていれば「良」になります。`},
   onAct(a,b,r){if(a==='addEq'){(r.equips=r.equips||[]).push({type:'tr3',cap:'100',qty:'1',ma:'',name:''});save();render();return}
@@ -270,6 +280,20 @@ function lkChk(r){const c=r.cable||{},cap=isFinite(num(c.cap))?num(c.cap):capAut
     const a=isFinite(lim)?y<lim+1e-9:null,b=i>0&&isFinite(y0)&&y0>0?y<y0*1.1-1e-9:null;
     if(a===false||b===false)return false;return a===null&&b===null?null:true});
   return {calc,cab,eq,lim,ok,over:ok.includes(false)}}
+
+// 耐圧試験計算ツール(index.html)の「手持ちの試験器」を読む(同じサイトなので共有できる)
+const KIT_DEF={tr:[{name:'ムサシ IP-R3＋R-1230',ma:250},{name:'双興 BCT-25K＋T-13K15',ma:150}],rx:[{name:'ムサシ DR-1230M',H:130,ma:0},{name:'双興 L-13K（209mA級）',H:158,ma:0}]};
+function kitGet(){try{const k=JSON.parse(localStorage.getItem('wvt_kit'));if(k&&k.tr)return k}catch(e){}return KIT_DEF}
+function kitHTML(r,L){const ic=L.calc;if(!isFinite(ic)||ic<=0)return '<div class="empty">ケーブルか機器を入れると判定します。</div>';
+  const v=num(r.testV),f=num(r.freq||'50'),K=kitGet();
+  const rx=(K.rx||[]).map(x=>({name:x.name,c:x.H>0?v/(2*Math.PI*f*x.H)*1000:(+x.ma||0)})).filter(x=>x.c>0);
+  const kva=v*ic/1e6;
+  return `<div class="kj-top">合計 <b>${ic.toFixed(0)} mA</b>(必要容量 約${kva.toFixed(2)} kVA・試験電圧 ${isFinite(v)?v:'—'} V)</div>`+(K.tr||[]).map(t=>{const tm=+t.ma||0;let cls,txt;
+    if(ic<=tm){cls='ok';txt='試験器のみでOK'}
+    else{let best=null;rx.forEach(x=>{for(let n=1;n<=4;n++){if(ic-n*x.c<=tm){const same=String(x.name).split(/\s/)[0]===String(t.name).split(/\s/)[0];if(!best||n<best.n||(n===best.n&&same&&!best.same))best={n,x,same,net:Math.max(0,ic-n*x.c)};break}}});
+      if(best){cls='warn';txt=`リアクトル ${esc(best.x.name)} ${best.n}台でOK(負担 ${best.net.toFixed(0)} mA)`}
+      else{cls='ng';txt=`許容オーバー(約${(ic-tm).toFixed(0)} mA 超過)。分割印加か直流を検討`}}
+    return `<div class="kj kj-${cls}"><span>${esc(t.name)}(許容 ${tm} mA)</span><b>${txt}</b></div>`}).join('')}
 
 'use strict';
 /* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
