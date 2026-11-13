@@ -132,6 +132,7 @@ table.sign td{border:1px solid #222;width:70mm;height:14mm;text-align:center;col
 .seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
+.npg{display:inline-flex;align-self:flex-start;width:auto}
 </style>
 </head>
 <body>
@@ -286,6 +287,7 @@ function relayHTML(){
         <label>メーカー型式(選ぶと判定基準が入ります)<select data-model="1">${MODELS.map(x=>`<option value="${x.id}" ${x.id===(r.modelId||'other')?'selected':''}>${esc((x.maker?x.maker+' ':'')+(x.model||x.label))}</option>`).join('')}</select></label>
         ${(()=>{const md=MODELS.find(x=>x.id===r.modelId);return md&&md.taps?`<div class="note">整定範囲:${esc(md.taps)}</div>`:''})()}
         <div class="g4">${t('panel','盤名称(用紙の左上)')}${t('circuit','回路名')}${t('devNo','器具番号')}${t('devName','名称')}</div>
+        <div><label class="sw npg"><input type="checkbox" data-rc="newPage" ${r.newPage?'checked':''}><span>ここから次のページ</span></label></div>
         <div class="g4">${t('maker','メーカー')}${t('model','型式')}${t('made','製造年月','例) 2025年12月')}${t('serial','製造番号')}</div>
         <div class="g3">${t('ratedV','定格電圧 AC(V)','',1)}<label>周波数(Hz)${sel('data-rs="freq"',r.freq,['50','60'])}</label>${t('lever','タイムレバー')}</div>
       </div>
@@ -338,7 +340,7 @@ function previewHTML(){
   const mode=view.mode;let pages;
   if(mode==='blank')pages=[sheet(null,'',[null,null],'blank')];
   else{const p=proj();pages=[];const ps=[];p.relays.forEach(r=>{if(!ps.includes(r.panel))ps.push(r.panel)});
-    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);for(let i=0;i<rs.length;i+=2)pages.push(sheet(p,pn,[rs[i],rs[i+1]||null],mode))});
+    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);chunk2(rs).forEach(g=>pages.push(sheet(p,pn,[g[0],g[1]||null],mode)))});
     if(!pages.length)pages.push(sheet(p,'',[null,null],mode))}
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績書',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
@@ -428,7 +430,7 @@ document.addEventListener('click',e=>{
     case 'addRelay':{const last=p.relays[p.relays.length-1];const nr=newRelay(last?last.panel:'');
       if(last){['modelId','devNo','devName','maker','model','ratedV','freq','setV','setT','lever','opTol','resetMax','resetBase','timePct','timeTol','timeMin'].forEach(k=>nr[k]=last[k]);nr.seq=last.seq.map(s=>({item:s.item,desc:s.desc,res:'',jd:''}))}
       p.relays.push(nr);save();go({name:'relay',pid:p.id,rid:nr.id});break}
-    case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.serial='';nr.m={op:'',reset:'',time:'',disp:''};nr.jd={op:'auto',reset:'auto',time:'auto'};nr.seq.forEach(s=>{s.res='';s.jd=''});
+    case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.newPage=false;nr.serial='';nr.m={op:'',reset:'',time:'',disp:''};nr.jd={op:'auto',reset:'auto',time:'auto'};nr.seq.forEach(s=>{s.res='';s.jd=''});
       p.relays.splice(p.relays.indexOf(r)+1,0,nr);save();go({name:'relay',pid:p.id,rid:nr.id});toast('次の継電器を追加しました');break}
     case 'delRelay':if(pendingConfirm!=='delRelay'){pendingConfirm='delRelay';render();break}
       p.relays=p.relays.filter(x=>x.id!==r.id);save();go({name:'project',pid:p.id});toast('削除しました');break;
@@ -463,7 +465,10 @@ document.addEventListener('input',e=>{
   if(t.dataset.sq&&r){const [i,k]=t.dataset.sq.split('.');r.seq[+i][k]=t.value;save();return}
 });
 document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
+// 同じ盤の継電器を2台ずつ1枚に。「ここから次のページ」が付いた継電器は新しいページの上段から
+function chunk2(rs){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===2){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 document.addEventListener('change',e=>{
+  if(e.target.dataset.rc){const rr=relay();if(rr){rr[e.target.dataset.rc]=e.target.checked;save()}return}
   const t=e.target,r=relay();
   if(t.dataset.model&&r){const md=MODELS.find(x=>x.id===t.value);r.modelId=t.value;
     if(md&&md.maker){r.maker=md.maker;r.model=md.model;r.ratedV='110';Object.assign(r,md.crit)}

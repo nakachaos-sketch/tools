@@ -165,6 +165,7 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 table.x.sg{border-collapse:collapse}
 table.x.sg td{width:70mm;height:12mm}
 .sheet.p table.x.sg{font-size:16pt}
+.npg{display:inline-flex;align-self:flex-start;width:auto}
 </style>
 </head>
 <body>
@@ -347,6 +348,7 @@ function relayHTML(){
         <label>メーカー型式(選ぶと整定値の目盛りが入ります)<select data-model="1">${MODELS.map(x=>`<option value="${x.id}" ${x.id===r.modelId?'selected':''}>${esc((x.maker?x.maker+' ':'')+(x.model||x.label))}</option>`).join('')}</select></label>
         ${(()=>{const md=MODELS.find(x=>x.id===r.modelId);return md&&md.note?`<div class="note">${esc(md.note)}</div>`:''})()}
         <div class="g3">${t('panel','盤名(用紙の左上)')}${t('circuit','回路名')}${t('model','型式')}</div>
+        <div><label class="sw npg"><input type="checkbox" data-rc="newPage" ${r.newPage?'checked':''}><span>ここから次のページ</span></label></div>
         <div class="g3">${t('maker','製造者名')}${t('made','製造年月','例) 2025年12月')}${t('serial','製造番号')}</div>
       </div>
       <div class="card"><h2>整定値・判定基準</h2>
@@ -403,7 +405,7 @@ function previewHTML(){
   if(mode==='blank')pages=[PO?sheetP(null,'',[null,null],'blank'):sheet(null,null,'blank')];
   else{const p=proj();
     if(PO){pages=[];const ps=[];p.relays.forEach(r=>{if(!ps.includes(r.panel))ps.push(r.panel)});
-      ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);for(let i=0;i<rs.length;i+=2)pages.push(sheetP(p,pn,[rs[i],rs[i+1]||null],mode))});
+      ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);chunk2(rs).forEach(g=>pages.push(sheetP(p,pn,[g[0],g[1]||null],mode)))});
       if(!pages.length)pages.push(sheetP(p,'',[null,null],mode))}
     else pages=p.relays.length?p.relays.map(r=>sheet(p,r,mode)):[sheet(p,null,mode)]}
   const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
@@ -512,9 +514,9 @@ document.addEventListener('click',e=>{
     case 'openProject':go({name:'project',pid:b.dataset.id});break;
     case 'openRelay':go({name:'relay',pid:view.pid,rid:b.dataset.id});break;
     case 'addRelay':{const last=p.relays[p.relays.length-1];const nr=newRelay(last?last.panel:'');
-      if(last){const keep=JSON.parse(JSON.stringify(last));Object.assign(nr,keep,{id:nr.id,serial:'',m:emptyM(),jd:{v:'auto',i:'auto',ph:'auto',t:'auto'}})}
+      if(last){const keep=JSON.parse(JSON.stringify(last));Object.assign(nr,keep,{id:nr.id,newPage:false,serial:'',m:emptyM(),jd:{v:'auto',i:'auto',ph:'auto',t:'auto'}})}
       p.relays.push(nr);save();go({name:'relay',pid:p.id,rid:nr.id});break}
-    case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.serial='';nr.m=emptyM();nr.jd={v:'auto',i:'auto',ph:'auto',t:'auto'};
+    case 'dupRelay':{const nr=JSON.parse(JSON.stringify(r));nr.id=uid();nr.newPage=false;nr.serial='';nr.m=emptyM();nr.jd={v:'auto',i:'auto',ph:'auto',t:'auto'};
       p.relays.splice(p.relays.indexOf(r)+1,0,nr);save();go({name:'relay',pid:p.id,rid:nr.id});toast('次の継電器を追加しました');break}
     case 'delRelay':if(pendingConfirm!=='delRelay'){pendingConfirm='delRelay';render();break}
       p.relays=p.relays.filter(x=>x.id!==r.id);save();go({name:'project',pid:p.id});toast('削除しました');break;
@@ -546,7 +548,10 @@ document.addEventListener('input',e=>{
   if(t.dataset.m&&r){r.m[t.dataset.m]=t.value;save();updInd();return}
 });
 document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
+// 同じ盤の継電器を2台ずつ1枚に。「ここから次のページ」が付いた継電器は新しいページの上段から
+function chunk2(rs){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===2){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 document.addEventListener('change',e=>{
+  if(e.target.dataset.rc){const rr=relay();if(rr){rr[e.target.dataset.rc]=e.target.checked;save()}return}
   const t=e.target,r=relay();
   if(t.dataset.model&&r){const md=MODELS.find(x=>x.id===t.value);r.modelId=t.value;
     if(md&&md.maker){r.maker=md.maker;r.model=md.model;r.listV=L(md.V);r.listI=L(md.I);r.listT=L(md.T);Object.assign(r,md.crit,{timeLo:'',timeHi:''});delete r.timeMax;

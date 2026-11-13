@@ -155,6 +155,7 @@ table.cb.sg td{width:62mm;height:12mm}
 .seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
+.npg{display:inline-flex;align-self:flex-start;width:auto}
 </style>
 </head>
 <body>
@@ -423,6 +424,7 @@ function relayHTML(){
         <label>製造番号<input type="text" data-r="serial" value="${esc(r.serial)}"></label>
         <label>限時特性<select data-rs="charType">${charOpts}</select></label>
       </div>
+      <div><label class="sw npg"><input type="checkbox" data-rc="newPage" ${r.newPage?'checked':''}><span>ここから次のページ</span></label></div>
       <datalist id="pl">${pl.map(x=>`<option>${esc(x)}</option>`).join('')}</datalist>
       <div class="note">式:${esc(CHARS[r.charType].f)} × D/10 ${m&&!m.chars.includes(r.charType)?' (※この型式の標準外の特性です)':''}</div>
       ${r.charType==='TABLE'?`<div class="g3">${usedPts.map(pt=>`<label>ダイヤル10・${pt}%の値(S)<input type="text" inputmode="decimal" data-tb="${pt}" value="${esc((r.table||{})[pt]||'')}"></label>`).join('')}</div>
@@ -548,7 +550,7 @@ function previewHTML(){
     const p=proj();
     const ps=view.panel?[view.panel]:panels(p);
     pages=[];
-    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);for(let i=0;i<rs.length;i+=2)pages.push(sheetHTML(p,pn,[rs[i],rs[i+1]||null],mode))});
+    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);chunk2(rs).forEach(g=>pages.push(sheetHTML(p,pn,[g[0],g[1]||null],mode)))});
   }
   const back=mode==='blank'?'toHome':'toProject';
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',back)}
@@ -645,7 +647,7 @@ document.addEventListener('click',e=>{
     case 'addRelay':{const last=p.relays[p.relays.length-1];const r=newRelay(last?last.panel:'受電盤');
       if(last){['modelId','model','maker','rating','charType','T','D','I','dialA','dialB','p1','p2','made'].forEach(k=>r[k]=last[k]);r.table={...(last.table||{})}}
       p.relays.push(r);save();go({name:'relay',pid:p.id,rid:r.id});break}
-    case 'dupRelay':{const cur=relay();const r=JSON.parse(JSON.stringify(cur));r.id=uid();r.circuit='';r.serial='';r.ph={R:emptyPh(),T:emptyPh()};r.jd={R:'auto',T:'auto'};r.cb='';
+    case 'dupRelay':{const cur=relay();const r=JSON.parse(JSON.stringify(cur));r.id=uid();r.newPage=false;r.circuit='';r.serial='';r.ph={R:emptyPh(),T:emptyPh()};r.jd={R:'auto',T:'auto'};r.cb='';
       const idx=p.relays.indexOf(cur);p.relays.splice(idx+1,0,r);save();go({name:'relay',pid:p.id,rid:r.id});toast('次の継電器を追加しました');break}
     case 'delRelay':if(pendingConfirm!=='delRelay'){pendingConfirm='delRelay';render();break}
       p.relays=p.relays.filter(r=>r.id!==view.rid);save();go({name:'project',pid:p.id});toast('削除しました');break;
@@ -701,7 +703,10 @@ document.addEventListener('input',e=>{
   if(t.dataset.s){state.settings[t.dataset.s]=t.value;save();return}
 });
 document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;const l=$('#plist');if(l)l.innerHTML=homeListHTML()}});
+// 同じ盤の継電器を2台ずつ1枚に。「ここから次のページ」が付いた継電器は新しいページの上段から
+function chunk2(rs){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===2){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 document.addEventListener('change',e=>{
+  if(e.target.dataset.rc){const rr=relay();if(rr){rr[e.target.dataset.rc]=e.target.checked;save()}return}
   const t=e.target,r=relay();
   if(t.dataset.rs&&r){
     const k=t.dataset.rs,v=t.value;
