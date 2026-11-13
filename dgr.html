@@ -160,6 +160,11 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 .pp .pg{display:contents}
 .pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 @media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
+.sheet.p table.s.fx{width:auto}
+.s-sign{margin-top:auto}
+table.x.sg{border-collapse:collapse}
+table.x.sg td{width:70mm;height:12mm}
+.sheet.p table.x.sg{font-size:16pt}
 </style>
 </head>
 <body>
@@ -215,7 +220,7 @@ function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
   s.projects=s.projects||[];
-  s.projects.forEach(p=>p.relays.forEach(r=>{if(r.modelId==='togami-ltr-k-d'){r.modelId='togami-ltr-r-d';if(r.model==='LTR-K-D')r.model='LTR-R-D';r.listT='0.1,0.2,0.3,0.4,0.5'}}));s.print={ir:true,sw:true,so:true,...(s.print||{})};return s;
+  s.projects.forEach(p=>p.relays.forEach(r=>{if(r.modelId==='togami-ltr-k-d'){r.modelId='togami-ltr-r-d';if(r.model==='LTR-K-D')r.model='LTR-R-D';r.listT='0.1,0.2,0.3,0.4,0.5'}}));s.print={ir:true,sw:true,so:true,sign:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 
@@ -310,6 +315,10 @@ function projectHTML(){
         <label>温度(℃)<input type="text" inputmode="decimal" data-p="temp" value="${esc(p.temp)}"></label>
         <label>湿度(%)<input type="text" inputmode="decimal" data-p="hum" value="${esc(p.hum)}"></label>
       </div>
+      <div class="g2">
+        <label>測定者<input type="text" data-p="tester" value="${esc(p.tester||'')}"></label>
+        <label>管理者<input type="text" data-p="manager" value="${esc(p.manager||'')}"></label>
+      </div>
     </div>
     <div class="card"><h2>継電器(1台で用紙1枚)</h2>
       <div class="list">${p.relays.length?p.relays.map(r=>`<button class="item" data-act="openRelay" data-id="${r.id}"><div class="t"><b>${esc(r.panel||'')} ${esc(r.circuit||'')}</b>
@@ -402,7 +411,7 @@ function previewHTML(){
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint"><span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      ${sw('ir','トリップコイル絶縁抵抗')}${sw('sw','開閉器 連動試験')}${sw('so','SO 動作試験')}
+      ${sw('ir','トリップコイル絶縁抵抗')}${sw('sw','開閉器 連動試験')}${sw('so','SO 動作試験')}${sw('sign','測定者・管理者欄')}
       <span class="note">${pages.length}枚。印刷画面で「A4」「${getOrient()==='P'?'縦':'横'}」を選んでください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
@@ -456,16 +465,16 @@ function sheet(p,r,mode,parts){
     ${P.ir?`<table class="x"><tr><th>トリップコイルの絶縁抵抗値</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`:''}
     ${P.sw||P.so?`<table class="x"><tr>${P.sw?`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`:''}${P.so?`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`:''}</tr></table>`:''}
   </div>`;
-  if(parts){const blank='<td colspan="2" class="nob"></td>';
+  if(parts){const blank='';
     const ir=P.ir?`<th class="ft">トリップコイル絶縁抵抗</th><td class="fv">${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`:blank;
     const sw=P.sw?`<th class="ft">開閉器 連動試験</th><td class="fv">${full?esc(M.sw):''}</td>`:blank;
     const so=P.so?`<th class="ft">SO 動作試験</th><td class="fv">${full?esc(M.so):''}</td>`:blank;
     const mainP=main.replace(/(<t[hd] class="l"[^>]*>)([^<]*)(<\/t[hd]>)/g,(m,a,b,c)=>a+`<span class="jl">${b.replace(/[ 　]/g,'')}</span>`+c);
-    return {date,wx,body:`<div class="blk">${info}${mainP}${P.ir||P.sw||P.so?`<table class="s fx"><colgroup>${'<col style="width:70mm"><col>'.repeat(3)}</colgroup><tr>${ir}${sw}${so}</tr></table>`:''}</div>`}}
+    return {date,wx,body:`<div class="blk">${info}${mainP}${P.ir||P.sw||P.so?`<table class="s fx" style="width:${[P.ir,P.sw,P.so].filter(Boolean).length*120}mm"><colgroup>${'<col style="width:70mm"><col style="width:50mm">'.repeat([P.ir,P.sw,P.so].filter(Boolean).length)}</colgroup><tr>${ir}${sw}${so}</tr></table>`:''}</div>`}}
   return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
-    ${info}${main}${foot}
+    ${info}${main}${foot.replace(/<\/div>\s*$/,'')}${signHTML(p,mode)}</div>
   </div></div></div>`;
 }
 
@@ -476,7 +485,13 @@ function sheetP(p,panel,rs,mode){
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${A.date} ・ ${A.wx}</div></div>
     ${A.body}${B.body}
+    <div class="s-sign">${signHTML(p,mode)}</div>
   </div></div></div>`;
+}
+
+function signHTML(p,mode){
+  if(!state.print.sign)return '';const v=k=>p&&mode==='full'?esc(p[k]||''):'';
+  return `<table class="x sg"><tr><th>測 定 者</th><td>${v('tester')}</td><th>管 理 者</th><td>${v('manager')}</td></tr></table>`;
 }
 
 /* ===== イベント ===== */
