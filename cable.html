@@ -341,6 +341,7 @@ function diagSVG(method){
     const w=wrapAt(N,0,wrapY,blue);s+=w.svg+`<path d="M${tG[0]} ${tG[1]-7} V${wrapY} H${w.x-7}" stroke="${blue}" stroke-width="2.4" fill="none"/>`;
     s+=`<path d="M${S} ${lugY} Q ${S-30} ${lugY+30} ${w.x+7} ${wrapY+2}" stroke="${blue}" stroke-width="2" fill="none"/>`;
     s+=`<path d="M${T} ${lugY} C ${T+40} ${lugY+40} ${T+30} ${N.cl-20} ${300+22} ${N.cl+7}" stroke="${grn}" stroke-width="2.2" fill="none"/>`;
+    {const fT=F.xs[2];s+=`<path d="M${fT} ${F.top+5} C ${fT+34} ${F.top+40} ${fT+26} ${F.cl-16} ${500+18} ${F.cl+6}" stroke="${grn}" stroke-width="2.2" fill="none"/>`}
     const fw=wrapAt(F,0,F.top+70,blue);s+=fw.svg+`<path d="M${fS} ${F.top+5} Q ${fS-24} ${F.top+30} ${fw.x+7} ${F.top+72}" stroke="${blue}" stroke-width="2" fill="none"/>`;
     s+=lbl(R-40,22,'LINE:試験する相',red,'end').replace(`x="${R-40}"`,`x="${R-10}"`);
     s+=lbl(372,24,'試験する相以外は接地',grn)+arrow(392,30,T+8,lugY+4,grn);
