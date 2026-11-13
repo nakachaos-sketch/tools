@@ -179,7 +179,7 @@ const APP={
         mk(['高圧分岐盤VCB二次側 〜','第1変電設備 DS一次側','三線一括'],'3.0','30',{label:'第1変電用 高圧ケーブル',type:'耐火6KV FPT 100sq',len:'13',maker:'住電HSTケーブル',year:'2025'})]}},
   itemTitle(r){return [r.l1,r.l2].filter(Boolean).join(' ')||'試験回路'},
   itemSub(r){return `${r.testV||'—'}V ・ ${r.time||'—'}分`+(r.cable&&r.cable.type?' ・ '+r.cable.type:'')},
-  judge(r){if(r.jd&&r.jd!=='auto')return r.jd;const any=r.rows.some(x=>x.lk!==''||x.ex!=='');return any&&r.irA!==''?'良':''},
+  judge(r){if(r.jd&&r.jd!=='auto')return r.jd;const k=irChk(r);if(k.b===false||k.a===false)return '否';const any=r.rows.some(x=>x.lk!==''||x.ex!=='');return any&&r.irA!==''?'良':''},
   editorHTML(r){
     const t=(k,l,ph,dec)=>`<label>${l}<input type="text" ${dec?'inputmode="decimal"':''} data-f="${k}" value="${esc(k.split('.').reduce((o,x)=>o?o[x]:'',r)||'')}" ${ph?`placeholder="${esc(ph)}"`:''}></label>`;
     return `<div class="two-col">
@@ -189,7 +189,7 @@ const APP={
       <div class="card"><h2>試験条件・絶縁抵抗</h2>
         <div class="g3">${t('testV','試験電圧(V)','',1)}${t('time','印加時間(分)','',1)}<label>判定${sel('data-fr="jd"',r.jd||'auto',['auto','良','否'],['自動','良','否'])}</label></div>
         <div class="btns"><button class="btn small" data-act="v66">6.6kV系 → 10350V</button><button class="btn small" data-act="v33">3.3kV系 → 5175V</button></div>
-        <div class="g2">${t('irB','絶縁抵抗 耐圧前(MΩ)','',1)}${t('irA','絶縁抵抗 耐圧後(MΩ)','',1)}</div>
+        <div class="g3"><div class="f" id="f-irB">${t('irB','絶縁抵抗 耐圧前(MΩ)','',1)}</div><div class="f" id="f-irA">${t('irA','絶縁抵抗 耐圧後(MΩ)','',1)}</div>${t('irMin','判定値(MΩ以上)',irMinAuto(r)+' (自動)',1)}</div>
         <div class="note" id="jnote"></div></div>
     </div>
     <div class="two-col">
@@ -202,7 +202,8 @@ const APP={
         <div class="note">ケーブルがない回路は空欄のままにしてください。</div></div>
     </div>`;
   },
-  updInd(r){if(!r)return;const n=document.getElementById('jnote');if(n)n.innerHTML=`判定 ${badge(APP.judge(r))}　自動のときは、測定値と耐圧後の絶縁抵抗が入っていれば「良」になります。`},
+  updInd(r){if(!r)return;const k=irChk(r);[['irB',k.b],['irA',k.a]].forEach(([id,ok])=>{const f=document.getElementById('f-'+id);if(f){f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)}});
+    const n=document.getElementById('jnote');if(n)n.innerHTML=`判定 ${badge(APP.judge(r))}　自動のときは、絶縁抵抗が判定値(${k.min} MΩ)未満なら「否」、測定値と耐圧後の絶縁抵抗が入っていれば「良」になります。`},
   onAct(a,b,r){if(a==='v66'||a==='v33'){r.testV=a==='v66'?'10350':'5175';save();render()}},
   sheet(p,its,mode,PO){
     const full=mode==='full';
@@ -215,7 +216,7 @@ const APP={
       return rows.map((x,i)=>`<tr class="${i===0?'c1':'cn'}"><td class="rn">${esc(lines[i]||'')}</td>
         ${i===0?`<td rowspan="${n}" class="v">${has?esc(r.testV):''}</td><td rowspan="${n}" class="v">${has?esc(r.time):''}</td>`:''}
         <td class="v">${has?esc(x.t):''}</td><td class="v">${F(x.ex)}</td><td class="v">${F(x.lk)}</td>
-        ${i===0?`<td rowspan="${n}" class="v">${F(r&&r.irB)}</td><td rowspan="${n}" class="v">${F(r&&r.irA)}</td><td rowspan="${n}" class="jg">${j==='否'?ngv('否',true):esc(j)}</td>`:''}</tr>`).join('')}).join('');
+        ${i===0?`<td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irB||''),irChk(r).b===false):''}</td><td rowspan="${n}" class="v">${full&&r?ngv(esc(r.irA||''),irChk(r).a===false):''}</td><td rowspan="${n}" class="jg">${j==='否'?ngv('否',true):esc(j)}</td>`:''}</tr>`).join('')}).join('');
     const cabs=state.print.cable?its.filter(r=>mode==='blank'||(r&&r.cable&&(r.cable.label||r.cable.type))).map(r=>{const c=r&&mode!=='blank'?r.cable:{};
       return `<table class="s ct"><colgroup><col style="width:25%"><col style="width:22%"><col style="width:16%"><col style="width:20%"><col></colgroup>
         <tr><td rowspan="2" class="cl">${esc(c.label||'')}</td><th>種　類</th><th>亘　長</th><th>製 造 者 名</th><th>製 造 年</th></tr>
@@ -230,6 +231,10 @@ const APP={
     </div></div></div>`;
   }
 };
+
+// 絶縁抵抗の判定値:指定がなければ「使用電圧(kV)+1 MΩ」(試験電圧から使用電圧を推定)
+function irMinAuto(r){const v=num(r.testV);const kv=isFinite(v)?(v>=9000?6.6:v>=4000?3.3:Math.round(v/1.5/100)/10):6.6;return Math.round((kv+1)*10)/10}
+function irChk(r){const m=num(r.irMin),min=isFinite(m)?m:irMinAuto(r);const c=x=>{const v=num(x);return isFinite(v)?v>=min:null};return {min,b:c(r.irB),a:c(r.irA)}}
 
 'use strict';
 /* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
