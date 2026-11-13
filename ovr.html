@@ -133,6 +133,37 @@ table.sign td{border:1px solid #222;width:70mm;height:14mm;text-align:center;col
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
 .npg{display:inline-flex;align-self:flex-start;width:auto}
+/* A4縦専用レイアウト(縮小しない・1枚に3台・盤名は継電器ごと) */
+.sheet.p{width:210mm;height:296mm;padding:9mm 10mm}
+.sheet.p .sheet-x{width:380mm;height:556mm}
+.sheet.p .sheet-in{padding:8mm 10mm 7mm;gap:4mm}
+.sheet.p .s-title{font-size:28pt;letter-spacing:.2em;margin:1mm 0 0}
+.sheet.p .s-sub{font-size:15pt}
+.sheet.p .s-date{font-size:16pt}
+.sheet.p .bpn{margin-top:2mm;margin-bottom:-3mm}
+.sheet.p .bpn .s-panel{display:inline-block;font-size:15pt;padding:1mm 8mm;min-width:50mm}
+.sheet.p table.s{font-size:15pt}
+.sheet.p table.s th,.sheet.p table.s td{height:11.4mm;padding:0 1mm}
+.sheet.p table.s th{font-size:14pt}
+.sheet.p table.s th.sm{font-size:12.5pt}
+.sheet.p table.s td.big{font-size:16pt;height:16mm}
+.sheet.p table.s td.v{font-size:16pt}
+.sheet.p table.s td.c{font-size:13pt}
+.sheet.p table.s td.cir{font-size:14pt}
+.sheet.p table.s td.lt{font-size:13pt;padding-left:2mm}
+.sheet.p table.s td.lt[colspan="4"]{font-size:12pt!important}
+.sheet.p table.s td.vt{font-size:13pt}
+.sheet.p table.s td.jg{font-size:18pt}
+.sheet.p .sv-v{font-size:15pt}.sheet.p .sv-l{font-size:11pt}
+.sheet.p table.s tr.km th,.sheet.p table.s tr.km td{border-top:2px solid #000;height:18mm}
+.sheet.p table.s td.kanri1{text-align:left;font-size:13pt;white-space:normal;line-height:1.45;padding:1mm 3mm}
+.sheet.p .s-foot{gap:6mm}
+.sheet.p table.sign{font-size:14pt}
+.sheet.p table.sign td{width:56mm;height:20mm}
+.sheet.p .s-cap{font-size:14pt}
+.pp .pg{display:contents}
+.pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+@media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
 </style>
 </head>
 <body>
@@ -335,10 +366,12 @@ function updInd(){
 /* --- 印刷 --- */
 function previewHTML(){
   const mode=view.mode;let pages;
-  if(mode==='blank')pages=[sheet(null,'',[null,null],'blank')];
+  const PO=getOrient()==='P';
+  if(mode==='blank')pages=[PO?sheetP3(null,[null,null,null],'blank'):sheet(null,'',[null,null],'blank')];
   else{const p=proj();pages=[];const ps=[];p.relays.forEach(r=>{if(!ps.includes(r.panel))ps.push(r.panel)});
-    ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);chunk2(rs).forEach(g=>pages.push(sheet(p,pn,[g[0],g[1]||null],mode)))});
-    if(!pages.length)pages.push(sheet(p,'',[null,null],mode))}
+    if(PO){const all=[];ps.forEach(pn=>p.relays.filter(r=>r.panel===pn).forEach(r=>all.push(r)));chunkN(all,3).forEach(g=>pages.push(sheetP3(p,[g[0],g[1]||null,g[2]||null],mode)));if(!pages.length)pages.push(sheetP3(p,[null,null,null],mode))}
+    else{ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);chunk2(rs).forEach(g=>pages.push(sheet(p,pn,[g[0],g[1]||null],mode)))});
+    if(!pages.length)pages.push(sheet(p,'',[null,null],mode))}}
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績書',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint"><span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
@@ -367,11 +400,29 @@ function sheet(p,panel,rs,mode){
     </div>
   </div></div></div>`;
 }
-function block(r,mode){
+// A4縦:1枚に3台。盤名は継電器ごとに表の上へ
+function sheetP3(p,rs,mode){
+  const hasP=p&&mode!=='blank',full=mode==='full';
+  const date=(()=>{if(!(p&&full))return '令和　　年　　月　　日';return wareki(p.date).replace(/年/,'年 ').replace(/月/,'月 ')})();
+  const wx=p&&full?`天候 ${esc(p.weather||'　')} ・ 気温 ${esc(p.temp||'　')}℃ ・ 湿度 ${esc(p.hum||'　')}％`:'天候　　 ・ 気温　　℃ ・ 湿度　　％';
+  const P=k=>hasP?esc(p[k]||''):'';
+  const blocks=rs.map(r=>`<div class="bpn"><div class="s-panel">${r&&mode!=='blank'&&r.panel?esc(r.panel):'　'}</div></div>${block(r,mode,true)}`).join('');
+  return `<div class="sheet p"><div class="sheet-x"><div class="sheet-in">
+    <div class="s-title">過電圧継電器(OVR)試験成績表</div>
+    ${state.print.hdr?`<div class="s-sub"><span><b>工事名</b>${P('name')}</span><span><b>受注者</b>${P('contractor')}</span></div>`:''}
+    <div class="s-top"><div></div><div class="s-date">${date} ・ ${wx}</div></div>
+    ${blocks}
+    <div class="s-foot">
+      ${state.print.sign?`<table class="sign"><tr><th>試験実施者</th><th>監督職員(立会者)</th></tr><tr><td>${P('tester')}</td><td>${P('witness')}</td></tr></table>`:'<span></span>'}
+      <div class="s-cap">（　　）内は判定範囲とする<br><span style="font-size:12pt">判定基準は使用する継電器メーカーの仕様書および特記仕様書による</span></div>
+    </div>
+  </div></div></div>`;
+}
+function block(r,mode,PO){
   const has=!!r&&mode!=='blank',full=mode==='full'&&!!r,e=r?ev(r):null;
   const sp=(k,v,lb)=>`<div class="sv"><div class="sv-v">${k}${v}</div><div class="sv-l">${lb}</div></div>`;
   const rated=has?`AC${esc(r.ratedV)}V・${esc(r.freq)}Hz`:'';
-  const info=`<table class="s"><colgroup><col style="width:84mm"><col style="width:84mm"><col style="width:70mm"><col style="width:62mm"><col style="width:70mm"><col></colgroup>
+  const info=`<table class="s"><colgroup>${PO?'<col style="width:58mm"><col style="width:52mm"><col style="width:60mm"><col style="width:50mm"><col style="width:52mm"><col>':'<col style="width:84mm"><col style="width:84mm"><col style="width:70mm"><col style="width:62mm"><col style="width:70mm"><col>'}</colgroup>
     <tr><th>型　　式</th><th>製 造 者 名</th><th>定　　格</th><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
     <tr><td class="big">${has?esc(r.model):''}</td><td class="big">${has?esc(r.maker):''}</td><td class="big">${rated}</td><td class="big">${has?esc(r.made||''):''}</td><td class="big">${has?esc(r.serial):''}</td>
     <td class="big setc"><div class="svs">${sp('',has?esc(r.setV)+' V':'　　 V','動作電圧')}${sp('',has?esc(r.setT)+' s':'　　 s','動作時間')}${state.print.lever?sp('',has?esc(r.lever||'—'):'','タイムレバー'):''}</div></td></tr></table>`;
@@ -387,9 +438,9 @@ function block(r,mode){
   const kan=(()=>{const op=has?r.opTol:'5',rm=has?r.resetMax:'95',tp=has?r.timePct:'120',tt=has?r.timeTol:'10',mn=has?num(r.timeMin):NaN;
     const base=(!has||r.resetBase==='meas')?'動作値':'整定値';
     return ['( 動 作 電 圧 )',`整定値 ±${op}％以内`,'( 復 帰 電 圧 )',`${base}の ${rm}％以上`,'( 動 作 時 間 )',`${tp}％急変 整定値 ±${tt}％以内${mn>0?`<br>(最小 ±${Math.round(mn*1000)}ms)`:''}`,'( 動 作 表 示 )','表示灯点灯・接点閉路'].join('<br>')})();
-  const main=`<table class="s"><colgroup><col style="width:54mm"><col style="width:46mm"><col style="width:34mm"><col style="width:46mm"><col style="width:34mm"><col style="width:46mm"><col style="width:34mm"><col style="width:44mm"><col style="width:30mm"><col></colgroup>
+  const main=`<table class="s"><colgroup>${PO?'<col style="width:46mm"><col style="width:40mm"><col style="width:32mm"><col style="width:40mm"><col style="width:32mm"><col style="width:40mm"><col style="width:32mm"><col style="width:40mm"><col>':'<col style="width:54mm"><col style="width:46mm"><col style="width:34mm"><col style="width:46mm"><col style="width:34mm"><col style="width:46mm"><col style="width:34mm"><col style="width:44mm"><col style="width:30mm"><col>'}</colgroup>
     <tr class="h1"><th rowspan="2" class="rs2">回 路 名</th><th colspan="2">動 作 電 圧</th><th colspan="2">復 帰 電 圧</th><th colspan="2" class="sm">動作時間 (整定電圧の${has?esc(r.timePct):'120'}％急変)</th>
-      <th rowspan="2" class="rs2 sm">動作表示<br>・接点</th><th rowspan="2" class="rs2">判 定</th><th rowspan="2" class="rs2">管　理　値</th></tr>
+      <th rowspan="2" class="rs2 sm">動作表示<br>・接点</th><th rowspan="2" class="rs2">判 定</th>${PO?'':'<th rowspan="2" class="rs2">管　理　値</th>'}</tr>
     <tr class="h2"><th>(V)</th><th>誤 差</th><th>(V)</th><th>比 率</th><th>(S)</th><th>誤 差</th></tr>
     <tr><td rowspan="2" class="cir">${has?esc(r.circuit||r.panel||''):''}</td>
       <td class="v">${mv(r?r.m.op:'',1)}</td><td class="v" rowspan="2">${full?sg(e.op.err):''}</td>
@@ -397,12 +448,13 @@ function block(r,mode){
       <td class="v">${mv(r?r.m.time:'',2)}</td><td class="v" rowspan="2">${full?sg(e.time.err):''}</td>
       <td class="v" rowspan="2">${full?esc(r.m.disp):''}</td>
       <td rowspan="2" class="jg ${oj==='否'?'ng':''}">${esc(oj)}</td>
-      <td rowspan="${2+n}" class="kanri">${kan}</td></tr>
+      ${PO?'':`<td rowspan="${2+n}" class="kanri">${kan}</td>`}</tr>
     <tr><td class="c">${rng(opR)}</td><td class="c">${rng(rsR)}</td><td class="c">${rng(tmR)}</td></tr>
     ${seq.map((q,i)=>{const res=full?(q.res||(q.jd==='良'?(SEQ_DEF[i]||{}).res||'正常':q.jd==='－'?'－':'')):'';
       return `<tr class="${i===0?'sq1':''}">${i===0?`<td rowspan="${n}" class="sm" style="font-size:16pt;white-space:normal">連動動作<br>試験</td>`:''}
       <td colspan="2" class="lt">${mode!=='blank'||!r?esc(q.item):''}</td><td colspan="4" class="lt" style="font-size:14pt">${mode!=='blank'||!r?esc(q.desc):''}</td>
       <td class="vt">${esc(res)}</td><td class="jg ${full&&q.jd==='否'?'ng':''}">${full?esc(q.jd):''}</td></tr>`}).join('')}
+    ${PO?`<tr class="km"><th>管 理 値</th><td colspan="8" class="kanri1">${kan.replace(/<br>\(最小/g,'　(最小').replace(/<br>\( /g,'　( ').replace(/ \)<br>/g,' ) ').replace(/<br>/g,' ')}</td></tr>`:''}
   </table>`;
   return `<div class="blk">${info}${main}</div>`;
 }
@@ -463,6 +515,7 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
 // 同じ盤の継電器を2台ずつ1枚に。「ここから次のページ」が付いた継電器は新しいページの上段から
+function chunkN(rs,n){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===n){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 function chunk2(rs){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===2){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
 document.addEventListener('change',e=>{
   if(e.target.dataset.rc){const rr=relay();if(rr){rr[e.target.dataset.rc]=e.target.checked;save()}return}
