@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>高圧ケーブル絶縁診断成績表</title>
+<meta name="apple-mobile-web-app-title" content="絶縁診断">
+<meta name="application-name" content="絶縁診断">
+<link rel="apple-touch-icon" href="icons/cable-180.png?v=2">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/cable-512.png?v=2">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+/* 過電流継電器アプリと同じ見た目:紺のバー、白い入力面、良=緑/否=赤 */
+:root{
+  --bg:#eef1f4; --panel:#ffffff; --ink:#1b2430; --sub:#5b6878; --line:#cfd6de;
+  --accent:#16496b; --accent-ink:#ffffff;
+  --ok:#17803d; --ok-soft:#e3f4e8; --ng:#c62828; --ng-soft:#fde8e8; --meas:#1a3fbf;
+  --font:"Noto Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.5;-webkit-text-size-adjust:100%}
+button,input,select{font:inherit;color:inherit}
+.bar{position:sticky;top:0;z-index:5;background:var(--accent);color:var(--accent-ink);padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px));display:flex;align-items:center;gap:10px}
+.bar h1{font-size:16px;margin:0;font-weight:700;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar button{background:transparent;border:1px solid rgba(255,255,255,.5);color:var(--accent-ink);border-radius:6px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.wrap{max-width:1400px;margin:0 auto;padding:8px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:8px}
+.wrap.narrow{max-width:860px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.card h2{font-size:13px;margin:0;color:var(--accent);letter-spacing:.05em}
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media (max-width:760px){.two-col{grid-template-columns:minmax(0,1fr)}}
+.g2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:420px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+label{display:flex;flex-direction:column;gap:1px;font-size:11px;color:var(--sub);min-width:0}
+input[type=text],input[type=date],select{width:100%;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:4px;padding:5px 7px;background:#fff;font-size:15px;color:var(--ink)}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;min-height:2.3em;line-height:1.3}
+input[type=date]::-webkit-date-and-time-value{text-align:left;margin:0}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.btn{border:1px solid var(--accent);background:#fff;color:var(--accent);border-radius:6px;padding:7px 13px;cursor:pointer;font-weight:500}
+.btn.main{background:var(--accent);color:var(--accent-ink)}
+.btn.danger{border-color:var(--ng);color:var(--ng)}
+.btn.small{padding:4px 9px;font-size:13px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;text-align:left;width:100%}
+.item:hover{border-color:var(--accent)}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .t span{font-size:12px;color:var(--sub)}
+.badge{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.b-ok{background:var(--ok-soft);color:var(--ok)} .b-ng{background:var(--ng-soft);color:var(--ng)} .b-none{background:#edf0f3;color:var(--sub)}
+.grp{font-size:13px;font-weight:700;color:var(--sub);margin-top:4px}
+.note{font-size:11px;color:var(--sub);line-height:1.4}
+.empty{text-align:center;color:var(--sub);padding:20px 8px}
+/* 測定値 */
+.test{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;gap:8px;align-items:center;border-top:1px dashed var(--line);padding-top:6px}
+.test:first-of-type{border-top:none}
+.test .nm{font-size:13px;font-weight:700}
+.test .nm small{display:block;font-weight:400;color:var(--sub);font-size:11px}
+.f{display:flex;flex-direction:column;gap:1px;min-width:0}
+.f input{font-size:16px;padding:4px 7px;color:var(--meas);font-variant-numeric:tabular-nums}
+.f .rg{font-size:11px;color:var(--sub);font-variant-numeric:tabular-nums}
+.f.ok input{border-color:var(--ok);background:var(--ok-soft)} .f.ng input{border-color:var(--ng);background:var(--ng-soft)}
+.f.ok .rg{color:var(--ok)} .f.ng .rg{color:var(--ng);font-weight:700}
+.jd{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--sub);white-space:nowrap}
+.jd select{width:auto}
+.seq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr) 70px;gap:6px;align-items:end}
+@media (max-width:560px){.seq{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#1b2430;color:#fff;padding:8px 16px;border-radius:999px;font-size:14px;z-index:20}
+.ngv{color:#c62828!important;font-weight:700}
+.pv-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sw{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.sw input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
+.npg{display:inline-flex;align-self:flex-start;width:auto}
+.seg{display:inline-flex;border:1px solid var(--accent);border-radius:6px;overflow:hidden}
+.seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
+.seg button.on{background:var(--accent);color:var(--accent-ink)}
+.pages{display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.pg{display:contents}
+/* 印刷シート。細い罫線を出すため2倍で作って半分に縮小 */
+.sheet{width:297mm;height:209mm;background:#fff;color:#000;padding:9mm 11mm;font-family:var(--font);box-shadow:0 1px 4px rgba(0,0,0,.15);flex:none;overflow:hidden}
+.sheet-x{width:550mm;height:382mm;transform:scale(.5);transform-origin:0 0}
+.sheet-in{border:4px solid #000;height:100%;padding:12mm 14mm 10mm;display:flex;flex-direction:column;gap:6mm}
+.sheet.p{width:210mm;height:296mm;padding:9mm 10mm}
+.sheet.p .sheet-x{width:380mm;height:556mm}
+.sheet.p .sheet-in{padding:10mm 10mm 8mm}
+.s-title{text-align:center;font-size:34pt;letter-spacing:.55em;font-weight:500;margin:4mm 0 2mm}
+.sheet.p .s-title{font-size:30pt;letter-spacing:.35em}
+.s-top{display:flex;justify-content:space-between;align-items:flex-end;gap:8mm}
+.s-panel{border:2px solid #000;background:#d9f2d9;min-width:70mm;padding:2.4mm 10mm;text-align:center;font-size:20pt;letter-spacing:.2em}
+.s-range{font-size:20pt;margin-left:8mm;flex:1}
+.s-date{font-size:19pt;white-space:nowrap}
+.sheet.p .s-date{font-size:16pt}
+table.s{width:100%;border-collapse:collapse;table-layout:fixed;font-size:18pt;border:3px solid #000}
+table.s th,table.s td{border:1px solid #222;text-align:center;vertical-align:middle;padding:0 1mm;height:12.4mm;line-height:1.2;overflow:hidden;white-space:nowrap}
+table.s th{background:#d4d4d4;font-weight:400}
+table.s td.v{color:#1a3fbf;font-size:19pt}
+table.s td.l{text-align:left;padding-left:3mm}
+table.s tr.hb th{border-bottom:2px solid #000}
+table.s .jg{font-size:20pt;color:#1a3fbf}
+.s-foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:8mm}
+.s-fl{display:flex;flex-direction:column;gap:3mm;align-items:flex-start}
+table.x{border-collapse:collapse;font-size:17pt;border:3px solid #000}
+table.x th{background:#d4d4d4;font-weight:400;border:1px solid #222;padding:2mm 5mm;white-space:nowrap}
+table.x td{border:1px solid #222;width:54mm;height:11mm;text-align:center;color:#1a3fbf;padding:0 3mm}
+table.x td.wide{width:90mm}
+.s-cap{font-size:16pt;text-align:right}
+@media print{
+  @page{size:A4 landscape;margin:0}
+  html,body{background:#fff}
+  .noprint{display:none!important}
+  .wrap{padding:0;max-width:none;gap:0}
+  .pages{zoom:1!important;gap:0}
+  .sheet{box-shadow:none}
+  .pg:not(:last-child) .sheet{break-after:page;page-break-after:always}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+.inr{border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:4px}
+table.s.it td{height:13mm;font-size:18pt}
+table.s.it td.r1{border-bottom:1px dotted #888}
+table.s.it td.r2{border-top:none}
+table.s.it td.nm{white-space:normal}
+.sheet.p table.s.it td{font-size:15pt;height:12mm}
+
+.sheet-in>table.x{align-self:flex-start}
+
+.vrow{border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:6px}
+.vh{display:flex;align-items:end;gap:12px}.vk{width:140px}
+.phc{border:1px solid var(--line);border-radius:6px;padding:6px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.phn{font-weight:700;font-size:13px;border-radius:4px;padding:1px 6px;align-self:flex-start}
+.ph-R.phn{background:#ffd1e6}.ph-T.phn{background:#cfe6ff}.ph-S.phn{background:#eee}
+.lb{font-size:11px;color:var(--sub)}
+.sumg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;font-size:13px}
+table.s th.sm{font-size:15pt}
+table.s th.phh{letter-spacing:.4em}
+table.s th.ph-R{background:#ff99cc}table.s th.ph-S{background:#fff}table.s th.ph-T{background:#99ccff}
+table.s td.big{font-size:19pt}
+table.s.jt td{height:11mm;font-size:17pt}
+table.s.jt td.sp{letter-spacing:.2em}
+table.s.jt td.jg{text-align:center}
+.fms{display:flex;flex-direction:column;gap:5mm;margin-left:14mm}
+.fm{display:flex;align-items:center;gap:6mm;font-size:17pt}
+.fm .fn{width:44mm;letter-spacing:.15em}
+.fm .fr{display:inline-flex;flex-direction:column;align-items:center}
+.fm .fr span:first-child{border-bottom:1px solid #000;padding:0 4mm}
+.sheet.p table.s{font-size:13pt}
+.sheet.p table.s th,.sheet.p table.s td{height:11mm}
+.sheet.p table.s th.sm{font-size:11.5pt;white-space:normal;line-height:1.1}
+.sheet.p table.s td.v,.sheet.p table.s td.big{font-size:14pt}
+.sheet.p table.s.jt td{font-size:13pt}
+.sheet.p .fm{font-size:14pt}.sheet.p .fms{margin-left:6mm}
+.sheet.p .s-panel{font-size:17pt;min-width:56mm}.sheet.p .s-range{font-size:17pt}
+
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+/* ===== 高圧ケーブル絶縁診断(直流漏れ電流・絶縁抵抗) ===== */
+const PH=['R','S','T'];
+function emptyM(n){const m={};for(let i=0;i<n;i++)m[i]={R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};return m}
+const APP={
+  key:'cableDiag.v1',homeTitle:'高圧ケーブル絶縁診断 成績表',itemName:'ケーブル',backupName:'ケーブル絶縁診断',
+  perPage:{L:1,P:1},printDefaults:{formula:true},printSwitches:[['formula','計算式']],
+  instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}],
+  instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}]},
+    {name:'双興 3123型',list:[{name:'高電圧絶縁抵抗計',model:'3123型',r1:'DC 5 kV − 200 GΩ',r2:'DC 10 kV − 400 GΩ',maker:'双興電機',year:'2009'}]},
+    {name:'ムサシ DI-10',list:[{name:'高電圧絶縁抵抗計',model:'DI-10',r1:'DC 10 kV',r2:'100 GΩ',maker:'ムサシ電機計器製作所',year:'1991'}]}],
+  newItem(prev){const r={id:uid(),panel:'受電設備',range:'',type:'',len:'',year:'',maker:'',sheath:'',volts:['1','5','10'],m:emptyM(3),newPage:false};
+    if(prev){r.panel=prev.panel;r.volts=[...prev.volts];r.m=emptyM(prev.volts.length)}return r},
+  reset(r){r.m=emptyM(r.volts.length);r.sheath='';return r},
+  sample(){const r=APP.newItem();Object.assign(r,{range:'引込柱 〜 高圧受電盤',type:'耐火6kV FPT 150sq',len:'15',year:'2025',maker:'住電HSTケーブル',sheath:'50'});
+    const v=[['50','50'],['100','100'],['100','100']];v.forEach((x,i)=>PH.forEach(ph=>{r.m[i][ph]={r1:x[0],r3:x[1],k:'無'}}));
+    return {id:uid(),name:'サンプル(2026年2月 年次点検)',date:'2026-02-11',weather:'晴',temp:'11',hum:'38',tester:'',witness:'',insts:JSON.parse(JSON.stringify(APP.instDefault)),items:[r]}},
+  itemTitle(r){return (r.panel||'')+(r.range?' '+r.range:'')||'ケーブル'},
+  itemSub(r){return [r.type,r.len?r.len+'m':''].filter(Boolean).join(' ・ ')},
+  judge(r){return calc(r).all},
+  editorHTML(r){
+    const t=(k,l,ph,dec)=>`<label>${l}<input type="text" ${dec?'inputmode="decimal"':''} data-f="${k}" value="${esc(r[k]||'')}" ${ph?`placeholder="${esc(ph)}"`:''}></label>`;
+    const rows=r.volts.map((v,i)=>`<div class="vrow">
+      <div class="vh"><label class="vk">印加電圧(kV)<input type="text" inputmode="decimal" data-f="volts.${i}" value="${esc(v)}"></label><span class="note" id="ub-${i}"></span></div>
+      <div class="g3">${PH.map(ph=>`<div class="phc"><div class="phn ph-${ph}">${ph} 相</div>
+        <div class="g2"><div class="f" id="f-${i}-${ph}-r1"><span class="lb">1分値(GΩ)</span><input type="text" inputmode="decimal" data-f="m.${i}.${ph}.r1" value="${esc(r.m[i][ph].r1)}"></div>
+        <div class="f" id="f-${i}-${ph}-r3"><span class="lb">3分値(GΩ)</span><input type="text" inputmode="decimal" data-f="m.${i}.${ph}.r3" value="${esc(r.m[i][ph].r3)}"></div></div>
+        <div class="g2"><label>キック${sel(`data-f="m.${i}.${ph}.k"`,r.m[i][ph].k,['','無','有'])}</label><div class="rg" id="pi-${i}-${ph}"></div></div></div>`).join('')}</div></div>`).join('');
+    return `<div class="two-col">
+      <div class="card"><h2>ケーブル</h2>
+        <div class="g2">${t('panel','設備名(用紙の左上)')}${t('range','範囲','例) 引込柱 〜 高圧受電盤')}</div>
+        <div class="g4">${t('type','ケーブル種類','例) 6kV CVT 38sq')}${t('len','亘長(m)','',1)}${t('year','製造年','',1)}${t('maker','製造者名')}</div>
+        <div class="g3">${t('sheath','シースアース絶縁抵抗(MΩ)','',1)}</div>
+        <div>${NPG(r)}</div>
+      </div>
+      <div class="card"><h2>判定</h2><div id="sum"></div>
+        <div class="note">絶縁抵抗:漏洩電流 1μA以下(10kVで10GΩ以上)/成極指数:1以上良好、1〜0.5要注意、0.5以下危険/弱点比:3以上危険/不平衡率:2以上危険</div>
+        <div class="btns"><button class="btn small" data-act="addVolt">+ 印加電圧を追加</button>${r.volts.length>1?'<button class="btn small danger" data-act="delVolt">最後の電圧を削除</button>':''}</div></div>
+    </div>
+    <div class="card"><h2>測定値</h2>${rows}</div>`;
+  },
+  updInd(r){if(!r)return;const c=calc(r);
+    r.volts.forEach((v,i)=>{PH.forEach(ph=>{['r1','r3'].forEach(k=>{const f=document.getElementById(`f-${i}-${ph}-${k}`);if(!f)return;const ok=c.irOk[i][ph][k];f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)});
+      const el=document.getElementById(`pi-${i}-${ph}`);if(el){const pi=c.pi[i][ph];el.innerHTML=isFinite(pi)?`成極指数 <b class="${pi<1?'ngv':''}">${f2(pi)}</b>`:'';
+        if(c.wrRow===i&&isFinite(c.wr[ph]))el.innerHTML+=`<br>弱点比 <b class="${c.wr[ph]>=3?'ngv':''}">${f2(c.wr[ph])}</b>`}});
+      const u=document.getElementById('ub-'+i);if(u)u.innerHTML=isFinite(c.ub[i])?`相間不平衡率 <b class="${c.ub[i]>=2?'ngv':''}">${f2(c.ub[i])}</b>`:''});
+    const s=document.getElementById('sum');if(s)s.innerHTML=`<div class="sumg">${[['絶縁抵抗値',c.jIR],['成極指数',c.jPI],['弱点比',c.jWR],['不平衡率',c.jUB]].map(x=>`<div>${x[0]} ${badge(x[1])}</div>`).join('')}</div>`;
+  },
+  onAct(a,b,r){if(a==='addVolt'){r.volts.push('');r.m[r.volts.length-1]={R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};save();render()}
+    if(a==='delVolt'){r.volts.pop();delete r.m[r.volts.length];save();render()}},
+  sheet(p,its,mode,PO){
+    const r=its[0],has=!!r&&mode!=='blank',full=mode==='full'&&!!r,c=r?calc(r):null;
+    const V=k=>has?esc(r[k]||''):'';
+    const volts=has||r?r.volts:['1','5','10'];
+    const info=`<table class="s"><colgroup><col style="width:13%"><col style="width:20%"><col style="width:9%"><col style="width:12%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col></colgroup>
+      <tr><th>ケーブル種類</th><td>${V('type')}</td><th>亘　長</th><td>${has&&r.len?esc(r.len)+' m':'　　m'}</td><th>製 造 年</th><td>${has&&r.year?esc(r.year)+' 年':'　　年'}</td><th>製造者名</th><td style="font-size:15pt">${V('maker')}</td></tr></table>`;
+    const cg='<col style="width:7%">'+('<col style="width:5.6%"><col style="width:5.6%"><col style="width:5.8%"><col style="width:5.8%"><col style="width:5.2%">').repeat(3)+'<col>';
+    const phH=ph=>`<th colspan="5" class="phh ph-${ph}">${ph}　相</th>`;
+    const sub=`<th colspan="2" class="sm">絶縁抵抗値(GΩ)</th><th rowspan="2" class="sm">キック現象</th><th rowspan="2" class="sm">成極指数</th><th rowspan="2" class="sm">弱点比</th>`;
+    const rows=volts.map((v,i)=>{const cell=(ph)=>{const d=r&&r.m[i]?r.m[i][ph]:{};
+        const val=(k)=>full&&d[k]!==''?ngv(esc(d[k]),c.irOk[i][ph][k]===false):'';
+        const pi=full&&isFinite(c.pi[i][ph])?ngv(f2(c.pi[i][ph]),c.pi[i][ph]<1):'';
+        const wr=c&&c.wrRow===i?(full&&isFinite(c.wr[ph])?ngv(f2(c.wr[ph]),c.wr[ph]>=3):''):(full?'－':'');
+        return `<td class="v">${val('r1')}</td><td class="v">${val('r3')}</td><td class="v">${full&&d.k?ngv(esc(d.k),d.k==='有'):''}</td><td class="v">${pi}</td><td class="v">${wr}</td>`};
+      return `<tr><td class="big">${has||r?esc(v):''}</td>${PH.map(cell).join('')}<td class="v">${full&&isFinite(c.ub[i])?ngv(f2(c.ub[i]),c.ub[i]>=2):''}</td></tr>`}).join('');
+    const main=`<table class="s mt"><colgroup>${cg}</colgroup>
+      <tr><th rowspan="2" class="sm">印加電圧</th>${PH.map(phH).join('')}<th rowspan="3" class="sm">相間<br>不平衡率</th></tr>
+      <tr>${sub}${sub}${sub}</tr>
+      <tr class="hb"><th>(kV)</th>${'<th class="sm">1分値</th><th class="sm">3分値</th>'.repeat(3)}</tr>${rows}</table>`;
+    const sheath=`<table class="x"><tr><th>シースアースの絶縁抵抗</th><td>${full&&r.sheath!==''?esc(r.sheath)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`;
+    const J=j=>full?`<td class="jg ${j==='否'||j==='要注意'?'ngv':''}">${esc(j)}</td>`:'<td class="jg"></td>';
+    const judge=`<table class="s jt"><colgroup><col style="width:20%"><col style="width:14%"><col></colgroup>
+      <tr class="hb"><th>判　　定</th><th></th><th class="l">判 定 の 目 安</th></tr>
+      <tr><td class="l sp">絶 縁 抵 抗 値</td>${J(c?c.jIR:'')}<td class="l">漏洩電流が 1μA 以下 ( 試験電圧 10 kV にて 絶縁抵抗値 10 GΩ 以上 )</td></tr>
+      <tr><td class="l sp">成 極 指 数</td>${J(c?c.jPI:'')}<td class="l">1 以上は良好 ／ 1 〜 0.5 は要注意 ／ 0.5 以下は危険な状態</td></tr>
+      <tr><td class="l sp">弱 点 比</td>${J(c?c.jWR:'')}<td class="l">3 以上は危険な状態</td></tr>
+      <tr><td class="l sp">不 平 衡 率</td>${J(c?c.jUB:'')}<td class="l">2 以上は危険な状態</td></tr></table>`;
+    const fr=(n,a,b)=>`<div class="fm"><span class="fn">${n}</span><span class="eq">＝</span><span class="fr"><span>${a}</span><span>${b}</span></span></div>`;
+    const formula=state.print.formula?`<div class="fms">${fr('成 極 指 数','電圧印加 3分後の絶縁抵抗値 (GΩ)','電圧印加 1分後の絶縁抵抗値 (GΩ)')}${fr('弱 点 比','印加電圧 5kV 時の絶縁抵抗値 (GΩ)','印加電圧 10kV 時の絶縁抵抗値 (GΩ)')}${fr('不 平 衡 率','各相の漏洩電流最大値 − 各相の漏洩電流最小値','各相の漏洩電流平均値')}</div>`:'';
+    return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
+      <div class="s-title">高圧ケーブル絶縁診断成績表</div>
+      <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div></div>
+      <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
+      ${info}${main}${sheath}${judge}${formula}
+      ${footHTML(p,mode,'')}
+    </div></div></div>`;
+  }
+};
+const f2=v=>isFinite(v)?(Math.abs(v)<0.005?'0':v.toFixed(2)):'';
+function calc(r){
+  const n=r.volts.length,o={pi:{},irOk:{},ub:{},wr:{},wrRow:-1};
+  const kv=r.volts.map(v=>num(v));
+  for(let i=0;i<n;i++){const m=r.m[i]||{};o.pi[i]={};o.irOk[i]={};const I=[];
+    PH.forEach(ph=>{const d=m[ph]||{},a=num(d.r1),b=num(d.r3);o.pi[i][ph]=isFinite(a)&&isFinite(b)&&a>0?b/a:NaN;
+      o.irOk[i][ph]={r1:isFinite(a)&&isFinite(kv[i])?a>=kv[i]-1e-9:null,r3:isFinite(b)&&isFinite(kv[i])?b>=kv[i]-1e-9:null};
+      if(isFinite(b)&&b>0&&isFinite(kv[i]))I.push(kv[i]/b)});
+    o.ub[i]=I.length===3?(()=>{const av=(I[0]+I[1]+I[2])/3;return av>0?(Math.max(...I)-Math.min(...I))/av:NaN})():NaN}
+  const i5=kv.findIndex(x=>x===5),i10=kv.findIndex(x=>x===10);
+  if(i5>=0&&i10>=0){o.wrRow=i10;PH.forEach(ph=>{const a=num((r.m[i5]||{})[ph]?.r3),b=num((r.m[i10]||{})[ph]?.r3);o.wr[ph]=isFinite(a)&&isFinite(b)&&b>0?a/b:NaN})}
+  const irs=[];for(let i=0;i<n;i++)PH.forEach(ph=>['r1','r3'].forEach(k=>{const x=o.irOk[i][ph][k];if(x!==null)irs.push(x)}));
+  o.jIR=irs.length?(irs.includes(false)?'否':'良'):'';
+  const pis=[];for(let i=0;i<n;i++)PH.forEach(ph=>{if(isFinite(o.pi[i][ph]))pis.push(o.pi[i][ph])});
+  const mn=pis.length?Math.min(...pis):NaN;o.jPI=isFinite(mn)?(mn>=1?'良':mn>0.5?'要注意':'否'):'';
+  const wrs=PH.map(ph=>o.wr[ph]).filter(isFinite);o.jWR=wrs.length?(Math.max(...wrs)>=3?'否':'良'):'';
+  const ubs=Object.values(o.ub).filter(isFinite);o.jUB=ubs.length?(Math.max(...ubs)>=2?'否':'良'):'';
+  const js=[o.jIR,o.jPI,o.jWR,o.jUB];o.all=js.includes('否')?'否':js.includes('要注意')?'要注意':js.includes('良')?'良':'';
+  return o;
+}
+
+'use strict';
+/* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
+let state=load(),view={name:'home'},pendingConfirm=null;
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
+function load(){
+  let s=null;try{s=JSON.parse(localStorage.getItem(APP.key)||'null')}catch(e){}
+  if(!s)s={v:1,projects:[APP.sample()]};
+  s.projects=s.projects||[];s.print={sign:true,inst:true,...APP.printDefaults,...(s.print||{})};return s;
+}
+function save(){try{localStorage.setItem(APP.key,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
+function num(v){if(v==null)return NaN;let s=String(v).replace(/[０-９．－＋]/g,c=>c==='．'?'.':c==='－'?'-':c==='＋'?'+':String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[^0-9.+\-eE]/g,'').trim();if(s==='')return NaN;const n=Number(s);return isFinite(n)?n:NaN}
+const $=s=>document.querySelector(s);
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(m){const t=document.createElement('div');t.className='toast noprint';t.textContent=m;document.body.appendChild(t);setTimeout(()=>t.remove(),1800)}
+function proj(){return state.projects.find(p=>p.id===view.pid)}
+function item(){const p=proj();return p&&p.items.find(r=>r.id===view.rid)}
+function go(v){view=v;pendingConfirm=null;render();window.scrollTo(0,0)}
+function fmtDate(d){const m=(d||'').match(/(\d+)-(\d+)-(\d+)/);return m?`${+m[1]}年 ${+m[2]}月 ${+m[3]}日`:''}
+function barHTML(t,back){return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(t)}</h1></div>`}
+function sel(attr,cur,opts,labels){return `<select ${attr}>${opts.map((o,i)=>`<option value="${esc(o)}" ${o===(cur||'')?'selected':''}>${labels?labels[i]:(o?esc(o):'—')}</option>`).join('')}</select>`}
+function badge(j){return j==='良'?'<span class="badge b-ok">良</span>':j==='否'?'<span class="badge b-ng">否</span>':j==='要注意'?'<span class="badge b-ng">要注意</span>':'<span class="badge b-none">未</span>'}
+const ngv=(t,bad)=>bad?`<span class="ngv">${t}</span>`:t;
+function chunkN(rs,n){const out=[];let cur=[];rs.forEach(r=>{if(r.newPage&&cur.length){out.push(cur);cur=[]}cur.push(r);if(cur.length===n){out.push(cur);cur=[]}});if(cur.length)out.push(cur);return out}
+const ORK='tools.printOrient';
+function getOrient(){try{const v=localStorage.getItem(ORK);if(v)return v==='P'?'P':'L'}catch(e){}return window.__orient||'L'}
+function setOrient(o){try{localStorage.setItem(ORK,o)}catch(e){}window.__orient=o}
+function setPortrait(on){document.documentElement.classList.toggle('pp',on);let st=document.getElementById('ppst');
+  if(on&&!st){st=document.createElement('style');st.id='ppst';st.textContent='@page{size:A4 portrait;margin:0}';document.head.appendChild(st)}
+  if(!on&&st)st.remove()}
+function render(){
+  const v=view.name,app=$('#app');
+  app.innerHTML=v==='home'?homeHTML():v==='project'?projectHTML():v==='item'?itemHTML():previewHTML();
+  if(v==='item')APP.updInd(item());
+  if(v==='preview'){setPortrait(getOrient()==='P');fit()}
+}
+/* --- 一覧 --- */
+function homeHTML(){
+  return `${barHTML(APP.homeTitle)}
+  <div class="wrap narrow">
+    <div class="btns"><button class="btn main" data-act="newProject">+ 新しい件名</button></div>
+    <input type="text" id="q" placeholder="件名で検索" value="${esc(view.q||'')}">
+    <div class="list" id="plist">${listHTML()}</div>
+    <div class="card"><h2>用紙</h2><div class="btns"><button class="btn" data-act="blank">白紙の記入用紙</button></div>
+      <h2>バックアップ</h2><div class="btns"><button class="btn" data-act="exportJson">バックアップを保存</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
+      <div class="note">データはこの端末のブラウザに保存されます。ほかの端末で使うときは、バックアップを保存して読み込んでください。</div></div>
+  </div>`;
+}
+function listHTML(){
+  const q=(view.q||'').trim();
+  const l=state.projects.filter(p=>!q||(p.name||'').includes(q)).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  return l.length?l.map(p=>{const js=p.items.map(APP.judge),ng=js.filter(j=>j==='否'||j==='要注意').length,ok=js.filter(j=>j==='良').length;
+    return `<button class="item" data-act="openProject" data-id="${p.id}"><div class="t"><b>${esc(p.name||'(件名なし)')}</b><span>${esc(fmtDate(p.date)||'日付未入力')} ・ ${APP.itemName} ${p.items.length}件</span></div>
+    ${ng?`<span class="badge b-ng">否 ${ng}</span>`:ok?`<span class="badge b-ok">良 ${ok}</span>`:'<span class="badge b-none">未入力</span>'}</button>`}).join('')
+    :`<div class="empty">${q?'該当する件名がありません':'件名がまだありません。'}</div>`;
+}
+/* --- 件名 --- */
+function projectHTML(){
+  const p=proj();if(!p)return '';
+  const f=(k,l,dec,ph)=>`<label>${l}<input type="text" ${dec?'inputmode="decimal"':''} data-p="${k}" value="${esc(p[k]||'')}" ${ph?`placeholder="${esc(ph)}"`:''}></label>`;
+  return `${barHTML(p.name||'件名','toHome')}
+  <div class="wrap narrow">
+    <div class="card"><h2>件名・試験条件</h2>
+      <label>件名<input type="text" id="pName" data-p="name" value="${esc(p.name)}"></label>
+      <div class="g4">
+        <label>試験日<input type="date" data-p="date" value="${esc(p.date)}"></label>
+        <label>天候${sel('data-p="weather"',p.weather,['','晴','曇り','雨','雪'])}</label>
+        ${f('temp','温度(℃)',1)}${f('hum','湿度(%)',1)}
+      </div>
+      <div class="g2">${f('tester','試験実施者')}${f('witness','監督職員(立会者)')}</div>
+    </div>
+    <div class="card"><h2>測定計器</h2>
+      ${(p.insts||[]).map((x,i)=>`<div class="inr">
+        <div class="g3"><label>測定計器名<input type="text" data-pi="${i}.name" value="${esc(x.name)}"></label><label>型式<input type="text" data-pi="${i}.model" value="${esc(x.model)}"></label><label>製造者名<input type="text" data-pi="${i}.maker" value="${esc(x.maker)}"></label></div>
+        <div class="g4"><label>定格(上)<input type="text" data-pi="${i}.r1" value="${esc(x.r1)}"></label><label>定格(下)<input type="text" data-pi="${i}.r2" value="${esc(x.r2)}"></label><label>製造年<input type="text" data-pi="${i}.year" value="${esc(x.year)}"></label>
+          <div class="btns" style="align-items:end"><button class="btn small danger" data-act="delInst" data-i="${i}">削除</button></div></div></div>`).join('')||'<div class="empty">測定計器がありません。</div>'}
+      <div class="btns"><button class="btn small" data-act="addInst">+ 測定計器を追加</button>${(APP.instSets||[]).map((x,i)=>`<button class="btn small" data-act="setInst" data-i="${i}">${esc(x.name)}を入れる</button>`).join('')}</div>
+      <div class="note">印刷では「測定計器」の別紙が1枚付きます(印刷画面のスイッチで出す・出さないを選べます)。新しい件名には、前の件名の計器が写ります。</div>
+    </div>
+    <div class="card"><h2>${APP.itemName}</h2>
+      <div class="list">${p.items.length?p.items.map(r=>`<button class="item" data-act="openItem" data-id="${r.id}"><div class="t"><b>${esc(APP.itemTitle(r))}</b>
+        <span>${esc(APP.itemSub(r))}</span></div>${badge(APP.judge(r))}</button>`).join(''):`<div class="empty">${APP.itemName}がまだありません。</div>`}</div>
+      <div class="btns"><button class="btn main" data-act="addItem">+ ${APP.itemName}を追加</button></div>
+    </div>
+    <div class="card"><h2>印刷</h2>
+      <div class="btns"><button class="btn main" data-act="pvFull">成績表(測定値入り)</button><button class="btn" data-act="pvForm">記入用紙(測定値なし)</button></div></div>
+    <div class="card"><h2>その他</h2><div class="btns">
+      <button class="btn" data-act="dupProject">次回用に複製</button>
+      <button class="btn danger" data-act="delProject">${pendingConfirm==='delProject'?'もう一度押すと削除':'この件名を削除'}</button></div></div>
+  </div>`;
+}
+function itemHTML(){
+  const r=item();if(!r)return '';
+  return `${barHTML(APP.itemTitle(r),'toProject')}
+  <div class="wrap">${APP.editorHTML(r)}
+    <div class="btns">
+      <button class="btn main" data-act="toProject">入力おわり</button>
+      <button class="btn" data-act="dupItem">同じ設定で次を追加</button>
+      <button class="btn danger" data-act="delItem">${pendingConfirm==='delItem'?'もう一度押すと削除':'これを削除'}</button>
+    </div></div>`;
+}
+const NPG=r=>`<label class="sw npg"><input type="checkbox" data-rc="newPage" ${r.newPage?'checked':''}><span>ここから次のページ</span></label>`;
+/* --- 印刷 --- */
+function previewHTML(){
+  const mode=view.mode,PO=getOrient()==='P',n=PO?APP.perPage.P:APP.perPage.L;let pages;
+  if(mode==='blank')pages=[APP.sheet(null,Array(n).fill(null),'blank',PO)];
+  else{const p=proj();pages=chunkN(p.items,n).map(g=>APP.sheet(p,[...g,...Array(n-g.length).fill(null)],mode,PO));if(!pages.length)pages=[APP.sheet(p,Array(n).fill(null),mode,PO)]}
+  if(state.print.inst){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
+  const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
+  return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',mode==='blank'?'toHome':'toProject')}
+  <div class="wrap" style="max-width:none">
+    <div class="pv-bar noprint">
+      <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${!PO?'on':''}">A4横</button><button data-act="orientP" class="${PO?'on':''}">A4縦</button></span>
+      <button class="btn main" data-act="doPrint">印刷する</button>
+      ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
+      ${sw('inst','測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
+      <span class="note">${pages.length}枚。印刷画面で「A4」「${PO?'縦':'横'}」を選んでください。</span></div>
+    <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
+}
+function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/((getOrient()==='P'?210:297)*96/25.4))}
+function dateLine(p,mode){return p&&mode==='full'?`${fmtDate(p.date)||'　　　年　　月　　日'} ・ 天候 ${esc(p.weather||'　')} ・ 温度 ${esc(p.temp||'　')}℃ ・ 湿度 ${esc(p.hum||'　')}％`:'　　　年　　月　　日 ・ 天候　　 ・ 温度　　℃ ・ 湿度　　％'}
+function footHTML(p,mode,note){
+  const v=k=>p&&mode==='full'?esc(p[k]||''):'';
+  const inst='';
+  const sign=state.print.sign?`<table class="x"><tr><th>試験実施者</th><td>${v('tester')}</td><th>監督職員(立会者)</th><td>${v('witness')}</td></tr></table>`:'';
+  return `<div class="s-foot"><div class="s-fl">${inst}${sign}</div>${note?`<div class="s-cap">${note}</div>`:''}</div>`;
+}
+function instSheet(p,mode,PO){
+  const L=p&&p.insts&&p.insts.length?p.insts:(mode==='blank'?Array(5).fill({name:'',model:'',r1:'',r2:'',maker:'',year:''}):[]);
+  const rows=(L.length?L:Array(5).fill({})).map(x=>`<tr><td rowspan="2" class="nm">${esc(x.name||'')}</td><td rowspan="2">${esc(x.model||'')}</td><td class="r1">${esc(x.r1||'')}</td><td rowspan="2">${esc(x.maker||'')}</td><td rowspan="2">${esc(x.year||'')}</td></tr><tr><td class="r2">${esc(x.r2||'')}</td></tr>`).join('');
+  return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
+    <div class="s-title">測 定 計 器</div>
+    <div class="s-top"><div class="s-range">${p&&mode!=='blank'?esc(p.name||''):''}</div><div class="s-date">${APP.homeTitle.replace(/ 成績表$/,'')}</div></div>
+    <table class="s it"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:18%"><col style="width:26%"><col></colgroup>
+      <tr class="hb"><th>測定計器名</th><th>型　式</th><th>定　格</th><th>製造者名</th><th>製 造 年</th></tr>${rows}</table>
+  </div></div></div>`;
+}
+
+/* ===== イベント ===== */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,p=proj(),r=item();
+  switch(a){
+    case 'toHome':go({name:'home'});break;
+    case 'toProject':go({name:'project',pid:view.pid});break;
+    case 'newProject':{const np={id:uid(),name:'新しい件名',date:new Date().toISOString().slice(0,10),weather:'',temp:'',hum:'',items:[]};
+      const last=state.projects[state.projects.length-1];if(last){['tester','witness'].forEach(k=>np[k]=last[k]||'');np.insts=JSON.parse(JSON.stringify(last.insts||[]))}else np.insts=JSON.parse(JSON.stringify(APP.instDefault))
+      state.projects.push(np);save();go({name:'project',pid:np.id});setTimeout(()=>{const i=$('#pName');if(i){i.focus();i.select()}},50);break}
+    case 'openProject':go({name:'project',pid:b.dataset.id});break;
+    case 'openItem':go({name:'item',pid:view.pid,rid:b.dataset.id});break;
+    case 'addItem':{const last=p.items[p.items.length-1];const nr=APP.newItem(last);p.items.push(nr);save();go({name:'item',pid:p.id,rid:nr.id});break}
+    case 'dupItem':{const nr=APP.reset(JSON.parse(JSON.stringify(r)));nr.id=uid();nr.newPage=false;p.items.splice(p.items.indexOf(r)+1,0,nr);save();go({name:'item',pid:p.id,rid:nr.id});toast('追加しました');break}
+    case 'delItem':if(pendingConfirm!=='delItem'){pendingConfirm='delItem';render();break}
+      p.items=p.items.filter(x=>x.id!==r.id);save();go({name:'project',pid:p.id});toast('削除しました');break;
+    case 'delProject':if(pendingConfirm!=='delProject'){pendingConfirm='delProject';render();break}
+      state.projects=state.projects.filter(x=>x.id!==p.id);save();go({name:'home'});toast('削除しました');break;
+    case 'dupProject':{const np=JSON.parse(JSON.stringify(p));np.id=uid();np.name=p.name+'(次回)';np.date='';np.weather='';np.temp='';np.hum='';
+      np.items=np.items.map(x=>{const y=APP.reset(x);y.id=uid();return y});state.projects.push(np);save();go({name:'project',pid:np.id});toast('複製しました');break}
+    case 'pvFull':go({name:'preview',pid:view.pid,mode:'full'});break;
+    case 'pvForm':go({name:'preview',pid:view.pid,mode:'form'});break;
+    case 'blank':go({name:'preview',mode:'blank'});break;
+    case 'orientL':case 'orientP':setOrient(a==='orientP'?'P':'L');render();break;
+    case 'doPrint':{setPortrait(getOrient()==='P');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'exportJson':{const bl=new Blob([JSON.stringify(state,null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
+      a2.href=URL.createObjectURL(bl);a2.download=`${APP.backupName}_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+      document.body.appendChild(a2);a2.click();setTimeout(()=>{URL.revokeObjectURL(a2.href);a2.remove()},500);break}
+    case 'importJson':$('#importFile').click();break;
+    case 'addInst':p.insts=p.insts||[];p.insts.push({name:'',model:'',r1:'',r2:'',maker:'',year:''});save();render();break;
+    case 'delInst':p.insts.splice(+b.dataset.i,1);save();render();break;
+    case 'setInst':p.insts=JSON.parse(JSON.stringify(APP.instSets[+b.dataset.i].list));save();render();toast('入れ替えました');break;
+    default:if(APP.onAct)APP.onAct(a,b,r);
+  }
+});
+$('#importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.projects))throw 0;let n=0;
+    d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
+    save();render();toast(`${n}件の件名を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}e.target.value=''};rd.readAsText(f)});
+function setPath(o,path,v){const ks=path.split('.');let x=o;for(let i=0;i<ks.length-1;i++){x=x[ks[i]]=x[ks[i]]||{}}x[ks[ks.length-1]]=v}
+document.addEventListener('input',e=>{
+  const t=e.target,p=proj(),r=item();
+  if(t.id==='q'){view.q=t.value;if(!e.isComposing)$('#plist').innerHTML=listHTML();return}
+  if(t.dataset.p&&p){p[t.dataset.p]=t.value;save();if(t.dataset.p==='name')$('.bar h1').textContent=t.value;return}
+  if(t.dataset.pi&&p){const [i,k]=t.dataset.pi.split('.');p.insts[+i][k]=t.value;save();return}
+  if(t.dataset.f&&r){setPath(r,t.dataset.f,t.value);save();APP.updInd(r);return}
+});
+document.addEventListener('compositionend',e=>{if(e.target.id==='q'){view.q=e.target.value;$('#plist').innerHTML=listHTML()}});
+document.addEventListener('change',e=>{
+  const t=e.target,r=item();
+  if(t.dataset.rc&&r){r[t.dataset.rc]=t.checked;save();return}
+  if(t.dataset.fr&&r){setPath(r,t.dataset.fr,t.value);save();render();return}
+  if(t.dataset.pr){state.print[t.dataset.pr]=t.checked;save();render();return}
+});
+window.addEventListener('resize',()=>{if(view.name==='preview')fit()});
+window.addEventListener('beforeprint',()=>{const el=$('#pages');if(el)el.style.zoom=1});
+window.addEventListener('afterprint',()=>{if(view.name==='preview')fit()});
+render();
+
+</script>
+</body>
+</html>
