@@ -244,7 +244,7 @@ const APP={
       <div class="card"><h2>ケーブル</h2>
         <div class="g2">${t('panel','設備名(用紙の左上)')}${t('range','範囲','例) 引込柱 〜 高圧受電盤')}</div>
         <div class="g4">${t('type','ケーブル種類','例) 6kV CVT 38sq')}${t('len','亘長(m)','',1)}${t('year','製造年','',1)}${t('maker','製造者名')}</div>
-        <div class="g3">${t('sheath','シースアース絶縁抵抗(MΩ)','',1)}<label>試験方法の図(成績表)${sel('data-fr="method"',r.method||'',['','1','3','b'],['表示しない','一相ずつの試験','三相一括の試験','両方'])}</label></div>
+        <div class="g3">${t('sheath','シースアース絶縁抵抗(MΩ)','',1)}<label>試験方法の図(成績表)${sel('data-fr="method"',r.method===undefined?'b':r.method,['','1','3','b'],['表示しない','一相ずつの試験','三相一括の試験','両方'])}</label></div>
         <div class="vset"><span class="lb">印加電圧(kV)</span>${r.volts.map((v,i)=>`<input type="text" inputmode="decimal" class="vin" data-fr2="volts.${i}" value="${esc(v)}" aria-label="印加電圧${i+1}">`).join('')}
           <button class="btn small" data-act="addVolt">+ 追加</button>${r.volts.length>1?'<button class="btn small danger" data-act="delVolt">− 削除</button>':''}</div>
         <div>${NPG(r)}</div>
@@ -303,7 +303,7 @@ const APP={
       <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div><div class="s-date">${dateLine(p,mode)}</div></div>
       <div class="ib">${instT}${info}</div>${main}
       ${(()=>{const one=m=>`<div class="dg"><div class="dgt">試験方法:${m==='1'?'一相ずつの試験':'三相一括の試験'}(端末処理部にガードを接続)</div>${diagSVG(m)}</div>`;
-        const ms=r&&mode!=='blank'?(r.method==='b'?['1','3']:r.method?[r.method]:[]):[];
+        const mm=r&&r.method===undefined?'b':(r?r.method:'');const ms=r&&mode!=='blank'?(mm==='b'?['1','3']:mm?[mm]:[]):[];
         const dg=ms.length?`<div class="dgs${ms.length>1?' two':''}">${ms.map(one).join('')}</div>`:'';
         if(PO)return `${sheath}<div class="mid pm"><div class="midl">${judge}</div>${formula?`<div class="midr">${formula}</div>`:''}</div>${dg}`;
         return dg?`<div class="mid"><div class="midl">${sheath}${judge}${formula}</div>${dg}</div>`:`<div class="mid"><div class="midl">${sheath}${judge}</div><div class="midr">${formula}</div></div>`})()}
@@ -464,6 +464,7 @@ function projectHTML(){
         ${f('temp','温度(℃)',1)}${f('hum','湿度(%)',1)}
       </div>
       <div class="g2">${f('tester','試験実施者')}${f('witness','監督職員(立会者)')}</div>
+      ${APP.projectExtra?APP.projectExtra(p):''}
     </div>
     <div class="card"><h2>測定計器</h2>
       ${(p.insts||[]).map((x,i)=>`<div class="inr">
@@ -529,6 +530,7 @@ function instSheet(p,mode,PO){
     <div class="s-top"><div class="s-range">${p&&mode!=='blank'?esc(p.name||''):''}</div><div class="s-date">${APP.homeTitle.replace(/ 成績表$/,'')}</div></div>
     <table class="s it"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:18%"><col style="width:26%"><col></colgroup>
       <tr class="hb"><th>測定計器名</th><th>型　式</th><th>定　格</th><th>製造者名</th><th>製 造 年</th></tr>${rows}</table>
+    ${APP.instExtra?APP.instExtra(p,mode):''}
   </div></div></div>`;
 }
 

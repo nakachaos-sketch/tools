@@ -300,6 +300,7 @@ function projectHTML(){
         ${f('temp','温度(℃)',1)}${f('hum','湿度(%)',1)}
       </div>
       <div class="g2">${f('tester','試験実施者')}${f('witness','監督職員(立会者)')}</div>
+      ${APP.projectExtra?APP.projectExtra(p):''}
     </div>
     <div class="card"><h2>測定計器</h2>
       ${(p.insts||[]).map((x,i)=>`<div class="inr">
@@ -365,6 +366,7 @@ function instSheet(p,mode,PO){
     <div class="s-top"><div class="s-range">${p&&mode!=='blank'?esc(p.name||''):''}</div><div class="s-date">${APP.homeTitle.replace(/ 成績表$/,'')}</div></div>
     <table class="s it"><colgroup><col style="width:24%"><col style="width:16%"><col style="width:18%"><col style="width:26%"><col></colgroup>
       <tr class="hb"><th>測定計器名</th><th>型　式</th><th>定　格</th><th>製造者名</th><th>製 造 年</th></tr>${rows}</table>
+    ${APP.instExtra?APP.instExtra(p,mode):''}
   </div></div></div>`;
 }
 
