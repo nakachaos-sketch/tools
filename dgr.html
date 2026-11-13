@@ -149,8 +149,8 @@ const MODELS=[
     note:'最大感度角 進み45°(非接地系)の場合。10°にしたときは位相の範囲を 遅れ50〜85°・進み90〜130° に変えてください',
     crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'115',leadHi:'155',lagLo:'25',lagHi:'65',phaseIo:'',phi:'45',timeRule:'jis'}},
   {id:'omron-k2dg-av1',maker:'オムロン',model:'K2DG-AV1',V:['2','2.5','3','4','5','7','7.5','10','12.5','15'],I:['0.1','0.2','0.4','0.6','0.8','1.0'],T:['瞬時','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0'],
-    note:'動作位相 遅れ30°設定(非接地系)の場合:遅れ30°±10°・進み150°±10°(ZPD1〜4台)。5台以上は±20°、遅れ60°設定は遅れ50〜70°・進み110〜130°。時間は0.2秒整定なら130%で0.1〜0.3秒、それ以外は資料に400%の基準(整定値±10%・最小±50ms)しかないため、その値で判定',
-    crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'140',leadHi:'160',lagLo:'20',lagHi:'40',phaseIo:'',phi:'30',timeRule:'omron'}},
+    note:'オムロン「試験条件・判定基準」による。位相は遅れ30°設定で 遅れ・進みとも整定値±20°(進みは180°−30°=150°として計算)。試験位相は0°。動作時間は0.2秒整定のみ130%で0.1〜0.3秒、瞬時とその他の整定は400%通電で判定(瞬時0.1秒以下、その他は整定値±10%・最小±50ms)',
+    crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'130',leadHi:'170',lagLo:'10',lagHi:'50',phaseIo:'',phi:'0',timeRule:'omron'}},
   {id:'other',label:'その他(手入力)'}
 ];
 const DEF_CRIT={...MODELS[0].crit,timeLo:'',timeHi:''};
@@ -183,7 +183,7 @@ function nomV(r){return num(r.vBase)*num(r.setV)/100}                 // 整定�
 function cond(r){                                                      // 試験条件(空欄なら自動)
   const vo=nomV(r)*1.5,io=num(r.setI)*1.5;
   const pio=r.phaseIo!==''&&r.phaseIo!=null?r.phaseIo:fx(num(r.setI)*10,2);
-  return {voltIo:fx(io,2),voltPhi:r.phi,curVo:fx(vo,0),curPhi:r.phi,phVo:fx(vo,0),phIo:pio,tVo:fx(vo,0),tIo:fx(num(r.setI)*1.3,3),tPhi:r.phi};
+  return {voltIo:fx(io,2),voltPhi:r.phi,curVo:fx(vo,0),curPhi:r.phi,phVo:fx(vo,0),phIo:pio,tVo:fx(vo,0),tIo:fx(num(r.setI)*tPct(r)/100,3),tPhi:r.phi};
 }
 // 動作時間(130%通電)の判定範囲 [下限,上限]
 function setTnum(r){const s=String(r.setT||'').trim();return /瞬時/.test(s)?0:num(s)}
@@ -198,6 +198,7 @@ function timeRange(r){
     default:if(t===0)return [0.05,0.1];if(t<=0.2+1e-9)return [0.1,0.3];return [rd(t*0.8),rd(t*1.2)];
   }
 }
+function tPct(r){if(r.timeRule==='omron'){const t=setTnum(r);if(!(Math.abs(t-0.2)<1e-9))return 400}return 130}
 function trTxt(r,u){const [a,b]=timeRange(r);return isFinite(a)&&isFinite(b)?`${a} ～ ${b} ${u}`:isFinite(b)?`${b} ${u} 以内`:''}
 function ev(r){
   const o={},M=r.m;
@@ -339,7 +340,7 @@ function updInd(){
   set('t',trTxt(r,'秒')||'整定値を入力');
   const tx=(id,s)=>{const el=document.getElementById(id);if(el)el.textContent=s};
   tx('c-v',`Io=${c.voltIo}A・Φ=${c.voltPhi}°`);tx('c-i',`Vo=${c.curVo}V・Φ=${c.curPhi}°`);tx('c-ph',`Vo=${c.phVo}V・Io=${c.phIo}A`);tx('c-t',`Vo=${c.tVo}V・Io=${c.tIo}A・Φ=${c.tPhi}°`);
-  tx('condNote',`試験条件:電圧・電流は整定値の150%(Vo=${c.curVo}V・Io=${c.voltIo}A)、時間は電流130%(Io=${c.tIo}A)。電圧${r.setV}%の公称値は ${fx(nomV(r),1)}V。`);
+  tx('condNote',`試験条件:電圧・電流は整定値の150%(Vo=${c.curVo}V・Io=${c.voltIo}A)、時間は電流${tPct(r)}%(Io=${c.tIo}A)。電圧${r.setV}%の公称値は ${fx(nomV(r),1)}V。`);
   ['v','i','ph','t'].forEach(k=>{const b=document.getElementById('b-'+k);if(b)b.innerHTML=badge(jOf(r,k,e))});
 }
 
