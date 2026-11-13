@@ -174,14 +174,19 @@ table.crit small{color:var(--sub)}
 .mid{display:flex;gap:6mm;align-items:flex-start}
 .midl{flex:1;min-width:0;display:flex;flex-direction:column;gap:5mm}
 .midl table.x{align-self:flex-start}
-.mid .dg{width:50%;flex:none;box-sizing:border-box}
+.mid .dgs{width:50%;flex:none;box-sizing:border-box;display:flex;flex-direction:column;gap:3mm}
+.mid .dgs.two{flex-direction:row;gap:2mm;width:56%}
+.mid .dgs.two .dg{flex:1;min-width:0}
+.mid .dgs.two .dgt{font-size:11pt}
 .mid table.s.jt td{font-size:14.5pt;height:10.5mm}
 .mid table.s.jt td.l:last-child{white-space:normal;line-height:1.25;padding:1mm 2mm}
 .mid .fm{font-size:15pt;gap:4mm}.mid .fm .fn{width:36mm}.mid .fms{margin-left:4mm;gap:4mm}
 .dg{border:1px solid #888;padding:2mm 3mm}
 .dg svg{width:100%;height:auto;display:block}
 .dgt{font-size:15pt;margin-bottom:1mm}
-.sheet.p .dg{width:100%;box-sizing:border-box}
+.sheet.p .dgs{display:flex;flex-direction:column;gap:3mm;align-items:center}
+.sheet.p .dg{width:80%;box-sizing:border-box}
+.sheet.p .dgt{font-size:13pt}
 
 .ib{display:flex;flex-direction:column}
 .ib table.s+table.s{border-top:none}
@@ -196,6 +201,9 @@ table.crit small{color:var(--sub)}
 .sheet.p .mid.pm table.s.jt td{font-size:12pt;height:10mm}
 .sheet.p .mid.pm table.s.jt td.l:last-child{white-space:normal;line-height:1.25;padding:1mm 1.5mm}
 .ib table.s:first-child:not(:last-child){border-bottom:none}
+.s-top .s-range{flex:1;min-width:0}
+.sheet.p .s-date{font-size:14pt}
+.sheet.p .s-top .s-range{font-size:15pt}
 
 </style>
 </head>
@@ -236,7 +244,7 @@ const APP={
       <div class="card"><h2>ケーブル</h2>
         <div class="g2">${t('panel','設備名(用紙の左上)')}${t('range','範囲','例) 引込柱 〜 高圧受電盤')}</div>
         <div class="g4">${t('type','ケーブル種類','例) 6kV CVT 38sq')}${t('len','亘長(m)','',1)}${t('year','製造年','',1)}${t('maker','製造者名')}</div>
-        <div class="g3">${t('sheath','シースアース絶縁抵抗(MΩ)','',1)}<label>試験方法の図(成績表)${sel('data-fr="method"',r.method||'',['','1','3'],['表示しない','一相ずつの試験','三相一括の試験'])}</label></div>
+        <div class="g3">${t('sheath','シースアース絶縁抵抗(MΩ)','',1)}<label>試験方法の図(成績表)${sel('data-fr="method"',r.method||'',['','1','3','b'],['表示しない','一相ずつの試験','三相一括の試験','両方'])}</label></div>
         <div class="vset"><span class="lb">印加電圧(kV)</span>${r.volts.map((v,i)=>`<input type="text" inputmode="decimal" class="vin" data-fr2="volts.${i}" value="${esc(v)}" aria-label="印加電圧${i+1}">`).join('')}
           <button class="btn small" data-act="addVolt">+ 追加</button>${r.volts.length>1?'<button class="btn small danger" data-act="delVolt">− 削除</button>':''}</div>
         <div>${NPG(r)}</div>
@@ -292,10 +300,11 @@ const APP={
     const formula=state.print.formula?`<div class="fms">${fr('成 極 指 数','電圧印加 3分後の絶縁抵抗値 (GΩ)','電圧印加 1分後の絶縁抵抗値 (GΩ)')}${fr('弱 点 比','印加電圧 5kV 時の絶縁抵抗値 (GΩ)','印加電圧 10kV 時の絶縁抵抗値 (GΩ)')}${fr('不 平 衡 率','各相の漏洩電流最大値 − 各相の漏洩電流最小値','各相の漏洩電流平均値')}</div>`:'';
     return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
       <div class="s-title">高圧ケーブル絶縁診断成績表</div>
-      <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div></div>
-      <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
+      <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div><div class="s-date">${dateLine(p,mode)}</div></div>
       <div class="ib">${instT}${info}</div>${main}
-      ${(()=>{const dg=r&&r.method&&mode!=='blank'?`<div class="dg"><div class="dgt">試験方法:${r.method==='1'?'一相ずつの試験':'三相一括の試験'}(端末処理部にガードを接続)</div>${diagSVG(r.method)}</div>`:'';
+      ${(()=>{const one=m=>`<div class="dg"><div class="dgt">試験方法:${m==='1'?'一相ずつの試験':'三相一括の試験'}(端末処理部にガードを接続)</div>${diagSVG(m)}</div>`;
+        const ms=r&&mode!=='blank'?(r.method==='b'?['1','3']:r.method?[r.method]:[]):[];
+        const dg=ms.length?`<div class="dgs${ms.length>1?' two':''}">${ms.map(one).join('')}</div>`:'';
         if(PO)return `${sheath}<div class="mid pm"><div class="midl">${judge}</div>${formula?`<div class="midr">${formula}</div>`:''}</div>${dg}`;
         return dg?`<div class="mid"><div class="midl">${sheath}${judge}${formula}</div>${dg}</div>`:`<div class="mid"><div class="midl">${sheath}${judge}</div><div class="midr">${formula}</div></div>`})()}
       ${footHTML(p,mode,'')}
