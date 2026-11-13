@@ -192,8 +192,8 @@ function emptyM(n){const m={};for(let i=0;i<n;i++)m[i]={R:{r1:'',r3:'',k:''},S:{
 const APP={
   key:'cableDiag.v1',homeTitle:'高圧ケーブル絶縁診断 成績表',itemName:'ケーブル',backupName:'ケーブル絶縁診断',
   perPage:{L:1,P:1},instInline:true,printDefaults:{formula:true},printSwitches:[['formula','計算式']],
-  instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}],
-  instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}]},
+  instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}],
+  instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}]},
     {name:'双興 3123型',list:[{name:'高電圧絶縁抵抗計',model:'3123型',r1:'DC 5 kV − 200 GΩ',r2:'DC 10 kV − 400 GΩ',maker:'双興電機',year:'2009'}]},
     {name:'ムサシ DI-10',list:[{name:'高電圧絶縁抵抗計',model:'DI-10',r1:'DC 10 kV',r2:'100 GΩ',maker:'ムサシ電機計器製作所',year:'1991'}]}],
   newItem(prev){const r={id:uid(),panel:'受電設備',range:'',type:'',len:'',year:'',maker:'',sheath:'',volts:['1','5','10'],m:emptyM(3),newPage:false};
