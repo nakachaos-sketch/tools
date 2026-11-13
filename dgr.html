@@ -141,7 +141,8 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 .sheet.p table.s td.v{font-size:17pt}
 .sheet.p table.s td.jg{font-size:19pt}
 .sheet.p table.s td.k{font-size:14pt;padding-left:2mm}
-.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.02em;text-align:right;padding:0 4mm 0 1mm}
+.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:0;text-align:center;padding:0 2mm}
+.sheet.p table.s .jl{display:inline-block;width:56mm;white-space:normal;text-align:justify;text-align-last:justify;text-justify:inter-character;vertical-align:middle}
 .sheet.p table.s th.cd{text-align:left;font-size:14pt;letter-spacing:0;padding-left:3mm}
 .sheet.p table.s th.cd .cl{font-size:15pt;margin-right:8mm;letter-spacing:.1em}
 .sheet.p table.s th.l[colspan]{font-size:14pt!important;letter-spacing:0}
@@ -453,7 +454,8 @@ function sheet(p,r,mode,parts){
   </div>`;
   if(parts){const it=[];if(P.ir)it.push(`<th class="t1">トリップコイル絶縁抵抗</th><td class="d1">${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`);
     if(P.sw)it.push(`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`);if(P.so)it.push(`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`);
-    return {date,wx,body:`<div class="blk">${info}${main}${it.length?`<table class="x xp"><tr>${it.join('')}</tr></table>`:''}</div>`}}
+    const mainP=main.replace(/(<t[hd] class="l"[^>]*>)([^<]*)(<\/t[hd]>)/g,(m,a,b,c)=>a+`<span class="jl">${b.replace(/[ 　]/g,'')}</span>`+c);
+    return {date,wx,body:`<div class="blk">${info}${mainP}${it.length?`<table class="x xp"><tr>${it.join('')}</tr></table>`:''}</div>`}}
   return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
