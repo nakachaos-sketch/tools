@@ -125,6 +125,20 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 .seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
+/* DGRはA4縦専用レイアウト(縮小しない) */
+.sheet.p{width:210mm;height:296mm;padding:10mm 11mm}
+.sheet.p .sheet-x{width:376mm;height:552mm}
+.sheet.p .sheet-in{padding:14mm 12mm 12mm;gap:8mm}
+.sheet.p .s-title{font-size:32pt;letter-spacing:.3em;margin:6mm 0 6mm}
+.sheet.p table.s th,.sheet.p table.s td{height:23mm}
+.sheet.p table.s tr.sec th{height:19mm}
+.sheet.p table.s td.big{height:24mm}
+.sheet.p table.s td.k{font-size:16pt;padding-left:2.4mm}
+.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.05em;padding-left:2.4mm}
+.sheet.p table.s th.l[colspan]{font-size:15pt!important;letter-spacing:0}
+.pp .pg{display:contents}
+.pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+@media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
 </style>
 </head>
 <body>
@@ -373,10 +387,17 @@ function sheet(p,r,mode){
   const wx=p&&full?`天候 ${esc(p.weather||'　')} ・ 温度 ${esc(p.temp||'　')}℃ ・ 湿度 ${esc(p.hum||'　')}％`:'天候　　 ・ 温度　　℃ ・ 湿度　　％';
   const R=k=>has?esc(r[k]||''):'';
   const sp=(v,lb)=>`<div class="sv"><div class="sv-v">${v}</div><div class="sv-l">${lb}</div></div>`;
-  const info=`<table class="s"><colgroup><col style="width:92mm"><col style="width:64mm"><col style="width:64mm"><col style="width:64mm"><col style="width:68mm"><col></colgroup>
+  const PO=getOrient()==='P';
+  const setc=`<td class="big setc"><div class="svs">${sp(has?esc(r.setI)+' (A)':'　 (A)','電流')}${sp(has?esc(r.setV)+' (%)':'　 (%)','電圧')}${sp(has?esc(r.setT)+' (S)':'　 (S)','時間')}</div></td>`;
+  const info=PO?`<table class="s"><colgroup><col style="width:34%"><col style="width:33%"><col></colgroup>
+    <tr><th>回　路　名</th><th>型　　式</th><th>製 造 者 名</th></tr>
+    <tr><td class="big">${R('circuit')}</td><td class="big">${R('model')}</td><td class="big">${R('maker')}</td></tr>
+    <tr class="sec"><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
+    <tr><td class="big">${R('made')}</td><td class="big">${R('serial')}</td>${setc}</tr></table>`
+  :`<table class="s"><colgroup><col style="width:92mm"><col style="width:64mm"><col style="width:64mm"><col style="width:64mm"><col style="width:68mm"><col></colgroup>
     <tr><th>回　路　名</th><th>型　　式</th><th>製 造 者 名</th><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
     <tr><td class="big">${R('circuit')}</td><td class="big">${R('model')}</td><td class="big">${R('maker')}</td><td class="big">${R('made')}</td><td class="big">${R('serial')}</td>
-      <td class="big setc"><div class="svs">${sp(has?esc(r.setI)+' (A)':'　 (A)','電流')}${sp(has?esc(r.setV)+' (%)':'　 (%)','電圧')}${sp(has?esc(r.setT)+' (S)':'　 (S)','時間')}</div></td></tr></table>`;
+      ${setc}</tr></table>`;
   const list=k=>{const a=(has?r['list'+k]:'').split(',').map(x=>x.trim()).filter(Boolean);
     if(a.length>6){const cv=has?String(r['set'+k]).trim():'';let i=a.findIndex(x=>x===cv||num(x)===num(cv));const st=Math.max(0,Math.min(a.length-6,(i<0?0:i)-2));return a.slice(st,st+6)}
     while(a.length<6)a.push('');return a};
@@ -388,7 +409,9 @@ function sheet(p,r,mode){
   const J=k=>{if(!full)return '<td class="jg" rowspan="2"></td>';const j=jOf(r,k,e);return `<td class="jg ${j==='否'?'ng':''}" rowspan="2">${esc(j)}</td>`};
   const cnd=s=>has?s:'';
   const notfound=(k)=>{const L=list(k),cv=cur(k);return has&&cv&&!L.some(x=>same(x,cv))};
-  const main=`<table class="s"><colgroup><col style="width:76mm"><col style="width:34mm"><col style="width:34mm"><col style="width:34mm"><col style="width:34mm"><col style="width:34mm"><col style="width:34mm"><col style="width:30mm"><col style="width:40mm"><col></colgroup>
+  const cg=PO?'<col style="width:68mm">'+'<col style="width:28mm">'.repeat(6)+'<col style="width:10mm"><col style="width:26mm"><col>'
+    :'<col style="width:76mm">'+'<col style="width:34mm">'.repeat(6)+'<col style="width:30mm"><col style="width:40mm"><col>';
+  const main=`<table class="s"><colgroup>${cg}</colgroup>
     <tr class="sec"><th class="l">動 作 電 圧 試 験</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(`Io = ${c.voltIo} (A) ・ Φ = ${c.voltPhi} (°)`)}</th><th>判 定</th><th>管　理　値</th></tr>
     <tr><td class="l">電 圧 整 定 値 (％)</td>${head6('V')}<td></td>${J('v')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setV)} (%) の場合`:'整定値　　(%) の場合'}<br>${has&&isFinite(e.v.lo)?`${e.v.lo} ～ ${e.v.hi} (V)`:'　　 ～ 　　 (V)'}</td></tr>
     <tr><td class="l">動 作 電 圧　　(V)</td>${row6('V',M.v)}<td class="v">${full&&notfound('V')?esc(M.v):''}</td></tr>
@@ -407,7 +430,7 @@ function sheet(p,r,mode){
     ${P.ir?`<table class="x"><tr><th>トリップコイルの絶縁抵抗値</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`:''}
     ${P.sw||P.so?`<table class="x"><tr>${P.sw?`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`:''}${P.so?`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`:''}</tr></table>`:''}
   </div>`;
-  return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
+  return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
     ${info}${main}${foot}
