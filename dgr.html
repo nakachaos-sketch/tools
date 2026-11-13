@@ -408,7 +408,7 @@ function previewHTML(){
 }
 function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/((getOrient()==='P'?210:297)*96/25.4))}
 function sheet(p,r,mode,parts){
-  const has=!!r&&mode!=='blank',full=mode==='full'&&!!r,e=r?ev(r):null,c=r?cond(r):null,M=r?r.m:emptyM();
+  const has=!!r&&mode!=='blank',full=mode==='full'&&!!r,e=r?ev(r):null,c=r?cond(r):{},M=r?r.m:emptyM();
   const date=p&&full?fmtDate(p.date)||'　　年　　月　　日':'　　　年　　月　　日';
   const wx=p&&full?`天候 ${esc(p.weather||'　')} ・ 温度 ${esc(p.temp||'　')}℃ ・ 湿度 ${esc(p.hum||'　')}％`:'天候　　 ・ 温度　　℃ ・ 湿度　　％';
   const R=k=>has?esc(r[k]||''):'';
