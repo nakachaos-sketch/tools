@@ -125,17 +125,28 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 .seg button{border:none;background:#fff;color:var(--accent);padding:7px 14px;cursor:pointer;font-weight:500}
 .seg button.on{background:var(--accent);color:var(--accent-ink)}
 @media print{.pp .pg{box-shadow:none;break-after:page;page-break-after:always}.pp .pg:last-child{break-after:auto;page-break-after:auto}.pp .sheet{break-after:auto!important;page-break-after:auto!important}}
-/* DGRはA4縦専用レイアウト(縮小しない) */
-.sheet.p{width:210mm;height:296mm;padding:10mm 11mm}
-.sheet.p .sheet-x{width:376mm;height:552mm}
-.sheet.p .sheet-in{padding:14mm 12mm 12mm;gap:8mm}
-.sheet.p .s-title{font-size:32pt;letter-spacing:.3em;margin:6mm 0 6mm}
-.sheet.p table.s th,.sheet.p table.s td{height:23mm}
-.sheet.p table.s tr.sec th{height:19mm}
-.sheet.p table.s td.big{height:24mm}
-.sheet.p table.s td.k{font-size:16pt;padding-left:2.4mm}
-.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.05em;padding-left:2.4mm}
-.sheet.p table.s th.l[colspan]{font-size:15pt!important;letter-spacing:0}
+/* DGRはA4縦専用レイアウト(縮小しない・1枚に2台) */
+.sheet.p{width:210mm;height:296mm;padding:9mm 10mm}
+.sheet.p .sheet-x{width:380mm;height:556mm}
+.sheet.p .sheet-in{padding:10mm 10mm 8mm;gap:5mm}
+.sheet.p .s-title{font-size:30pt;letter-spacing:.3em;margin:2mm 0 1mm}
+.sheet.p .s-date{font-size:17pt}
+.sheet.p .s-panel{font-size:18pt;padding:1.6mm 10mm;min-width:64mm}
+.sheet.p .blk{display:flex;flex-direction:column;gap:3mm;margin-top:5mm}
+.sheet.p table.s{font-size:16pt}
+.sheet.p table.s th,.sheet.p table.s td{height:14.4mm;padding:0 1mm}
+.sheet.p table.s tr.sec th{height:12.6mm}
+.sheet.p table.s th{font-size:15pt}
+.sheet.p table.s td.big{height:15mm;font-size:17pt}
+.sheet.p table.s td.v{font-size:17pt}
+.sheet.p table.s td.jg{font-size:19pt}
+.sheet.p table.s td.k{font-size:14pt;padding-left:2mm}
+.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.02em;padding-left:2mm}
+.sheet.p table.s th.l[colspan]{font-size:14pt!important;letter-spacing:0}
+.sheet.p .sv-v{font-size:16pt}.sheet.p .sv-l{font-size:11pt}
+.sheet.p table.x.xp{font-size:15pt;border-width:2px}
+.sheet.p table.x.xp th{padding:1.6mm 4mm}
+.sheet.p table.x.xp td{width:34mm;padding:1.6mm 2mm}
 .pp .pg{display:contents}
 .pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 @media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
@@ -369,8 +380,13 @@ function updInd(){
 /* --- 印刷 --- */
 function previewHTML(){
   const mode=view.mode;let pages;
-  if(mode==='blank')pages=[sheet(null,null,'blank')];
-  else{const p=proj();pages=p.relays.length?p.relays.map(r=>sheet(p,r,mode)):[sheet(p,null,mode)]}
+  const PO=getOrient()==='P';
+  if(mode==='blank')pages=[PO?sheetP(null,'',[null,null],'blank'):sheet(null,null,'blank')];
+  else{const p=proj();
+    if(PO){pages=[];const ps=[];p.relays.forEach(r=>{if(!ps.includes(r.panel))ps.push(r.panel)});
+      ps.forEach(pn=>{const rs=p.relays.filter(r=>r.panel===pn);for(let i=0;i<rs.length;i+=2)pages.push(sheetP(p,pn,[rs[i],rs[i+1]||null],mode))});
+      if(!pages.length)pages.push(sheetP(p,'',[null,null],mode))}
+    else pages=p.relays.length?p.relays.map(r=>sheet(p,r,mode)):[sheet(p,null,mode)]}
   const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
@@ -381,19 +397,17 @@ function previewHTML(){
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
 function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/((getOrient()==='P'?210:297)*96/25.4))}
-function sheet(p,r,mode){
+function sheet(p,r,mode,parts){
   const has=!!r&&mode!=='blank',full=mode==='full'&&!!r,e=r?ev(r):null,c=r?cond(r):null,M=r?r.m:emptyM();
   const date=p&&full?fmtDate(p.date)||'　　年　　月　　日':'　　　年　　月　　日';
   const wx=p&&full?`天候 ${esc(p.weather||'　')} ・ 温度 ${esc(p.temp||'　')}℃ ・ 湿度 ${esc(p.hum||'　')}％`:'天候　　 ・ 温度　　℃ ・ 湿度　　％';
   const R=k=>has?esc(r[k]||''):'';
   const sp=(v,lb)=>`<div class="sv"><div class="sv-v">${v}</div><div class="sv-l">${lb}</div></div>`;
-  const PO=getOrient()==='P';
+  const PO=!!parts;
   const setc=`<td class="big setc"><div class="svs">${sp(has?esc(r.setI)+' (A)':'　 (A)','電流')}${sp(has?esc(r.setV)+' (%)':'　 (%)','電圧')}${sp(has?esc(r.setT)+' (S)':'　 (S)','時間')}</div></td>`;
-  const info=PO?`<table class="s"><colgroup><col style="width:34%"><col style="width:33%"><col></colgroup>
-    <tr><th>回　路　名</th><th>型　　式</th><th>製 造 者 名</th></tr>
-    <tr><td class="big">${R('circuit')}</td><td class="big">${R('model')}</td><td class="big">${R('maker')}</td></tr>
-    <tr class="sec"><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
-    <tr><td class="big">${R('made')}</td><td class="big">${R('serial')}</td>${setc}</tr></table>`
+  const info=PO?`<table class="s"><colgroup><col style="width:74mm"><col style="width:50mm"><col style="width:50mm"><col style="width:52mm"><col style="width:52mm"><col></colgroup>
+    <tr><th>回 路 名</th><th>型　式</th><th>製造者名</th><th>製造年月</th><th>製造番号</th><th>整 定 値</th></tr>
+    <tr><td class="big">${R('circuit')}</td><td class="big">${R('model')}</td><td class="big">${R('maker')}</td><td class="big">${R('made')}</td><td class="big">${R('serial')}</td>${setc}</tr></table>`
   :`<table class="s"><colgroup><col style="width:92mm"><col style="width:64mm"><col style="width:64mm"><col style="width:64mm"><col style="width:68mm"><col></colgroup>
     <tr><th>回　路　名</th><th>型　　式</th><th>製 造 者 名</th><th>製 造 年 月</th><th>製 造 番 号</th><th>整　定　値</th></tr>
     <tr><td class="big">${R('circuit')}</td><td class="big">${R('model')}</td><td class="big">${R('maker')}</td><td class="big">${R('made')}</td><td class="big">${R('serial')}</td>
@@ -430,10 +444,23 @@ function sheet(p,r,mode){
     ${P.ir?`<table class="x"><tr><th>トリップコイルの絶縁抵抗値</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`:''}
     ${P.sw||P.so?`<table class="x"><tr>${P.sw?`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`:''}${P.so?`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`:''}</tr></table>`:''}
   </div>`;
-  return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
+  if(parts){const it=[];if(P.ir)it.push(`<th>トリップコイル絶縁抵抗</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`);
+    if(P.sw)it.push(`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`);if(P.so)it.push(`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`);
+    return {date,wx,body:`<div class="blk">${info}${main}${it.length?`<table class="x xp"><tr>${it.join('')}</tr></table>`:''}</div>`}}
+  return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
     <div class="s-title">方向地絡継電器試験成績表</div>
     <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-date">${date} ・ ${wx}</div></div>
     ${info}${main}${foot}
+  </div></div></div>`;
+}
+
+// A4縦:同じ盤の継電器を1枚に2台
+function sheetP(p,panel,rs,mode){
+  const A=sheet(p,rs[0],mode,true),B=sheet(p,rs[1],mode,true);
+  return `<div class="sheet p"><div class="sheet-x"><div class="sheet-in">
+    <div class="s-title">方向地絡継電器試験成績表</div>
+    <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${A.date} ・ ${A.wx}</div></div>
+    ${A.body}${B.body}
   </div></div></div>`;
 }
 
