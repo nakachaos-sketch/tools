@@ -416,7 +416,7 @@ function previewHTML(){
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint"><span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      ${sw('ir','トリップコイル絶縁抵抗')}${sw('sw','開閉器 連動試験')}${sw('so','SO 動作試験')}${sw('sign','試験実施者・監督職員欄')}
+      ${mode!=='full'?sw('ir','トリップコイル絶縁抵抗')+sw('sw','開閉器 連動試験')+sw('so','SO 動作試験'):''}${sw('sign','試験実施者・監督職員欄')}
       <span class="note">${pages.length}枚。印刷画面で「A4」「${getOrient()==='P'?'縦':'横'}」を選んでください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
@@ -465,7 +465,8 @@ function sheet(p,r,mode,parts){
     <tr><td class="l">時 間 整 定 値 (S)</td>${head6('T')}${PO?'':'<td></td>'}${J('t')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setT)} (S) の場合`:'整定値　　(S) の場合'}<br>${has&&trTxt(r,'(S)')?trTxt(r,'(S)'):'　　 ～ 　　 (S)'}</td></tr>
     <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}${PO?'':`<td class="v">${full&&notfound('T')?esc(M.t):''}</td>`}</tr>
   </table>`;
-  const P=state.print;
+  // 測定値入りは「記入のある項目だけ」、記入用紙・白紙はスイッチで決める
+  const P=mode==='full'?{ir:!!r&&String(M.ir||'').trim()!=='',sw:!!r&&!!M.sw,so:!!r&&!!M.so}:state.print;
   const foot=`<div class="s-foot">
     ${P.ir?`<table class="x"><tr><th>トリップコイルの絶縁抵抗値</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`:''}
     ${P.sw||P.so?`<table class="x"><tr>${P.sw?`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`:''}${P.so?`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`:''}</tr></table>`:''}
