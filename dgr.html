@@ -141,12 +141,17 @@ table.x td{border:1px solid #222;width:52mm;text-align:center;color:#1a3fbf;padd
 .sheet.p table.s td.v{font-size:17pt}
 .sheet.p table.s td.jg{font-size:19pt}
 .sheet.p table.s td.k{font-size:14pt;padding-left:2mm}
-.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.02em;padding-left:2mm}
+.sheet.p table.s th.l,.sheet.p table.s td.l{letter-spacing:.02em;text-align:right;padding:0 4mm 0 1mm}
+.sheet.p table.s th.cd{text-align:left;font-size:14pt;letter-spacing:0;padding-left:3mm}
+.sheet.p table.s th.cd .cl{font-size:15pt;margin-right:8mm;letter-spacing:.1em}
 .sheet.p table.s th.l[colspan]{font-size:14pt!important;letter-spacing:0}
 .sheet.p .sv-v{font-size:16pt}.sheet.p .sv-l{font-size:11pt}
 .sheet.p table.x.xp{font-size:15pt;border-width:2px}
 .sheet.p table.x.xp th{padding:1.6mm 4mm}
-.sheet.p table.x.xp td{width:34mm;padding:1.6mm 2mm}
+.sheet.p table.x.xp{width:100%;table-layout:fixed}
+.sheet.p table.x.xp td{width:auto;padding:1.6mm 2mm}
+.sheet.p table.x.xp th.t1{width:62mm;font-size:14pt;padding:1.6mm 1.5mm;letter-spacing:-.02em}
+.sheet.p table.x.xp td.d1{width:64mm}
 .pp .pg{display:contents}
 .pp .pg .sheet.p{zoom:1;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 @media print{.pg:not(:last-child) .sheet{break-after:page!important;page-break-after:always!important}.pp .pg .sheet.p{box-shadow:none}}
@@ -417,34 +422,36 @@ function sheet(p,r,mode,parts){
     while(a.length<6)a.push('');return a};
   const same=(x,cv)=>x!==''&&(x===cv||num(x)===num(cv));
   const cur=k=>has?String(r['set'+k]).trim():'';
-  const row6=(k,val,dec)=>{const L=list(k),cv=cur(k);let idx=L.findIndex(x=>same(x,cv));
+  const row6=(k,val,dec)=>{const L=list(k),cv=cur(k);let idx=L.findIndex(x=>same(x,cv));if(PO&&idx<0){idx=L.findIndex(x=>x==='');if(idx<0)idx=L.length-1}
     return L.map((x,i)=>`<td class="v">${full&&i===idx?esc(val):''}</td>`).join('')};
   const head6=k=>{const L=list(k),cv=cur(k);return L.map(x=>`<td class="${has&&same(x,cv)?'on':''}">${esc(x)}</td>`).join('')};
   const J=k=>{if(!full)return '<td class="jg" rowspan="2"></td>';const j=jOf(r,k,e);return `<td class="jg ${j==='否'?'ng':''}" rowspan="2">${esc(j)}</td>`};
   const cnd=s=>has?s:'';
+  const SEC=(t,ct)=>PO?`<tr class="sec"><th class="l">${t}</th><th colspan="6" class="cd"><span class="cl">条　件</span>${cnd(ct)}</th><th>判 定</th><th>管　理　値</th></tr>`
+    :`<tr class="sec"><th class="l">${t}</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(ct)}</th><th>判 定</th><th>管　理　値</th></tr>`;
   const notfound=(k)=>{const L=list(k),cv=cur(k);return has&&cv&&!L.some(x=>same(x,cv))};
-  const cg=PO?'<col style="width:68mm">'+'<col style="width:28mm">'.repeat(6)+'<col style="width:10mm"><col style="width:26mm"><col>'
+  const cg=PO?'<col style="width:70mm">'+'<col style="width:28mm">'.repeat(6)+'<col style="width:26mm"><col>'
     :'<col style="width:76mm">'+'<col style="width:34mm">'.repeat(6)+'<col style="width:30mm"><col style="width:40mm"><col>';
   const main=`<table class="s"><colgroup>${cg}</colgroup>
-    <tr class="sec"><th class="l">動 作 電 圧 試 験</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(`Io = ${c.voltIo} (A) ・ Φ = ${c.voltPhi} (°)`)}</th><th>判 定</th><th>管　理　値</th></tr>
-    <tr><td class="l">電 圧 整 定 値 (％)</td>${head6('V')}<td></td>${J('v')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setV)} (%) の場合`:'整定値　　(%) の場合'}<br>${has&&isFinite(e.v.lo)?`${e.v.lo} ～ ${e.v.hi} (V)`:'　　 ～ 　　 (V)'}</td></tr>
-    <tr><td class="l">動 作 電 圧　　(V)</td>${row6('V',M.v)}<td class="v">${full&&notfound('V')?esc(M.v):''}</td></tr>
-    <tr class="sec"><th class="l">動 作 電 流 試 験</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(`Vo = ${c.curVo} (V) ・ Φ = ${c.curPhi} (°)`)}</th><th>判 定</th><th>管　理　値</th></tr>
-    <tr><td class="l">電 流 整 定 値 (A)</td>${head6('I')}<td></td>${J('i')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setI)} (A) の場合`:'整定値　　(A) の場合'}<br>${has&&isFinite(e.i.lo)?`${fx(e.i.lo,3)} ～ ${fx(e.i.hi,3)} (A)`:'　　 ～ 　　 (A)'}</td></tr>
-    <tr><td class="l">動 作 電 流　　(A)</td>${row6('I',M.i)}<td class="v">${full&&notfound('I')?esc(M.i):''}</td></tr>
-    <tr class="sec"><th class="l">位 相 特 性 試 験</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(`Vo = ${c.phVo} (V) ・ Io = ${c.phIo} (A)`)}</th><th>判 定</th><th>管　理　値</th></tr>
-    <tr><td class="l" rowspan="2">動 作 角 度　　(°)</td><td>進み</td><td class="v" colspan="6" style="text-align:left;padding-left:20mm">${full?esc(M.lead):''}</td>${J('ph')}<td class="k" rowspan="2" style="line-height:1.7">進み ： ${has?esc(r.leadLo||'　'):'　'}° ～ ${has?esc(r.leadHi||'　'):'　'}°<br>遅れ ： ${has?esc(r.lagLo||'　'):'　'}° ～ ${has?esc(r.lagHi||'　'):'　'}°</td></tr>
-    <tr><td>遅れ</td><td class="v" colspan="6" style="text-align:left;padding-left:20mm">${full?esc(M.lag):''}</td></tr>
-    <tr class="sec"><th class="l">動 作 時 間 試 験</th><th>条 件</th><th colspan="6" class="l" style="font-size:16pt">${cnd(`Vo = ${c.tVo} (V) ・ Io = ${c.tIo} (A) ・ Φ = ${c.tPhi} (°)`)}</th><th>判 定</th><th>管　理　値</th></tr>
-    <tr><td class="l">時 間 整 定 値 (S)</td>${head6('T')}<td></td>${J('t')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setT)} (S) の場合`:'整定値　　(S) の場合'}<br>${has&&trTxt(r,'(S)')?trTxt(r,'(S)'):'　　 ～ 　　 (S)'}</td></tr>
-    <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}<td class="v">${full&&notfound('T')?esc(M.t):''}</td></tr>
+    ${SEC('動 作 電 圧 試 験',`Io = ${c.voltIo} (A) ・ Φ = ${c.voltPhi} (°)`)}
+    <tr><td class="l">電 圧 整 定 値 (％)</td>${head6('V')}${PO?'':'<td></td>'}${J('v')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setV)} (%) の場合`:'整定値　　(%) の場合'}<br>${has&&isFinite(e.v.lo)?`${e.v.lo} ～ ${e.v.hi} (V)`:'　　 ～ 　　 (V)'}</td></tr>
+    <tr><td class="l">動 作 電 圧　　(V)</td>${row6('V',M.v)}${PO?'':`<td class="v">${full&&notfound('V')?esc(M.v):''}</td>`}</tr>
+    ${SEC('動 作 電 流 試 験',`Vo = ${c.curVo} (V) ・ Φ = ${c.curPhi} (°)`)}
+    <tr><td class="l">電 流 整 定 値 (A)</td>${head6('I')}${PO?'':'<td></td>'}${J('i')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setI)} (A) の場合`:'整定値　　(A) の場合'}<br>${has&&isFinite(e.i.lo)?`${fx(e.i.lo,3)} ～ ${fx(e.i.hi,3)} (A)`:'　　 ～ 　　 (A)'}</td></tr>
+    <tr><td class="l">動 作 電 流　　(A)</td>${row6('I',M.i)}${PO?'':`<td class="v">${full&&notfound('I')?esc(M.i):''}</td>`}</tr>
+    ${SEC('位 相 特 性 試 験',`Vo = ${c.phVo} (V) ・ Io = ${c.phIo} (A)`)}
+    <tr><td class="l" rowspan="2">動 作 角 度　　(°)</td><td>進み</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?esc(M.lead):''}</td>${J('ph')}<td class="k" rowspan="2" style="line-height:1.7">進み ： ${has?esc(r.leadLo||'　'):'　'}° ～ ${has?esc(r.leadHi||'　'):'　'}°<br>遅れ ： ${has?esc(r.lagLo||'　'):'　'}° ～ ${has?esc(r.lagHi||'　'):'　'}°</td></tr>
+    <tr><td>遅れ</td><td class="v" colspan="${PO?5:6}" style="text-align:left;padding-left:20mm">${full?esc(M.lag):''}</td></tr>
+    ${SEC('動 作 時 間 試 験',`Vo = ${c.tVo} (V) ・ Io = ${c.tIo} (A) ・ Φ = ${c.tPhi} (°)`)}
+    <tr><td class="l">時 間 整 定 値 (S)</td>${head6('T')}${PO?'':'<td></td>'}${J('t')}<td class="k" rowspan="2" style="line-height:1.7">${has?`整定値 ${esc(r.setT)} (S) の場合`:'整定値　　(S) の場合'}<br>${has&&trTxt(r,'(S)')?trTxt(r,'(S)'):'　　 ～ 　　 (S)'}</td></tr>
+    <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}${PO?'':`<td class="v">${full&&notfound('T')?esc(M.t):''}</td>`}</tr>
   </table>`;
   const P=state.print;
   const foot=`<div class="s-foot">
     ${P.ir?`<table class="x"><tr><th>トリップコイルの絶縁抵抗値</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`:''}
     ${P.sw||P.so?`<table class="x"><tr>${P.sw?`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`:''}${P.so?`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`:''}</tr></table>`:''}
   </div>`;
-  if(parts){const it=[];if(P.ir)it.push(`<th>トリップコイル絶縁抵抗</th><td>${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`);
+  if(parts){const it=[];if(P.ir)it.push(`<th class="t1">トリップコイル絶縁抵抗</th><td class="d1">${full&&M.ir!==''?esc(M.ir)+' (MΩ)':'　　 (MΩ)'}</td>`);
     if(P.sw)it.push(`<th>開閉器 連動試験</th><td>${full?esc(M.sw):''}</td>`);if(P.so)it.push(`<th>SO 動作試験</th><td>${full?esc(M.so):''}</td>`);
     return {date,wx,body:`<div class="blk">${info}${main}${it.length?`<table class="x xp"><tr>${it.join('')}</tr></table>`:''}</div>`}}
   return `<div class="sheet"><div class="sheet-x"><div class="sheet-in">
