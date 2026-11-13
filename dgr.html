@@ -146,8 +146,8 @@ const MODELS=[
     note:'最大感度角 進み45°(非接地系)の場合。10°にしたときは位相の範囲を 遅れ50〜85°・進み90〜130° に変えてください',
     crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'115',leadHi:'155',lagLo:'25',lagHi:'65',phaseIo:'',phi:'45',timeRule:'jis'}},
   {id:'omron-k2dg-av1',maker:'オムロン',model:'K2DG-AV1',V:['2','2.5','3','4','5','7','7.5','10','12.5','15'],I:['0.1','0.2','0.4','0.6','0.8','1.0'],T:['瞬時','0.2','0.3','0.4','0.5','0.6','0.7','0.8','0.9','1.0'],
-    note:'位相は動作位相角30°設定で遅れ側±10°。進み側の範囲はメーカー資料で確かめて入れてください。0.3秒以上の時間の基準は±20%で仮置き',
-    crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'',leadHi:'',lagLo:'20',lagHi:'40',phaseIo:'',phi:'30',timeRule:'jis'}},
+    note:'動作位相 遅れ30°設定(非接地系)の場合:遅れ30°±10°・進み150°±10°(ZPD1〜4台)。5台以上は±20°、遅れ60°設定は遅れ50〜70°・進み110〜130°。時間は0.2秒整定なら130%で0.1〜0.3秒、それ以外は資料に400%の基準(整定値±10%・最小±50ms)しかないため、その値で判定',
+    crit:{vBase:'3810',vTol:'25',iTol:'10',leadLo:'140',leadHi:'160',lagLo:'20',lagHi:'40',phaseIo:'',phi:'30',timeRule:'omron'}},
   {id:'other',label:'その他(手入力)'}
 ];
 const DEF_CRIT={...MODELS[0].crit,timeLo:'',timeHi:''};
@@ -189,12 +189,13 @@ function timeRange(r){
   const t=setTnum(r),rd=v=>+v.toFixed(3);if(!isFinite(t))return [NaN,NaN];
   switch(r.timeRule||'togami'){
     case 'togami':return Math.abs(t-0.1)<1e-9?[0.07,0.17]:[rd(t-0.1),rd(t+0.1)];
+    case 'omron':if(t===0)return [NaN,0.1];if(Math.abs(t-0.2)<1e-9)return [0.1,0.3];{const d=Math.max(t*0.1,0.05);return [rd(t-d),rd(t+d)]}
     case 'hikari':{const T={0.05:[NaN,0.1],0.2:[0.1,0.3],0.5:[0.4,0.65],0.8:[0.7,0.95],1:[0.95,1.15]};const k=Object.keys(T).find(x=>Math.abs(+x-t)<1e-9);if(k)return T[k]}
     // 該当なしはJIS相当へ
     default:if(t===0)return [0.05,0.1];if(t<=0.2+1e-9)return [0.1,0.3];return [rd(t*0.8),rd(t*1.2)];
   }
 }
-function trTxt(r){const [a,b]=timeRange(r);return isFinite(a)&&isFinite(b)?`${a} ～ ${b}`:isFinite(b)?`${b} 以内`:''}
+function trTxt(r,u){const [a,b]=timeRange(r);return isFinite(a)&&isFinite(b)?`${a} ～ ${b} ${u}`:isFinite(b)?`${b} ${u} 以内`:''}
 function ev(r){
   const o={},M=r.m;
   {const n=nomV(r),t=num(r.vTol),lo=Math.ceil(n*(1-t/100)-1e-9),hi=Math.floor(n*(1+t/100)+1e-9),x=num(M.v);
@@ -332,7 +333,7 @@ function updInd(){
   set('v',isFinite(e.v.lo)?`${e.v.lo}〜${e.v.hi}`:'整定値を入力');
   set('i',isFinite(e.i.lo)?`${fx(e.i.lo,3)}〜${fx(e.i.hi,3)}`:'整定値を入力');
   set('lead',r.leadLo||r.leadHi?`${r.leadLo||'—'}°〜${r.leadHi||'—'}°`:'範囲を入力してください');set('lag',r.lagLo||r.lagHi?`${r.lagLo||'—'}°〜${r.lagHi||'—'}°`:'範囲を入力してください');
-  set('t',trTxt(r)?trTxt(r)+' 秒':'整定値を入力');
+  set('t',trTxt(r,'秒')||'整定値を入力');
   const tx=(id,s)=>{const el=document.getElementById(id);if(el)el.textContent=s};
   tx('c-v',`Io=${c.voltIo}A・Φ=${c.voltPhi}°`);tx('c-i',`Vo=${c.curVo}V・Φ=${c.curPhi}°`);tx('c-ph',`Vo=${c.phVo}V・Io=${c.phIo}A`);tx('c-t',`Vo=${c.tVo}V・Io=${c.tIo}A・Φ=${c.tPhi}°`);
   tx('condNote',`試験条件:電圧・電流は整定値の150%(Vo=${c.curVo}V・Io=${c.voltIo}A)、時間は電流130%(Io=${c.tIo}A)。電圧${r.setV}%の公称値は ${fx(nomV(r),1)}V。`);
@@ -387,7 +388,7 @@ function sheet(p,r,mode){
     <tr><td>遅れ</td><td class="v" colspan="6" style="text-align:left;padding-left:20mm">${full?esc(M.lag):''}</td><td class="k">遅れ ： ${has?esc(r.lagLo||'　'):'　'}° ～ ${has?esc(r.lagHi||'　'):'　'}°</td></tr>
     <tr class="sec"><th class="l">動 作 時 間 試 験</th><th>条 件</th><th colspan="5" class="l" style="font-size:16pt">${cnd(`Vo = ${c.tVo} (V) ・ Io = ${c.tIo} (A) ・ Φ = ${c.tPhi} (°)`)}</th><th></th><th>判 定</th><th>管　理　値</th></tr>
     <tr><td class="l">時 間 整 定 値 (S)</td>${head6('T')}<td></td>${J('t')}<td class="k">${has?`整定値 ${esc(r.setT)} (S) の場合`:'整定値　　(S) の場合'}</td></tr>
-    <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}<td class="v">${full&&notfound('T')?esc(M.t):''}</td><td class="k">${has&&trTxt(r)?`${trTxt(r)} (S)`:'　　 ～ 　　 (S)'}</td></tr>
+    <tr><td class="l">動 作 時 間　　(S)</td>${row6('T',M.t)}<td class="v">${full&&notfound('T')?esc(M.t):''}</td><td class="k">${has&&trTxt(r,'(S)')?trTxt(r,'(S)'):'　　 ～ 　　 (S)'}</td></tr>
   </table>`;
   const P=state.print;
   const foot=`<div class="s-foot">
