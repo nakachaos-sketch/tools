@@ -186,6 +186,16 @@ table.crit small{color:var(--sub)}
 .ib{display:flex;flex-direction:column}
 .ib table.s+table.s{border-top:none}
 
+.mid .midr{width:46%;flex:none;padding-top:14mm}
+.mid .midr .fms{gap:7mm}
+.sheet.p .mid.pm .midr{width:43%;padding-top:2mm}
+.sheet.p .mid.pm .fms{margin-left:0;gap:6mm}
+.sheet.p .mid.pm .fm{font-size:11.5pt;gap:2mm}
+.sheet.p .mid.pm .fm .fn{width:24mm;letter-spacing:.05em}
+.sheet.p .mid.pm .fm .fr span:first-child{padding:0 1.5mm}
+.sheet.p .mid.pm table.s.jt td{font-size:12pt;height:10mm}
+.sheet.p .mid.pm table.s.jt td.l:last-child{white-space:normal;line-height:1.25;padding:1mm 1.5mm}
+
 </style>
 </head>
 <body>
@@ -251,10 +261,10 @@ const APP={
     const r=its[0],has=!!r&&mode!=='blank',full=mode==='full'&&!!r,c=r?calc(r):null;
     const V=k=>has?esc(r[k]||''):'';
     const volts=has||r?r.volts:['1','5','10'];
-    const info=`<table class="s"><colgroup><col style="width:13%"><col style="width:20%"><col style="width:9%"><col style="width:12%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col></colgroup>
+    const info=`<table class="s"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:8%"><col style="width:14%"><col style="width:8%"><col style="width:17%"><col style="width:9%"><col></colgroup>
       <tr><th>ケーブル種類</th><td>${V('type')}</td><th>亘　長</th><td>${has&&r.len?esc(r.len)+' m':'　　m'}</td><th>製 造 年</th><td>${has&&r.year?esc(r.year)+' 年':'　　年'}</td><th>製造者名</th><td style="font-size:15pt">${V('maker')}</td></tr></table>`;
     const IL=p&&mode!=='blank'&&p.insts&&p.insts.length?p.insts:[{}];
-    const instT=state.print.inst?`<table class="s"><colgroup><col style="width:11%"><col style="width:15%"><col style="width:7%"><col style="width:13%"><col style="width:7%"><col style="width:18%"><col style="width:8%"><col></colgroup>
+    const instT=state.print.inst?`<table class="s"><colgroup><col style="width:12%"><col style="width:17%"><col style="width:8%"><col style="width:14%"><col style="width:8%"><col style="width:17%"><col style="width:9%"><col></colgroup>
       ${IL.map(x=>`<tr><th>測定計器</th><td>${esc(x.name||'')}</td><th>型 式</th><td>${esc(x.model||'')}</td><th>定 格</th><td style="font-size:15pt">${esc([x.r1,x.r2].filter(Boolean).join(' / '))}</td><th>製造者</th><td style="font-size:14pt;white-space:normal;line-height:1.1">${esc(x.maker||'')}${x.year?` (${esc(x.year)}年)`:''}</td></tr>`).join('')}</table>`:'';
     const cg='<col style="width:7%">'+('<col style="width:5.6%"><col style="width:5.6%"><col style="width:5.8%"><col style="width:5.8%"><col style="width:5.2%">').repeat(3)+'<col>';
     const phH=ph=>`<th colspan="5" class="phh ph-${ph}">${ph}　相</th>`;
@@ -271,7 +281,7 @@ const APP={
       <tr class="hb"><th>(kV)</th>${'<th class="sm">1分値</th><th class="sm">3分値</th>'.repeat(3)}</tr>${rows}</table>`;
     const sheath=`<table class="x"><tr><th>シースアースの絶縁抵抗</th><td>${full&&r.sheath!==''?esc(r.sheath)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`;
     const J=j=>full?`<td class="jg ${j==='否'||j==='要注意'?'ngv':''}">${esc(j)}</td>`:'<td class="jg"></td>';
-    const judge=`<table class="s jt"><colgroup><col style="width:${PO?20:27}%"><col style="width:${PO?14:13}%"><col></colgroup>
+    const judge=`<table class="s jt"><colgroup><col style="width:28%"><col style="width:13%"><col></colgroup>
       <tr class="hb"><th>判　　定</th><th></th><th class="l">判 定 の 目 安</th></tr>
       <tr><td class="l sp">絶 縁 抵 抗 値</td>${J(c?c.jIR:'')}<td class="l">漏洩電流が 1μA 以下 ( 試験電圧 10 kV にて 絶縁抵抗値 10 GΩ 以上 )</td></tr>
       <tr><td class="l sp">成 極 指 数</td>${J(c?c.jPI:'')}<td class="l">1 以上は良好 ／ 1 〜 0.5 は要注意 ／ 0.5 以下は危険な状態</td></tr>
@@ -285,7 +295,8 @@ const APP={
       <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
       <div class="ib">${instT}${info}</div>${main}
       ${(()=>{const dg=r&&r.method&&mode!=='blank'?`<div class="dg"><div class="dgt">試験方法:${r.method==='1'?'一相ずつの試験':'三相一括の試験'}(端末処理部にガードを接続)</div>${diagSVG(r.method)}</div>`:'';
-        return PO||!dg?`${sheath}${judge}${formula}${dg}`:`<div class="mid"><div class="midl">${sheath}${judge}${formula}</div>${dg}</div>`})()}
+        if(PO)return `${sheath}<div class="mid pm"><div class="midl">${judge}</div>${formula?`<div class="midr">${formula}</div>`:''}</div>${dg}`;
+        return dg?`<div class="mid"><div class="midl">${sheath}${judge}${formula}</div>${dg}</div>`:`<div class="mid"><div class="midl">${sheath}${judge}</div><div class="midr">${formula}</div></div>`})()}
       ${footHTML(p,mode,'')}
     </div></div></div>`;
   }
