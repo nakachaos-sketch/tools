@@ -183,6 +183,9 @@ table.crit small{color:var(--sub)}
 .dgt{font-size:15pt;margin-bottom:1mm}
 .sheet.p .dg{width:100%;box-sizing:border-box}
 
+.ib{display:flex;flex-direction:column}
+.ib table.s+table.s{border-top:none}
+
 </style>
 </head>
 <body>
@@ -280,7 +283,7 @@ const APP={
       <div class="s-title">高圧ケーブル絶縁診断成績表</div>
       <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div></div>
       <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
-      ${instT}${info}${main}
+      <div class="ib">${instT}${info}</div>${main}
       ${(()=>{const dg=r&&r.method&&mode!=='blank'?`<div class="dg"><div class="dgt">試験方法:${r.method==='1'?'一相ずつの試験':'三相一括の試験'}(端末処理部にガードを接続)</div>${diagSVG(r.method)}</div>`:'';
         return PO||!dg?`${sheath}${judge}${formula}${dg}`:`<div class="mid"><div class="midl">${sheath}${judge}${formula}</div>${dg}</div>`})()}
       ${footHTML(p,mode,'')}
