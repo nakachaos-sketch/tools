@@ -347,7 +347,7 @@ function relayHTML(){
         <label>メーカー型式(選ぶと整定値の目盛りが入ります)<select data-model="1">${MODELS.map(x=>`<option value="${x.id}" ${x.id===r.modelId?'selected':''}>${esc((x.maker?x.maker+' ':'')+(x.model||x.label))}</option>`).join('')}</select></label>
         ${(()=>{const md=MODELS.find(x=>x.id===r.modelId);return md&&md.note?`<div class="note">${esc(md.note)}</div>`:''})()}
         <div class="g3">${t('panel','盤名(用紙の左上)')}${t('circuit','回路名')}${t('model','型式')}</div>
-        <div class="g3">${t('maker','製造者名')}${t('made','製造年月','2025年12月')}${t('serial','製造番号')}</div>
+        <div class="g3">${t('maker','製造者名')}${t('made','製造年月','例) 2025年12月')}${t('serial','製造番号')}</div>
       </div>
       <div class="card"><h2>整定値・判定基準</h2>
         <div class="g3">${t('setI','電流整定 (A)','',1)}${t('setV','電圧整定 (%)','',1)}${t('setT','時間整定 (S)','',1)}</div>

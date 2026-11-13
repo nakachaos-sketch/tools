@@ -283,7 +283,7 @@ function relayHTML(){
         <label>メーカー型式(選ぶと判定基準が入ります)<select data-model="1">${MODELS.map(x=>`<option value="${x.id}" ${x.id===(r.modelId||'other')?'selected':''}>${esc((x.maker?x.maker+' ':'')+(x.model||x.label))}</option>`).join('')}</select></label>
         ${(()=>{const md=MODELS.find(x=>x.id===r.modelId);return md&&md.taps?`<div class="note">整定範囲:${esc(md.taps)}</div>`:''})()}
         <div class="g4">${t('panel','盤名称(用紙の左上)')}${t('circuit','回路名')}${t('devNo','器具番号')}${t('devName','名称')}</div>
-        <div class="g4">${t('maker','メーカー')}${t('model','型式')}${t('made','製造年月','2025年')}${t('serial','製造番号')}</div>
+        <div class="g4">${t('maker','メーカー')}${t('model','型式')}${t('made','製造年月','例) 2025年12月')}${t('serial','製造番号')}</div>
         <div class="g3">${t('ratedV','定格電圧 AC(V)','',1)}<label>周波数(Hz)${sel('data-rs="freq"',r.freq,['50','60'])}</label>${t('lever','タイムレバー')}</div>
       </div>
       <div class="card"><h2>整定値・判定基準</h2>

@@ -133,6 +133,10 @@ table.cb{border-collapse:collapse;font-size:19pt;border:3px solid #000}
 table.cb th{background:#d4d4d4;font-weight:400;border:1px solid #222;padding:2.4mm 8mm}
 table.cb td{border:1px solid #222;width:44mm;text-align:center;color:#1a3fbf}
 .s-cap{font-size:18pt;padding-right:8mm}
+.s-fl{display:flex;gap:10mm;align-items:flex-end}
+table.cb.sg td{width:62mm;height:12mm}
+.sw{flex-direction:row;align-items:center;gap:6px;font-size:13px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+.sw input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
 @media print{
   @page{size:A4 landscape;margin:0}
   html,body{background:#fff}
@@ -214,6 +218,7 @@ function load(){
   try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s){s={v:1,projects:[sample()],models:[],settings:{...DEF_SET}}}
   s.settings={...DEF_SET,...(s.settings||{})};
+  s.print={sign:true,...(s.print||{})};
   s.models=s.models||[];s.projects=s.projects||[];
   return s;
 }
@@ -359,6 +364,10 @@ function projectHTML(){
         <label>温度(℃)<input type="text" inputmode="decimal" data-p="temp" value="${esc(p.temp)}"></label>
         <label>湿度(%)<input type="text" inputmode="decimal" data-p="hum" value="${esc(p.hum)}"></label>
       </div>
+      <div class="row">
+        <label>試験実施者<input type="text" data-p="tester" value="${esc(p.tester||'')}"></label>
+        <label>監督職員(立会者)<input type="text" data-p="witness" value="${esc(p.witness||'')}"></label>
+      </div>
     </div>
     <div class="card">
       <h2>継電器</h2>
@@ -410,7 +419,7 @@ function relayHTML(){
         <label>型式<input type="text" data-r="model" value="${esc(r.model)}"></label>
         <label>製造者名<input type="text" data-r="maker" value="${esc(r.maker)}"></label>
         <label>定格<input type="text" data-r="rating" value="${esc(r.rating)}"></label>
-        <label>製造年月<input type="text" data-r="made" value="${esc(r.made)}" placeholder="2025年"></label>
+        <label>製造年月<input type="text" data-r="made" value="${esc(r.made)}" placeholder="例) 2025年12月"></label>
         <label>製造番号<input type="text" data-r="serial" value="${esc(r.serial)}"></label>
         <label>限時特性<select data-rs="charType">${charOpts}</select></label>
       </div>
@@ -546,6 +555,7 @@ function previewHTML(){
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint">
       <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${getOrient()==='L'?'on':''}">A4横</button><button data-act="orientP" class="${getOrient()==='P'?'on':''}">A4縦</button></span><button class="btn main" data-act="doPrint">印刷する</button>
+      <label class="sw"><input type="checkbox" data-pr="sign" ${state.print.sign?'checked':''}><span>試験実施者・監督職員欄</span></label>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'previewForm':'previewFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
       <span class="note">${pages.length}枚。印刷画面で「用紙:A4」「${getOrient()==='P'?'縦':'横'}」「余白なし」(または既定)を選んでください。PDF保存も印刷画面から。</span>
     </div>
@@ -578,7 +588,7 @@ function sheetHTML(p,panel,rs,mode){
     <div class="s-top"><div class="s-panel">${esc(panel)||'　'}</div><div class="s-date">${dateLine}</div></div>
     ${blockHTML(rs[0],mode)}
     ${blockHTML(rs[1],mode)}
-    <div class="s-foot"><table class="cb"><tr><th>遮断器 連動試験</th><td>${esc(cb)}</td></tr></table><div class="s-cap">動作時間の（　　）内は限時特性曲線値とする</div></div>
+    <div class="s-foot"><div class="s-fl"><table class="cb"><tr><th>遮断器 連動試験</th><td>${esc(cb)}</td></tr></table>${state.print.sign?`<table class="cb sg"><tr><th>試験実施者</th><td>${p&&mode==='full'?esc(p.tester||''):''}</td><th>監督職員(立会者)</th><td>${p&&mode==='full'?esc(p.witness||''):''}</td></tr></table>`:''}</div><div class="s-cap">動作時間の（　　）内は限時特性曲線値とする</div></div>
   </div></div></div>`;
 }
 function blockHTML(r,mode){
@@ -700,6 +710,7 @@ document.addEventListener('change',e=>{
     else r[k]=v;
     save();render();return}
   if(t.dataset.jd&&r){r.jd=r.jd||{};r.jd[t.dataset.jd]=t.value;save();updateInd();return}
+  if(t.dataset.pr){state.print[t.dataset.pr]=t.checked;save();render();return}
   if(t.dataset.ss){state.settings[t.dataset.ss]=t.dataset.ss==='showInstTol'?!!t.value:t.value;save();return}
 });
 window.addEventListener('resize',()=>{if(view.name==='preview')fitPages()});
