@@ -174,7 +174,10 @@ table.crit small{color:var(--sub)}
 .mid{display:flex;gap:6mm;align-items:flex-start}
 .midl{flex:1;min-width:0;display:flex;flex-direction:column;gap:5mm}
 .midl table.x{align-self:flex-start}
-.mid .dg{width:210mm;flex:none}
+.mid .dg{width:50%;flex:none;box-sizing:border-box}
+.mid table.s.jt td{font-size:14.5pt;height:10.5mm}
+.mid table.s.jt td.l:last-child{white-space:normal;line-height:1.25;padding:1mm 2mm}
+.mid .fm{font-size:15pt;gap:4mm}.mid .fm .fn{width:36mm}.mid .fms{margin-left:4mm;gap:4mm}
 .dg{border:1px solid #888;padding:2mm 3mm}
 .dg svg{width:100%;height:auto;display:block}
 .dgt{font-size:15pt;margin-bottom:1mm}
@@ -265,7 +268,7 @@ const APP={
       <tr class="hb"><th>(kV)</th>${'<th class="sm">1分値</th><th class="sm">3分値</th>'.repeat(3)}</tr>${rows}</table>`;
     const sheath=`<table class="x"><tr><th>シースアースの絶縁抵抗</th><td>${full&&r.sheath!==''?esc(r.sheath)+' (MΩ)':'　　 (MΩ)'}</td></tr></table>`;
     const J=j=>full?`<td class="jg ${j==='否'||j==='要注意'?'ngv':''}">${esc(j)}</td>`:'<td class="jg"></td>';
-    const judge=`<table class="s jt"><colgroup><col style="width:20%"><col style="width:14%"><col></colgroup>
+    const judge=`<table class="s jt"><colgroup><col style="width:${PO?20:27}%"><col style="width:${PO?14:13}%"><col></colgroup>
       <tr class="hb"><th>判　　定</th><th></th><th class="l">判 定 の 目 安</th></tr>
       <tr><td class="l sp">絶 縁 抵 抗 値</td>${J(c?c.jIR:'')}<td class="l">漏洩電流が 1μA 以下 ( 試験電圧 10 kV にて 絶縁抵抗値 10 GΩ 以上 )</td></tr>
       <tr><td class="l sp">成 極 指 数</td>${J(c?c.jPI:'')}<td class="l">1 以上は良好 ／ 1 〜 0.5 は要注意 ／ 0.5 以下は危険な状態</td></tr>
