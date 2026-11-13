@@ -247,7 +247,7 @@ const APP={
       return `<table class="s ct"><colgroup><col style="width:23%"><col style="width:55%"><col></colgroup>
         <tr><td rowspan="2" class="cl">${esc(r.cable&&r.cable.label||[r.l1,r.l2].filter(Boolean).join(' '))}</td><th>機　器</th><th>${L.cab>0?'充電電流 合計(ケーブル+機器)':'充電電流(計算)'}</th></tr>
         <tr><td>${r.equips.map(eqText).map(esc).join('、')}</td><td>${isFinite(L.calc)?L.calc.toFixed(0)+' mA':''}</td></tr></table>`};
-    const cabs=state.print.cable?its.map(r=>mode==='blank'?cabT(r):r?(r.cable&&(r.cable.label||r.cable.type)?cabT(r):'')+(r.equips&&r.equips.length?eqT(r):''):'').join(''):'';
+    const cabs=state.print.cable?its.map(r=>mode==='blank'?cabT(r):r?(r.cable&&(r.cable.type||r.cable.len||r.cable.maker||r.cable.year||!(r.equips&&r.equips.length)&&r.cable.label)?cabT(r):'')+(r.equips&&r.equips.length?eqT(r):''):'').join(''):'';
     return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
       <div class="s-title">絶縁耐力試験成績表</div>
       <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
