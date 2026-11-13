@@ -183,7 +183,7 @@ const PH=['R','S','T'];
 function emptyM(n){const m={};for(let i=0;i<n;i++)m[i]={R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};return m}
 const APP={
   key:'cableDiag.v1',homeTitle:'高圧ケーブル絶縁診断 成績表',itemName:'ケーブル',backupName:'ケーブル絶縁診断',
-  perPage:{L:1,P:1},printDefaults:{formula:true},printSwitches:[['formula','計算式']],
+  perPage:{L:1,P:1},instInline:true,printDefaults:{formula:true},printSwitches:[['formula','計算式']],
   instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}],
   instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 10 kV',r2:'',maker:'共立電気計器(KYORITSU)',year:''}]},
     {name:'双興 3123型',list:[{name:'高電圧絶縁抵抗計',model:'3123型',r1:'DC 5 kV − 200 GΩ',r2:'DC 10 kV − 400 GΩ',maker:'双興電機',year:'2009'}]},
@@ -239,6 +239,9 @@ const APP={
     const volts=has||r?r.volts:['1','5','10'];
     const info=`<table class="s"><colgroup><col style="width:13%"><col style="width:20%"><col style="width:9%"><col style="width:12%"><col style="width:9%"><col style="width:12%"><col style="width:11%"><col></colgroup>
       <tr><th>ケーブル種類</th><td>${V('type')}</td><th>亘　長</th><td>${has&&r.len?esc(r.len)+' m':'　　m'}</td><th>製 造 年</th><td>${has&&r.year?esc(r.year)+' 年':'　　年'}</td><th>製造者名</th><td style="font-size:15pt">${V('maker')}</td></tr></table>`;
+    const IL=p&&mode!=='blank'&&p.insts&&p.insts.length?p.insts:[{}];
+    const instT=state.print.inst?`<table class="s"><colgroup><col style="width:11%"><col style="width:15%"><col style="width:7%"><col style="width:13%"><col style="width:7%"><col style="width:18%"><col style="width:8%"><col></colgroup>
+      ${IL.map(x=>`<tr><th>測定計器</th><td>${esc(x.name||'')}</td><th>型 式</th><td>${esc(x.model||'')}</td><th>定 格</th><td style="font-size:15pt">${esc([x.r1,x.r2].filter(Boolean).join(' / '))}</td><th>製造者</th><td style="font-size:14pt;white-space:normal;line-height:1.1">${esc(x.maker||'')}${x.year?` (${esc(x.year)}年)`:''}</td></tr>`).join('')}</table>`:'';
     const cg='<col style="width:7%">'+('<col style="width:5.6%"><col style="width:5.6%"><col style="width:5.8%"><col style="width:5.8%"><col style="width:5.2%">').repeat(3)+'<col>';
     const phH=ph=>`<th colspan="5" class="phh ph-${ph}">${ph}　相</th>`;
     const sub=`<th colspan="2" class="sm">絶縁抵抗値(GΩ)</th><th rowspan="2" class="sm">キック現象</th><th rowspan="2" class="sm">成極指数</th><th rowspan="2" class="sm">弱点比</th>`;
@@ -266,7 +269,7 @@ const APP={
       <div class="s-title">高圧ケーブル絶縁診断成績表</div>
       <div class="s-top"><div class="s-panel">${has?esc(r.panel)||'　':'　'}</div><div class="s-range">${V('range')}</div></div>
       <div class="s-top"><div></div><div class="s-date">${dateLine(p,mode)}</div></div>
-      ${info}${main}${sheath}${judge}${formula}
+      ${instT}${info}${main}${sheath}${judge}${formula}
       ${footHTML(p,mode,'')}
     </div></div></div>`;
   }
@@ -398,7 +401,7 @@ function previewHTML(){
   const mode=view.mode,PO=getOrient()==='P',n=PO?APP.perPage.P:APP.perPage.L;let pages;
   if(mode==='blank')pages=[APP.sheet(null,Array(n).fill(null),'blank',PO)];
   else{const p=proj();pages=chunkN(p.items,n).map(g=>APP.sheet(p,[...g,...Array(n-g.length).fill(null)],mode,PO));if(!pages.length)pages=[APP.sheet(p,Array(n).fill(null),mode,PO)]}
-  if(state.print.inst){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
+  if(state.print.inst&&!APP.instInline){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
   const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
@@ -406,7 +409,7 @@ function previewHTML(){
       <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${!PO?'on':''}">A4横</button><button data-act="orientP" class="${PO?'on':''}">A4縦</button></span>
       <button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      ${sw('inst','測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
+      ${sw('inst',APP.instInline?'測定計器':'測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
       <span class="note">${pages.length}枚。印刷画面で「A4」「${PO?'縦':'横'}」を選んでください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }

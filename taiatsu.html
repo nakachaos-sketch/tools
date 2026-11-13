@@ -337,7 +337,7 @@ function previewHTML(){
   const mode=view.mode,PO=getOrient()==='P',n=PO?APP.perPage.P:APP.perPage.L;let pages;
   if(mode==='blank')pages=[APP.sheet(null,Array(n).fill(null),'blank',PO)];
   else{const p=proj();pages=chunkN(p.items,n).map(g=>APP.sheet(p,[...g,...Array(n-g.length).fill(null)],mode,PO));if(!pages.length)pages=[APP.sheet(p,Array(n).fill(null),mode,PO)]}
-  if(state.print.inst){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
+  if(state.print.inst&&!APP.instInline){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
   const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',mode==='blank'?'toHome':'toProject')}
   <div class="wrap" style="max-width:none">
@@ -345,7 +345,7 @@ function previewHTML(){
       <span class="seg" role="group" aria-label="用紙の向き"><button data-act="orientL" class="${!PO?'on':''}">A4横</button><button data-act="orientP" class="${PO?'on':''}">A4縦</button></span>
       <button class="btn main" data-act="doPrint">印刷する</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'pvForm':'pvFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
-      ${sw('inst','測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
+      ${sw('inst',APP.instInline?'測定計器':'測定計器(別紙)')}${sw('sign','試験実施者・監督職員欄')}${APP.printSwitches.map(x=>sw(x[0],x[1])).join('')}
       <span class="note">${pages.length}枚。印刷画面で「A4」「${PO?'縦':'横'}」を選んでください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')}</div></div>`;
 }
