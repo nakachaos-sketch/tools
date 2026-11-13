@@ -143,6 +143,7 @@ table.cb td{border:1px solid #222;width:44mm;text-align:center;color:#1a3fbf}
   .sheet:last-child{break-after:auto;page-break-after:auto}
   *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+@media print{.pp .sheet{zoom:.7;margin:10mm 0 0 0}}
 </style>
 </head>
 <body>
@@ -537,7 +538,7 @@ function previewHTML(){
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',back)}
   <div class="wrap" style="max-width:none">
     <div class="pv-bar noprint">
-      <button class="btn main" data-act="doPrint">印刷する(A4横)</button>
+      <button class="btn main" data-act="doPrint">印刷する(A4横)</button><button class="btn main" data-act="doPrintP">印刷する(A4縦)</button>
       ${mode!=='blank'?`<button class="btn" data-act="${mode==='full'?'previewForm':'previewFull'}">${mode==='full'?'記入用紙に切替':'測定値入りに切替'}</button>`:''}
       <span class="note">${pages.length}枚。印刷画面で「用紙:A4」「横」「余白なし」(または既定)を選んでください。PDF保存も印刷画面から。</span>
     </div>
@@ -607,6 +608,10 @@ function blockHTML(r,mode){
 }
 
 /* ========== イベント ========== */
+// 用紙の向き(A4縦のときは横向きの用紙を縮小して上に置く)
+function setPortrait(on){document.documentElement.classList.toggle('pp',on);let st=document.getElementById('ppst');
+  if(on&&!st){st=document.createElement('style');st.id='ppst';st.textContent='@page{size:A4 portrait;margin:0}';document.head.appendChild(st)}
+  if(!on&&st)st.remove()}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;
   const a=b.dataset.act,p=proj();
@@ -633,7 +638,7 @@ document.addEventListener('click',e=>{
     case 'previewForm':go({name:'preview',pid:view.pid,mode:'form'});break;
     case 'previewPanel':go({name:'preview',pid:view.pid,mode:'full',panel:b.dataset.panel});break;
     case 'blankPrint':go({name:'preview',mode:'blank'});break;
-    case 'doPrint':{const el=$('#pages');const z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
+    case 'doPrint':case 'doPrintP':{setPortrait(a==='doPrintP');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
     case 'openModels':go({name:'models'});break;
     case 'openSettings':go({name:'settings'});break;
     case 'resetSettings':state.settings={...DEF_SET};save();render();toast('初期値に戻しました');break;
