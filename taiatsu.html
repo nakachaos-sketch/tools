@@ -208,7 +208,9 @@ const APP={
         <div class="note">試験電圧は最大使用電圧の1.5倍(6.6kV系:6900V×1.5=10350V)。</div></div>
       <div class="card"><h2>ケーブル(用紙の下に表で出ます)</h2>
         ${t('cable.label','名称','例) 引込用 高圧ケーブル')}
-        <div class="g4">${t('cable.type','種類','例) 6kV CVT 38sq')}${t('cable.len','亘長(m)','',1)}${t('cable.maker','製造者名')}${t('cable.year','製造年','',1)}</div>
+        <div class="g2"><label>種類${sel('data-fr="cable.kind"',(r.cable||{}).kind||'',['',...CAB_KINDS,'その他'],['選択',...CAB_KINDS,'その他(手入力)'])}</label><label>太さ(sq)${sel('data-fr="cable.sq"',(r.cable||{}).sq||'',['',...Object.keys(CAP_OLD)],['選択',...Object.keys(CAP_OLD).map(x=>x+' sq')])}</label></div>
+        ${(r.cable||{}).kind==='その他'?t('cable.other','種類(手入力)','例) 6kV EM-CET'):''}<div class="g3">${t('cable.len','亘長(m)','',1)}${t('cable.maker','製造者名')}${t('cable.year','製造年','',1)}</div>
+        ${!(r.cable||{}).kind&&!(r.cable||{}).sq&&(r.cable||{}).type?`<div class="note">前に入力した種類: ${esc(r.cable.type)}(種類と太さを選ぶと置き換わります)</div>`:''}
         <div class="g3">${t('cable.cap','静電容量(μF/km・1相)',capAuto(r)?capAuto(r)+' (自動)':'太さから自動',1)}<label>周波数(Hz)${sel('data-fr="freq"',r.freq||'50',['50','60'])}</label><div class="rg" id="calcI" style="align-self:end"></div></div>
         <div class="note">漏洩電流の目安=三線一括の充電電流(I=2πfCV、旧JIS C 3606-1971 の静電容量)。測定値が計算値(ケーブル+機器)より10%以上多いとき、または1回目の値より10%以上増えたときは赤字・「要確認」になります。ケーブルがない回路は空欄のままにしてください。</div></div>
     </div>
@@ -222,7 +224,7 @@ const APP={
       <div id="kitJ"></div>
       <div class="note">試験器・リアクトルの一覧は、耐圧試験計算ツールの「手持ちの試験器」で登録したものを使います。<a href="./index.html" target="_blank">耐圧試験計算ツールを開く</a></div></div>`;
   },
-  updInd(r){if(!r)return;const L=lkChk(r);r.rows.forEach((x,i)=>{const f=document.getElementById('f-lk-'+i);if(f){const o=L.ok[i];f.classList.toggle('ok',o===true);f.classList.toggle('ng',o===false)}});
+  updInd(r){if(!r)return;cabCompose(r);const L=lkChk(r);r.rows.forEach((x,i)=>{const f=document.getElementById('f-lk-'+i);if(f){const o=L.ok[i];f.classList.toggle('ok',o===true);f.classList.toggle('ng',o===false)}});
     const ci=document.getElementById('calcI');if(ci)ci.innerHTML=isFinite(L.calc)?`充電電流(計算) <b>${L.calc.toFixed(0)} mA</b>${L.eq>0?`<br><small>ケーブル ${isFinite(L.cab)?L.cab.toFixed(0):0} + 機器 ${L.eq.toFixed(0)}</small>`:''}<br>上限(+10%) ${L.lim.toFixed(0)} mA`:'計算できません(太さ・亘長・試験電圧)';
     const kj=document.getElementById('kitJ');if(kj)kj.innerHTML=kitHTML(r,L);
     const k=irChk(r);[['irB',k.b],['irA',k.a]].forEach(([id,ok])=>{const f=document.getElementById('f-'+id);if(f){f.classList.toggle('ok',ok===true);f.classList.toggle('ng',ok===false)}});
@@ -269,7 +271,9 @@ function irChk(r){const m=num(r.irMin),min=isFinite(m)?m:irMinAuto(r);const c=x=
 
 // 旧JIS C 3606-1971 の静電容量(μF/km・1相) ※耐圧試験計算ツールと同じ
 const CAP_OLD={14:0.16,22:0.19,38:0.22,60:0.26,100:0.32,150:0.38,200:0.39,250:0.41,325:0.45};
-function capAuto(r){const m=String((r.cable||{}).type||'').match(/(\d+)\s*(sq|mm)/i);return m&&CAP_OLD[+m[1]]?CAP_OLD[+m[1]]:null}
+const CAB_KINDS=['6kV CVT','6kV CV-3C','6kV CV(単心)','耐火 6kV FP-CVT'];
+function cabCompose(r){const c=r.cable;if(!c||!(c.kind||c.sq))return;const k=c.kind==='その他'?(c.other||''):(c.kind||'');const t=[k,c.sq?c.sq+'sq':''].filter(Boolean).join(' ');if(c.type!==t){c.type=t;save()}}
+function capAuto(r){const c=r.cable||{};if(CAP_OLD[+c.sq])return CAP_OLD[+c.sq];const m=String(c.type||'').normalize('NFKC').match(/(\d+)\s*(sq|mm|ｓｑ)/i);return m&&CAP_OLD[+m[1]]?CAP_OLD[+m[1]]:null}
 // 機器の充電電流(mA, 10350V のとき) ※耐圧試験計算ツール(index.html)と同じ値
 const EQ={tr1:{n:'単相変圧器',u:'kVA',t:{10:3.3,20:3.8,30:10.8,50:12.2,75:16.5,100:13.2,150:14.6,200:14.1,300:16.5,500:16.4}},
   tr3:{n:'三相変圧器',u:'kVA',t:{10:11.3,20:12.7,30:16.9,50:17.4,75:17.9,100:19.7,150:19.7,200:19.7,300:13.6,500:17.9}},
