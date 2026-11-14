@@ -227,6 +227,18 @@ table.s.dt th{line-height:1.15}
 .sheet.p .s-panel{font-size:17pt;min-width:55mm}
 .sheet.p table.s td.jg{font-size:16pt}
 table.s.eq td.eqg{height:23mm}
+.sub{border-top:1px dashed var(--line);padding-top:6px;margin-top:4px;display:flex;flex-direction:column;gap:4px}
+.sub>b{font-size:13px;color:var(--accent)}
+.pvw{font-size:13px;color:var(--sub);background:#f4f7fa;border-radius:4px;padding:3px 8px}
+.sldtools{display:flex;flex-wrap:wrap;gap:4px}
+.sldtools button{display:flex;align-items:center;gap:3px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 7px;font-size:12px;cursor:pointer;color:var(--ink);font-family:inherit}
+.sldtools button.on{background:#e7f1fb;border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.sldprop{display:flex;flex-wrap:wrap;gap:8px;align-items:end;min-height:38px;background:#f4f7fa;border-radius:6px;padding:6px 8px}
+.sldprop label{display:flex;flex-direction:column;font-size:11px;color:var(--sub)}
+.sldprop input{width:200px}
+.sldwrap{border:1px solid var(--line);border-radius:6px;overflow:auto;background:#fff;touch-action:none}
+.sldwrap svg{display:block;width:100%;max-width:900px;margin:0 auto;height:auto;user-select:none;-webkit-user-select:none}
+.ovd svg.sldsvg{width:100%;height:100%}
 
 </style>
 </head>
@@ -248,6 +260,12 @@ const APPS=[
 const REPORT_ITEMS=['引込高圧開閉器 動作試験','過電流継電器 動作試験','方向地絡継電器 動作試験','高圧機器 汚れ','高圧開閉器 操作機構','高圧絶縁抵抗 測定','高圧ケーブル 絶縁診断','接地抵抗 測定','接地線 布設状況','配分電盤 表示灯','配分電盤接続端子 締付','計器類','低圧絶縁抵抗 測定','低圧ブレーカー 動作','漏電ブレーカー 動作','高圧ヒューズ 予備','ディスコン棒','高圧ケーブル 埋設表示','危険標識','消火器','キュービクル 外観'];
 const REPORT_DEF=['良','良','良','良','良','良','良','良','良','良','良','良','良','良','良','有','有','有','有','有','良'];
 const BRK_A=['15','20','30','40','50','60','75','100','125','150','175','200','225','250','300','350','400','500','600','700','800','1000','1200'];
+const CB_T=['VCB','LBS'],CB_V=['7.2kV'],CB_A={VCB:['400A','600A','630A','1250A'],LBS:['200A','300A','400A']},CB_KA=['8kA','12.5kA','16kA','20kA'],PF_A=['3A','5A','10A','15A','20A','30A','40A','50A','60A','75A','100A','125A'];
+const CA_K=['6kV CVT','6kV CV-3C','6kV CV(単心)','耐火 6kV FP-CVT','6kV EM-CET'],CA_S=['14','22','38','60','100','150','200','250','325'];
+const RLY=['SOG','GR','OCR','DGR','UVR','OVR','OVGR','RPR','UFR','OFR','RPWR'];
+function cbText(o){if(!o.cbT)return o.cb||'';const a=[o.cbV,o.cbA,o.cbT==='VCB'?o.cbKA:''].filter(Boolean).join('・');return `${o.cbT}${a?` [ ${a} ]`:''}${o.cbT==='LBS'&&o.pf?`・PF ${o.pf}`:''}`}
+function caText(o){if(!o.caK&&!o.caS)return o.cable||'';return `${o.caK||''}${o.caS?(o.caK?'-':'')+o.caS+'sq':''}${o.caL?'・'+o.caL+'m':''}`}
+function rlText(o){const a=(o.rl||[]).slice();if(o.rlx)a.push(o.rlx);return a.length?a.join('・'):(o.relays||'')}
 const CRIT={hv:'高圧電路 6MΩ以上\n(6kV回路の参考値)',lv:'対地電圧150V以下 0.1MΩ以上\n300V以下 0.2MΩ以上\n300V超 0.4MΩ以上 (電技第58条)'};
 function brkText(r){return r.bt||r.bp||r.ba?[r.bt,r.bp?r.bp+(r.ba?r.ba+'A':''):(r.ba?r.ba+'A':'')].filter(Boolean).join(' '):(r.brk||'')}
 const EQ_MAKERS=['戸上電機製作所','三菱電機','東芝産業機器システム','富士電機','日立産機システム','明電舎','日新電機','光商工','エナジーサポート','ダイヘン','愛知電機','北芝電機','東光高岳','寺田電機製作所','河村電器産業','指月電機製作所','ニチコン','岡谷電機産業','音羽電機工業','正興電機製作所'];
@@ -313,6 +331,7 @@ function render(){
   else if(view.name==='pv')a.innerHTML=pvHTML();
   else{view={name:'home'};a.innerHTML=homeHTML()}
   if(view.name==='pv')fit();
+  if(view.name==='site'&&view.tab==='sld')sldBind();
 }
 function homeHTML(){
   const L=state.sites.slice().sort((a,b)=>a.name.localeCompare(b.name,'ja'));
@@ -339,11 +358,22 @@ function siteHTML(){
       <div class="g3">${inp(o+'recvKVA','受電設備容量(kVA)','',{dec:1})}${inp(o+'recvV','受電電圧(V)','',{dec:1})}${inp(o+'isc','三相短絡電流(kA)','',{dec:1})}</div>
       <div class="g3">${inp(o+'genKVA','発電設備容量(kVA)','',{ph:'なしは空欄'})}${inp(o+'genV','発電電圧(V)')}${inp(o+'sub','供給変電所','',{ph:'例) 駒形'})}</div>
       <div class="g3">${inp(o+'feeder','供給配電線','',{ph:'例) 富田'})}${inp(o+'tap','変圧器電圧タップ','',{ph:'例) (力)6450V・(灯)6600V'})}${inp(o+'recvDate','受電年月日','',{type:'date'})}</div>
-      ${inp(o+'cb','受電用遮断器','',{ph:'例) VCB [ 7.2kV・600A・12.5kA ]'})}${inp(o+'cable','引込ケーブル','',{ph:'例) 耐火6kV FPT-150sq・15m'})}${inp(o+'relays','保護継電器','',{ph:'例) SOG・OCR・DGR'})}</div>
-    <div class="card"><h2>引込系統図(画像)</h2>
+      <div class="sub"><b>受電用遮断器</b>
+        <div class="g4"><label>種類${sel(`data-fr="${o}cbT"`,s.ov.cbT||'',['',...CB_T],['選択',...CB_T])}</label><label>定格電圧${sel(`data-fr="${o}cbV"`,s.ov.cbV||'',['',...CB_V])}</label><label>定格電流${sel(`data-fr="${o}cbA"`,s.ov.cbA||'',['',...(CB_A[s.ov.cbT]||CB_A.VCB)])}</label>${s.ov.cbT==='LBS'?`<label>PF${sel(`data-fr="${o}pf"`,s.ov.pf||'',['',...PF_A])}</label>`:`<label>遮断電流${sel(`data-fr="${o}cbKA"`,s.ov.cbKA||'',['',...CB_KA])}</label>`}</div>
+        <div class="pvw">印刷:${esc(cbText(s.ov))||'—'}</div></div>
+      <div class="sub"><b>引込ケーブル</b>
+        <div class="g3"><label>種類${sel(`data-fr="${o}caK"`,s.ov.caK||'',['',...CA_K],['選択',...CA_K])}</label><label>太さ(sq)${sel(`data-fr="${o}caS"`,s.ov.caS||'',['',...CA_S],['選択',...CA_S.map(x=>x+' sq')])}</label>${inp(o+'caL','長さ(m)','',{dec:1})}</div>
+        <div class="pvw" id="pv-ca">印刷:${esc(caText(s.ov))||'—'}</div></div>
+      <div class="sub"><b>保護継電器</b>
+        <div class="chk">${RLY.map(r=>`<label class="sw"><input type="checkbox" data-rl="${r}" ${(s.ov.rl||[]).includes(r)?'checked':''}><span>${r}</span></label>`).join('')}</div>
+        ${inp(o+'rlx','その他(手入力)','',{ph:'例) 地絡方向継電器付PAS'})}
+        <div class="pvw" id="pv-rl">印刷:${esc(rlText(s.ov))||'—'}</div></div>
+      ${(s.ov.cb&&!s.ov.cbT)||(s.ov.cable&&!s.ov.caK&&!s.ov.caS)||(s.ov.relays&&!(s.ov.rl||[]).length)?`<div class="note">前に手入力した内容: ${esc([s.ov.cb,s.ov.cable,s.ov.relays].filter(Boolean).join(' / '))}(選び直すと置き換わります)</div>`:''}</div>
+    <div class="card"><h2>引込系統図(画像)</h2><div class="note">「系統図」タブのエディターで描くこともできます(描いた図があれば、そちらを印刷します)。</div>
       ${s.diagImg?`<img src="${s.diagImg}" style="max-width:100%;max-height:360px;object-fit:contain;border:1px solid var(--line)">`:'<div class="note">系統図の写真やスキャン画像を入れると、概要の用紙に印刷されます。</div>'}
       <div class="btns"><button class="btn" data-act="pickImg">${s.diagImg?'画像を入れ替える':'画像を選ぶ'}</button>${s.diagImg?'<button class="btn danger" data-act="delImg">画像を消す</button>':''}</div></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="ov">概要を印刷</button></div>`}
+  else if(tab==='sld'){body=sldEditorHTML(s)}
   else if(tab==='eq'){
     body=`<div class="card"><h2>高圧機器表</h2>
       ${s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv"><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
@@ -363,8 +393,8 @@ function siteHTML(){
     <div class="note">新しく作ると、前回の記録から回路名・計器を写します(測定値は空)。</div>
     <div class="list">${L.map(i=>`<button class="item" data-act="openInsp" data-id="${i.id}"><div class="t"><b>${fmtDate(i.date)||'日付未入力'} ${KIND[i.kind]}</b><span>${['earth','hv','lv'].map(k=>i[k].secs.length?{earth:'接地',hv:'高圧絶縁',lv:'低圧絶縁'}[k]:'').filter(Boolean).join('・')}${Object.keys(i.links||{}).length?' ・ 成績表 '+Object.keys(i.links).length+'件':''}</span></div><span class="badge ${i.kind==='shunko'?'b-ok':'b-none'}">${KIND[i.kind]}</span></button>`).join('')||'<div class="empty">点検記録がありません。</div>'}</div>`}
   return `${bar(s.name,'toHome')}
-  <div class="wrap narrow">
-    ${tabs(tab,[['insp','点検記録'],['ov','設備概要'],['eq','高圧機器表'],['hogo','保護協調']])}
+  <div class="wrap ${tab==='sld'?'':'narrow'}">
+    ${tabs(tab,[['insp','点検記録'],['ov','設備概要'],['sld','系統図'],['eq','高圧機器表'],['hogo','保護協調']])}
     ${body}
     <div class="card"><h2>この事業場のバックアップ</h2><div class="btns"><button class="btn" data-act="exportSite">この事業場を保存</button><button class="btn danger" data-act="delSite">この事業場を削除</button></div>
       <div class="note">点検記録・各成績表(OCR・DGR など)・保護協調を1つのファイルにまとめて保存します。保存先は選べます(Box なども可)。</div></div>
@@ -459,10 +489,10 @@ function docOv(s){const o=s.ov,m=meBlock(),d=v=>esc(v||'－');
     <table class="s ov"><colgroup><col style="width:17%"><col style="width:17%"><col style="width:15%"><col style="width:17%"><col style="width:15%"><col></colgroup>
       <tr><th>受電設備容量</th><td>${o.recvKVA?esc(o.recvKVA)+' kVA':'－'}</td><th>受電電圧</th><td>${o.recvV?esc(o.recvV)+' V':'－'}</td><th>三相短絡電流</th><td>${o.isc?esc(o.isc)+' kA':'－'}</td></tr>
       <tr><th>発電設備容量</th><td>${o.genKVA?esc(o.genKVA)+' kVA':'－'}</td><th>発電電圧</th><td>${o.genV?esc(o.genV)+' V':'－'}</td><th>供給変電所</th><td>${o.sub?esc(o.sub)+' 変電所':'－'}</td></tr>
-      <tr><th>受電用遮断器</th><td colspan="3" class="l">${d(o.cb)}</td><th>供給配電線</th><td>${o.feeder?esc(o.feeder)+' 線':'－'}</td></tr>
-      <tr><th>引込ケーブル</th><td colspan="3" class="l">${d(o.cable)}</td><th>変圧器電圧タップ</th><td class="sm">${d(o.tap)}</td></tr>
-      <tr><th>保護継電器</th><td colspan="3" class="l">${d(o.relays)}</td><th>受電年月日</th><td>${o.recvDate?fmtDate(o.recvDate):'－'}</td></tr></table>
-    <div class="ovd"><div class="ovd-t">引込系統図</div>${s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
+      <tr><th>受電用遮断器</th><td colspan="3" class="l">${d(cbText(o))}</td><th>供給配電線</th><td>${o.feeder?esc(o.feeder)+' 線':'－'}</td></tr>
+      <tr><th>引込ケーブル</th><td colspan="3" class="l">${d(caText(o))}</td><th>変圧器電圧タップ</th><td class="sm">${d(o.tap)}</td></tr>
+      <tr><th>保護継電器</th><td colspan="3" class="l">${d(rlText(o))}</td><th>受電年月日</th><td>${o.recvDate?fmtDate(o.recvDate):'－'}</td></tr></table>
+    <div class="ovd"><div class="ovd-t">引込系統図</div>${(s.sld&&(s.sld.items.length||s.sld.wires.length))?sldSVG(s,false):s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
 function docEq(s){const units=e=>2;const pages=[];let cur=[],u=0;const CAP=34;
   s.eqs.forEach(e=>{if(u+units(e)>CAP){pages.push(cur);cur=[];u=0}cur.push(e);u+=units(e)});if(cur.length||!pages.length)pages.push(cur);
   return pages.map((pg,pn)=>{let u=pg.length*2;const fill=[];while(u<CAP){fill.push('<tr><td rowspan="2"></td><td></td><td></td><td></td><td></td><td rowspan="2"></td></tr><tr><td></td><td></td><td></td><td></td></tr>');u+=2}
@@ -556,6 +586,7 @@ function hogoReg(s){let l=[];try{l=JSON.parse(localStorage.getItem('pcoord_sites
 function mvArr(a,k,d){const j=k+d;if(j<0||j>=a.length)return;[a[k],a[j]]=[a[j],a[k]]}
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,s=site(),i=insp();
+  if(a.startsWith('sld')){sldAct(a,b);return}
   switch(a){
     case 'toHome':go({name:'home'});break;
     case 'toSite':go({name:'site',sid:view.sid,tab:'insp'});break;
@@ -608,10 +639,12 @@ function onField(t){const p=t.dataset.f||t.dataset.fr;setPath(state,p,t.value);
   const m=p.match(/^(.*\.(earth|hv|lv)\.secs\.\d+\.rows\.\d+\.)/);if(m){const el=document.getElementById('j-'+m[1]);if(el)el.innerHTML=badge(JF[m[2]](getPath(state,m[1].slice(0,-1))))}
   if(/secs\.\d+\.name$/.test(p)){const h=document.getElementById('h-'+p.slice(0,-4));if(h)h.textContent=t.value||'(名前なし)'}
   if(p.endsWith('.name')&&view.name==='site'&&p.split('.').length===3){const h=$('.bar h1');if(h)h.textContent=t.value}
+  if(/\.ov\.(caL|rlx)$/.test(p)){const o=site().ov;const e1=document.getElementById('pv-ca'),e2=document.getElementById('pv-rl');if(e1)e1.textContent='印刷:'+(caText(o)||'—');if(e2)e2.textContent='印刷:'+(rlText(o)||'—')}
   if(t.dataset.fr)render()}
 document.addEventListener('input',e=>{const t=e.target;if(t.dataset.f&&t.tagName!=='SELECT')onField(t)});
 document.addEventListener('change',e=>{const t=e.target;
   if(t.dataset.fr||(t.dataset.f&&t.tagName==='SELECT'))onField(t);
+  if(t.dataset.rl){const o=site().ov;const a=new Set(o.rl||[]);t.checked?a.add(t.dataset.rl):a.delete(t.dataset.rl);o.rl=RLY.filter(x=>a.has(x));save();const e=document.getElementById('pv-rl');if(e)e.textContent='印刷:'+(rlText(o)||'—')}
   if(t.dataset.pk){state.pk=state.pk||{};state.pk[t.dataset.pk]=t.checked;save()}
   if(t.id==='imgFile'&&t.files[0]){const f=t.files[0];const img=new Image();const u=URL.createObjectURL(f);img.onload=()=>{const M=1600,r=Math.min(1,M/Math.max(img.width,img.height));
       const c=document.createElement('canvas');c.width=Math.round(img.width*r);c.height=Math.round(img.height*r);const g=c.getContext('2d');g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height);g.drawImage(img,0,0,c.width,c.height);
@@ -622,6 +655,118 @@ document.addEventListener('change',e=>{const t=e.target;
 (function(){const h=new URLSearchParams(location.hash.slice(1));const sid=h.get('s'),iid=h.get('i');
   if(sid&&state.sites.find(s=>s.id===sid))view=iid&&state.sites.find(s=>s.id===sid).insps.find(x=>x.id===iid)?{name:'insp',sid,iid,tab:'apps'}:{name:'site',sid,tab:'insp'}})();
 render();
+
+
+/* ===== 引込系統図エディター(単線結線図) ===== */
+const SU=20,SW=30,SH_=42; // 1マス=20px、横30×縦42マス
+const sL=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
+const SYM={
+  pas:{n:'PAS/UGS',lb:'PAS',d:()=>sL(0,-20,0,-11)+sL(0,11,0,20)+`<rect x="-11" y="-11" width="22" height="22"/>`+sL(0,8,-6,-7)+`<circle cx="0" cy="-8" r="2"/>`},
+  ds:{n:'断路器 DS',lb:'DS',d:()=>sL(0,-20,0,-8)+sL(0,8,0,20)+sL(0,8,-9,-6)+`<circle cx="0" cy="-8" r="2.5"/>`},
+  vcb:{n:'遮断器 VCB',lb:'VCB',d:()=>sL(0,-20,0,-8)+`<rect x="-8" y="-8" width="16" height="16"/>`+sL(0,8,0,20)},
+  lbs:{n:'負荷開閉器 LBS',lb:'LBS',d:()=>sL(0,-20,0,-8)+sL(0,8,0,20)+sL(0,8,-9,-6)+`<circle cx="0" cy="-8" r="3.5"/>`},
+  pf:{n:'ヒューズ PF',lb:'PF',d:()=>sL(0,-20,0,-11)+`<rect x="-5" y="-11" width="10" height="22"/>`+sL(0,-11,0,11)+sL(0,11,0,20)},
+  mccb:{n:'配線用遮断器',lb:'MCCB',d:()=>sL(0,-20,0,-8)+sL(0,8,0,20)+sL(0,8,-9,-6)+`<path d="M-3 -11 h6 v6 h-6z"/>`},
+  ct:{n:'変流器 CT',lb:'CT',d:()=>sL(0,-20,0,20)+`<circle cx="0" cy="0" r="7"/>`},
+  zct:{n:'零相変流器 ZCT',lb:'ZCT',d:()=>sL(0,-20,0,20)+`<ellipse cx="0" cy="0" rx="12" ry="5"/>`},
+  tr:{n:'変圧器 TR',lb:'TR',d:()=>sL(0,-20,0,-15)+`<circle cx="0" cy="-6" r="9"/><circle cx="0" cy="6" r="9"/>`+sL(0,15,0,20)},
+  vt:{n:'計器用変圧器 VT',lb:'VT',t1:1,d:()=>sL(0,-20,0,-13)+`<circle cx="0" cy="-5" r="8"/><circle cx="0" cy="7" r="8"/>`},
+  sc:{n:'コンデンサ SC',lb:'SC',d:()=>sL(0,-20,0,-3)+sL(-11,-3,11,-3)+sL(-11,3,11,3)+sL(0,3,0,20)},
+  sr:{n:'リアクトル SR',lb:'SR',d:()=>sL(0,-20,0,-12)+`<path d="M0 -12 a4 4 0 0 1 0 8 a4 4 0 0 1 0 8 a4 4 0 0 1 0 8"/>`+sL(0,12,0,20)},
+  la:{n:'避雷器 LA',lb:'LA',t1:1,d:()=>sL(0,-20,0,-10)+`<rect x="-6" y="-10" width="12" height="16"/>`+`<path d="M0 -7 v9 M-3 -1 l3 4 l3 -4"/>`+sL(0,6,0,12)+sL(-9,12,9,12)+sL(-6,16,6,16)+sL(-3,20,3,20)},
+  gnd:{n:'接地',lb:'',t1:1,d:()=>sL(0,-20,0,-4)+sL(-10,-4,10,-4)+sL(-6,1,6,1)+sL(-2,6,2,6)},
+  gen:{n:'発電機',lb:'',d:()=>sL(0,-20,0,-11)+`<circle cx="0" cy="0" r="11"/><text x="0" y="5" text-anchor="middle" font-size="14" stroke="none" fill="#000">G</text>`},
+  box:{n:'文字の箱(リレー等)',lb:'OCR',box:1,d:it=>{const k=boxK(it);return `<rect x="${-k*SU}" y="-11" width="${2*k*SU}" height="22" class="fillw"/>`}},
+  text:{n:'文字',lb:'文字',txt:1,d:()=>''},
+  dot:{n:'接続点',lb:'',t0:1,d:()=>`<circle cx="0" cy="0" r="3.5" class="fillb"/>`},
+};
+function boxK(it){const t=String(it&&it.lb!=null?it.lb:'OCR');let w=0;for(const c of t)w+=c.charCodeAt(0)<256?8:13;return Math.max(1,Math.ceil((w+10)/(2*SU)))}
+const SLD_TOOLS=[['sel','選択・移動'],['wire','線'],['bus','太線(母線)'],...Object.keys(SYM).map(k=>[k,SYM[k].n])];
+let sldT='sel',sldSel=null,sldWs=null,sldDrag=null,sldHist=[],sldHov=null;
+function sldData(s){s=s||site();s.sld=s.sld||{items:[],wires:[]};return s.sld}
+function sldTerms(it){const S=SYM[it.t];if(S&&S.box){const k=boxK(it);return [[it.x-k,it.y],[it.x+k,it.y],[it.x,it.y]]}if(!S||S.txt)return [[it.x,it.y]];if(S.t0)return [[it.x,it.y]];const ts=S.t1?[[0,-1]]:[[0,-1],[0,1]];
+  return ts.map(([a,b])=>it.r?[it.x+b,it.y-a]:[it.x+a,it.y+b]).concat([[it.x,it.y]])}
+function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const lb=it.lb!=null?it.lb:S.lb;
+  let g=`<g class="sym" transform="translate(${it.x*SU},${it.y*SU})${it.r&&!S.box&&!S.txt?' rotate(-90)':''}">${S.d(it)}</g>`;
+  let t='';
+  if(S.box)t=`<text x="${it.x*SU}" y="${it.y*SU+5}" text-anchor="middle" font-size="13">${esc(lb)}</text>`;
+  else if(S.txt)t=`<text x="${it.x*SU}" y="${it.y*SU+5}" text-anchor="middle" font-size="14">${esc(lb)}</text>`;
+  else if(lb)t=it.r?`<text x="${it.x*SU}" y="${it.y*SU-15}" text-anchor="middle" font-size="12">${esc(lb)}</text>`:it.lp?`<text x="${it.x*SU-15}" y="${it.y*SU+4}" text-anchor="end" font-size="12">${esc(lb)}</text>`:`<text x="${it.x*SU+15}" y="${it.y*SU+4}" font-size="12">${esc(lb)}</text>`;
+  const bk=S.box?boxK(it)*SU:0;const hit=ed?`<rect class="hit" x="${it.x*SU-(S.box?bk+2:16)}" y="${it.y*SU-(S.box||S.txt?13:20)}" width="${S.box?2*bk+4:32}" height="${S.box||S.txt?26:40}" data-id="${it.id}"/>`:'';
+  return `<g class="it${ed&&sldSel===it.id?' on':''}">${g}${t}${hit}</g>`}
+function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.b[1]*SU}`;
+  return `<path d="${d}" class="wr${w.w===2?' bus':''}${ed&&sldSel===w.id?' on':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
+function sldSVG(s,ed){const D=sldData(s);
+  let vb=`0 0 ${SW*SU} ${SH_*SU}`;
+  if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const bk=SYM[it.t]&&SYM[it.t].box?boxK(it):0;xs.push(it.x-(bk?bk+.2:it.lp?3.5:1.6),it.x+(bk?bk+.2:it.lp?1.6:3));ys.push(it.y-1.2,it.y+1.2)});D.wires.forEach(w=>{xs.push(w.a[0],w.b[0]);ys.push(w.a[1],w.b[1])});
+    if(xs.length){const x0=Math.min(...xs)-.5,x1=Math.max(...xs)+.5,y0=Math.min(...ys)-.5,y1=Math.max(...ys)+.5;vb=`${x0*SU} ${y0*SU} ${(x1-x0)*SU} ${(y1-y0)*SU}`}}
+  let grid='';if(ed){for(let y=0;y<=SH_;y++)grid+=`<path d="M0 ${y*SU} H${SW*SU}" class="gl${y%5?'':' g5'}"/>`;for(let x=0;x<=SW;x++)grid+=`<path d="M${x*SU} 0 V${SH_*SU}" class="gl${x%5?'':' g5'}"/>`}
+  const pre=ed&&sldWs&&sldHov?`<path d="M${sldWs[0]*SU} ${sldWs[1]*SU} L${sldHov[0]*SU} ${sldHov[1]*SU}" class="wr pre${sldT==='bus'?' bus':''}"/>`:'';
+  const st=ed&&sldWs?`<circle cx="${sldWs[0]*SU}" cy="${sldWs[1]*SU}" r="5" class="stp"/>`:'';
+  return `<svg ${ed?'id="sld" ':''}class="sldsvg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" font-family="sans-serif">
+    <style>.sym{fill:none;stroke:#000;stroke-width:1.8}.sym .fillw{fill:#fff}.sym .fillb{fill:#000}.wr{stroke:#000;stroke-width:1.8;fill:none}.wr.bus{stroke-width:5}.wr.on,.it.on .sym{stroke:#d9480f}.it.on text{fill:#d9480f}.wr.pre{stroke:#1c7ed6;stroke-dasharray:6 4}.whit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}.hit{fill:transparent;cursor:move}.gl{stroke:#e8edf2;stroke-width:1}.gl.g5{stroke:#cfd8e2}.stp{fill:#1c7ed6}text{fill:#000}</style>
+    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>sldItemSVG(it,ed)).join('')}${pre}${st}</svg>`}
+function sldEditorHTML(s){const D=sldData(s);const it=D.items.find(x=>x.id===sldSel),w=D.wires.find(x=>x.id===sldSel);
+  return `<div class="card sldc"><h2>引込系統図エディター</h2>
+    <div class="note">① 上の部品を選んで、方眼をタップすると置けます。② 「線」を選んで、始まりと終わりの点を順にタップ(続けて次の点をタップすると折れ線、同じ点をもう一度タップで終わり)。③ 「選択・移動」で部品をドラッグして移動、タップで選ぶと名前や向きを変えられます。</div>
+    <div class="sldtools">${SLD_TOOLS.map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}">${k in SYM?`<svg viewBox="-24 -22 48 44" width="26" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({})}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="5" text-anchor="middle" font-size="16">A</text>':''}</svg>`:''}<span>${n}</span></button>`).join('')}</div>
+    <div class="sldprop">${it?`<b>${SYM[it.t].n}</b><label>名前<input id="sldLb" value="${esc(it.lb!=null?it.lb:SYM[it.t].lb)}"></label>${SYM[it.t].box||SYM[it.t].txt||SYM[it.t].t0?'':`<button class="btn small" data-act="sldRot">向き(${it.r?'横':'縦'})</button>${it.r?'':`<button class="btn small" data-act="sldLp">名前を${it.lp?'右':'左'}へ</button>`}`}<button class="btn small danger" data-act="sldDel">削除</button>`
+      :w?`<b>線</b><button class="btn small" data-act="sldBold">${w.w===2?'細くする':'太くする(母線)'}</button><button class="btn small danger" data-act="sldDel">削除</button>`
+      :`<span class="note">${sldWs?'線を描いています。終わるときは同じ点をもう一度タップ、または「線を終わる」。':'部品や線をタップすると、ここで名前・向き・削除ができます。'}</span>${sldWs?'<button class="btn small" data-act="sldEnd">線を終わる</button>':''}`}</div>
+    <div class="sldwrap">${sldSVG(s,true)}</div>
+    <div class="btns"><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldTpl">ひな形を入れる</button><button class="btn small danger" data-act="sldClear">全部消す</button><button class="btn main" data-act="pv" data-docs="ov">概要と系統図を印刷</button></div>
+    <div class="note">描いた系統図は、設備概要の用紙に印刷されます(画像を入れている場合も、こちらが優先)。</div></div>`}
+function sldPush(){sldHist.push(JSON.stringify(sldData()));if(sldHist.length>40)sldHist.shift()}
+function sldRedraw(){const w=document.querySelector('.sldwrap');if(w)w.innerHTML=sldSVG(site(),true);sldBind()}
+function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;const y=window.scrollY;c.outerHTML=sldEditorHTML(site());window.scrollTo(0,y);sldBind()}
+function sldPt(e){const sv=document.getElementById('sld');const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(sv.getScreenCTM().inverse());
+  return [Math.max(0,Math.min(SW,Math.round(q.x/SU))),Math.max(0,Math.min(SH_,Math.round(q.y/SU)))]}
+function sldBind(){const sv=document.getElementById('sld');if(!sv||sv.dataset.b)return;sv.dataset.b=1;
+  sv.addEventListener('pointerdown',e=>{const D=sldData();const p=sldPt(e);const tg=e.target.closest('[data-id]');
+    if(sldT==='sel'){
+      if(tg){sldSel=tg.dataset.id;const it=D.items.find(x=>x.id===sldSel);
+        if(it){const ts=sldTerms(it).map(t=>t.join(','));const att=[];D.wires.forEach(w=>{if(ts.includes(w.a.join(',')))att.push([w,'a',w.a.slice()]);if(ts.includes(w.b.join(',')))att.push([w,'b',w.b.slice()])});
+          sldDrag={it,p0:p,x0:it.x,y0:it.y,att,moved:false,snap:JSON.stringify(D)};sv.setPointerCapture(e.pointerId)}}
+      else sldSel=null;sldRefresh();return}
+    if(sldT==='wire'||sldT==='bus'){
+      if(!sldWs){sldWs=p;sldHov=p;sldRefresh();return}
+      let b=Math.abs(p[0]-sldWs[0])>=Math.abs(p[1]-sldWs[1])?[p[0],sldWs[1]]:[sldWs[0],p[1]];
+      if(b[0]===sldWs[0]&&b[1]===sldWs[1]){sldWs=null;sldHov=null;sldRefresh();return}
+      sldPush();D.wires.push({id:uid(),a:sldWs,b,w:sldT==='bus'?2:1});sldWs=b;save();sldRefresh();return}
+    if(SYM[sldT]){sldPush();const it={id:uid(),t:sldT,x:p[0],y:p[1],r:0};D.items.push(it);sldSel=it.id;sldT='sel';save();sldRefresh()}
+  });
+  sv.addEventListener('pointermove',e=>{
+    if(sldDrag){const p=sldPt(e);const dx=p[0]-sldDrag.p0[0],dy=p[1]-sldDrag.p0[1];if(!dx&&!dy&&!sldDrag.moved)return;
+      sldDrag.moved=true;sldDrag.it.x=sldDrag.x0+dx;sldDrag.it.y=sldDrag.y0+dy;sldDrag.att.forEach(([w,k,o])=>{w[k]=[o[0]+dx,o[1]+dy]});sldRedraw();return}
+    if(sldWs){const p=sldPt(e);const b=Math.abs(p[0]-sldWs[0])>=Math.abs(p[1]-sldWs[1])?[p[0],sldWs[1]]:[sldWs[0],p[1]];
+      if(!sldHov||b[0]!==sldHov[0]||b[1]!==sldHov[1]){sldHov=b;sldRedraw()}}});
+  const up=()=>{if(sldDrag){if(sldDrag.moved){sldHist.push(sldDrag.snap);save()}sldDrag=null}};
+  sv.addEventListener('pointerup',up);sv.addEventListener('pointercancel',up);
+}
+document.addEventListener('keydown',e=>{if(view.name!=='site'||view.tab!=='sld')return;if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if((e.key==='Delete'||e.key==='Backspace')&&sldSel){e.preventDefault();sldAct('sldDel')}if(e.key==='Escape'){sldWs=null;sldHov=null;sldRefresh()}
+  if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();sldAct('sldUndo')}});
+document.addEventListener('input',e=>{if(e.target.id==='sldLb'){const it=sldData().items.find(x=>x.id===sldSel);if(it){it.lb=e.target.value;save();sldRedraw()}}});
+function sldAct(a,b){const D=sldData();
+  if(a==='sldTool'){sldT=b.dataset.t;sldWs=null;sldHov=null;sldSel=null;sldRefresh();return}
+  if(a==='sldDel'){if(!sldSel)return;sldPush();D.items=D.items.filter(x=>x.id!==sldSel);D.wires=D.wires.filter(x=>x.id!==sldSel);sldSel=null;save();sldRefresh();return}
+  if(a==='sldRot'){const it=D.items.find(x=>x.id===sldSel);if(it){sldPush();it.r=it.r?0:1;save();sldRefresh()}return}
+  if(a==='sldLp'){const it=D.items.find(x=>x.id===sldSel);if(it){sldPush();it.lp=it.lp?0:1;save();sldRefresh()}return}
+  if(a==='sldBold'){const w=D.wires.find(x=>x.id===sldSel);if(w){sldPush();w.w=w.w===2?1:2;save();sldRefresh()}return}
+  if(a==='sldEnd'){sldWs=null;sldHov=null;sldRefresh();return}
+  if(a==='sldUndo'){const h=sldHist.pop();if(h){const o=JSON.parse(h);D.items=o.items;D.wires=o.wires;sldSel=null;save();sldRefresh()}return}
+  if(a==='sldClear'){if(confirm('系統図を全部消しますか?(「元に戻す」で戻せます)')){sldPush();D.items=[];D.wires=[];sldSel=null;save();sldRefresh()}return}
+  if(a==='sldTpl'){if((D.items.length||D.wires.length)&&!confirm('今の図を消して、ひな形を入れますか?(「元に戻す」で戻せます)'))return;sldPush();const T=sldTemplate();D.items=T.items;D.wires=T.wires;sldSel=null;save();sldRefresh();return}
+}
+function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb)=>I.push({id:uid(),t,x,y,r:0,...(lb!=null?{lb}:{})});const w=(a,b,c,d,bw)=>W.push({id:uid(),a:[a,b],b:[c,d],w:bw||1});
+  it('text',9,1,'電力会社 配電線');w(9,2,9,3);it('pas',9,4,'PAS (SOG)');
+  w(9,5,9,9);w(9,7,12,7);it('la',12,8,'LA');it('text',5,7,'引込ケーブル');
+  it('ds',9,10,'DS');w(9,11,9,12);it('vcb',9,13,'VCB');w(9,14,9,15);it('ct',9,16,'CT');I[I.length-1].lp=1;w(9,17,9,18);it('zct',9,19,'ZCT');I[I.length-1].lp=1;w(9,20,9,22);
+  w(9,16,14,16);it('box',15,16,'OCR');w(9,19,14,19);it('box',15,19,'DGR');
+  w(3,22,19,22,2);
+  [[4,'TR 1φ 75kVA'],[10,'TR 3φ 300kVA']].forEach(([x,lb])=>{w(x,22,x,23);it('lbs',x,24,'LBS');w(x,25,x,26);it('pf',x,27,'PF');w(x,28,x,29);it('tr',x,30,lb)});
+  w(17,22,17,23);it('lbs',17,24,'LBS');w(17,25,17,26);it('pf',17,27,'PF');w(17,28,17,29);it('sr',17,30,'SR');w(17,31,17,32);it('sc',17,33,'SC');
+  return {items:I,wires:W}}
 
 </script>
 </body>
