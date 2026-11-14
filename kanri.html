@@ -261,6 +261,12 @@ table.s.eq td.eqg{height:23mm}
   .sldprop{gap:4px;padding:4px 6px}.sldprop .grp{padding-right:4px}
 }
 @media (max-width:760px){.sldprop .btn.small{font-size:12px;padding:3px 7px}.cbtn{width:20px;height:20px}.sldprop .grp b{font-size:11px}}
+@media (max-width:760px){
+  body.sld-m .sldwrap{position:fixed;left:0;right:0;bottom:0;height:58vh;height:58dvh;z-index:20;border-radius:0;border:none;border-top:3px solid var(--accent);box-shadow:0 -2px 10px rgba(0,0,0,.18)}
+  body.sld-m{padding-bottom:60vh;padding-bottom:60dvh}
+  body.sld-m .kanri-back{display:none}
+}
+.ver{font-size:11px;color:var(--sub);text-align:center;margin:10px 0}
 
 </style>
 </head>
@@ -353,6 +359,7 @@ function render(){
   else if(view.name==='pv')a.innerHTML=pvHTML();
   else{view={name:'home'};a.innerHTML=homeHTML()}
   if(view.name==='pv')fit();
+  document.body.classList.toggle('sld-m',view.name==='site'&&view.tab==='sld');
   if(view.name==='site'&&view.tab==='sld')sldBind();
 }
 function homeHTML(){
@@ -369,7 +376,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  </div>`}
+  <div class="ver">版 2026-11-15 c</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
