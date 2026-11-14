@@ -224,7 +224,7 @@ function sample(){
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
-  s.projects=s.projects||[];
+  s.projects=(s.projects||[]).filter(projOK);
   s.projects.forEach(p=>p.relays.forEach(r=>{if(r.modelId==='togami-ltr-k-d'){r.modelId='togami-ltr-r-d';if(r.model==='LTR-K-D')r.model='LTR-R-D';r.listT='0.1,0.2,0.3,0.4,0.5'}}));s.print={ir:true,sw:true,so:true,sign:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}

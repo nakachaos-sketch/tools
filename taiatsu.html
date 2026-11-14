@@ -464,7 +464,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(APP.key)||'null')}catch(e){}
   if(!s)s={v:1,projects:[APP.sample()]};
-  s.projects=s.projects||[];s.print={sign:true,inst:true,...APP.printDefaults,...(s.print||{})};return s;
+  s.projects=(s.projects||[]).filter(projOK);s.print={sign:true,inst:true,...APP.printDefaults,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(APP.key,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 function num(v){if(v==null)return NaN;let s=String(v).replace(/[０-９．－＋]/g,c=>c==='．'?'.':c==='－'?'-':c==='＋'?'+':String.fromCharCode(c.charCodeAt(0)-0xFEE0)).replace(/[^0-9.+\-eE]/g,'').trim();if(s==='')return NaN;const n=Number(s);return isFinite(n)?n:NaN}

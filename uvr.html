@@ -206,7 +206,7 @@ function sample(){
 function load(){
   let s=null;try{s=JSON.parse(localStorage.getItem(LS_KEY)||'null')}catch(e){}
   if(!s)s={v:1,projects:[sample()]};
-  s.projects=s.projects||[];s.print={hdr:true,sign:true,lever:true,...(s.print||{})};return s;
+  s.projects=(s.projects||[]).filter(projOK);s.print={hdr:true,sign:true,lever:true,...(s.print||{})};return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした')}}
 

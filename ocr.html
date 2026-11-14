@@ -259,7 +259,7 @@ function load(){
   if(!s){s={v:1,projects:[sample()],models:[],settings:{...DEF_SET}}}
   s.settings={...DEF_SET,...(s.settings||{})};
   s.print={sign:true,...(s.print||{})};
-  s.models=s.models||[];s.projects=s.projects||[];
+  s.models=s.models||[];s.projects=(s.projects||[]).filter(projOK);
   return s;
 }
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state))}catch(e){toast('保存できませんでした(ブラウザの保存領域)')}}
