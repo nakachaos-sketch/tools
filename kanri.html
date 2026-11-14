@@ -813,7 +813,11 @@ function sldEditorHTML(s){sldData(s);
     <div class="note">記号は JIS C 0617(IEC 60617)の形にそろえています。描いた系統図は設備概要の用紙に印刷されます(画像より優先)。パソコンでは Delete で削除、Ctrl+C / Ctrl+V でコピー・貼り付け、Ctrl+Z で元に戻す。</div></div>`}
 function sldPush(){sldFut=[];sldHist.push(JSON.stringify(sldData()));if(sldHist.length>50)sldHist.shift()}
 function sldRedraw(){const w=document.querySelector('.sldwrap');if(w){w.querySelector('svg').outerHTML=sldSVG(site(),true)}sldBind()}
-function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;const y=window.scrollY;c.outerHTML=sldEditorHTML(site());window.scrollTo(0,y);sldBind()}
+function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;const y=window.scrollY;
+  const wr=c.querySelector('.sldwrap'),hd=c.querySelector('.sldhead');
+  if(wr&&hd){const tmp=document.createElement('div');tmp.innerHTML=sldEditorHTML(site());hd.replaceWith(tmp.querySelector('.sldhead'));sldRedraw();sldTitleRefresh()} // 図の枠はそのまま(拡大・スクロール位置を保つ)
+  else{c.outerHTML=sldEditorHTML(site());sldBind()}
+  window.scrollTo(0,y)}
 function sldPropRefresh(){const p=document.querySelector('.sldprop');if(p)p.outerHTML=sldPropHTML()}
 function sldPt(e,raw){const sv=document.getElementById('sld');const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(sv.getScreenCTM().inverse());
   if(raw)return [q.x/SU,q.y/SU];return [Math.max(0,Math.min(SW,Math.round(q.x/SU))),Math.max(0,Math.min(SH_,Math.round(q.y/SU)))]}
