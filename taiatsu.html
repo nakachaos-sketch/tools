@@ -359,13 +359,13 @@ function diagIPRrx(){
   s+=W('M40 350V375')+G(40,375);
   // リアクトル(2台目以降:点線)
   s+=box(130,80,120,120,1)+T(190,155,'2台目以降','text-anchor="middle" font-size="14"');
-  s+=W('M160 93V58H295L311 96',3,1)+W('M160 200V250H300L325 206',3,1)+W('M225 200V215',3,1)+G(225,215,1);
+  s+=W('M160 93V58H295L308 82.4',3,1)+W('M308 82.4L313.4 92.6')+W('M160 200V250H300L320.2 216.3',3,1)+W('M320.2 216.3L326.4 206')+W('M225 200V215',3,1)+G(225,215,1);
   s+=B(160,105)+C(160,200)+C(225,200);
   s+=box(300,80,130,120)+T(345,72,'リアクトル','font-size="17"')+T(365,162,'DR-1220M・1230M','text-anchor="middle" font-size="12"');
   s+=T(340,110,'12000V','font-size="13"')+T(318,192,'0','font-size="15"')+T(395,192,'⏚','font-size="15"');
   // 耐圧トランス
   s+=box(510,80,170,120)+T(560,72,'耐圧トランス','font-size="17"')+T(615,140,'R-1220・1230','text-anchor="middle" font-size="12"');
-  s+=T(570,110,'12000V','font-size="13"')+T(567,186,'120V','text-anchor="middle" font-size="13"')+T(650,186,'E','text-anchor="middle" font-size="13"');
+  s+=T(570,110,'12000V','font-size="13"')+T(555,186,'120V','text-anchor="middle" font-size="13"')+T(650,186,'E','text-anchor="middle" font-size="13"');
   // 高圧配線: トランス → リアクトル → ケーブル
   s+=W('M40 120V18H320V91',4)+W('M326 92L345 32H550V91',4);
   // 漏れ電流計(A2)
@@ -376,7 +376,7 @@ function diagIPRrx(){
   s+=T(625,328,'⏚','text-anchor="end" font-size="14"')+T(625,368,'TE','text-anchor="end" font-size="14"')+T(540,420,'PUN','text-anchor="middle" font-size="13"')+T(605,420,'120V','text-anchor="middle" font-size="13"');
   // 計器操作部・電源抵抗部(IP-R2,3形)
   s+=box(715,300,140,120)+T(785,440,'計器操作部','text-anchor="middle" font-size="15"');
-  s+=T(740,352,'EARTH','text-anchor="middle" font-size="12"')+T(790,352,'PUN','text-anchor="middle" font-size="12"')+T(832,372,'SC','text-anchor="middle" font-size="12"');
+  s+=T(740,343,'EARTH','text-anchor="middle" font-size="12"')+T(790,343,'PUN','text-anchor="middle" font-size="12"')+T(829,340,'SC','text-anchor="end" font-size="12"');
   s+=`<rect x="730" y="375" width="50" height="30" fill="none" stroke="#000" stroke-width="2"/><rect x="790" y="385" width="50" height="25" fill="none" stroke="#000" stroke-width="2"/>`;
   s+=box(880,300,110,120)+T(935,440,'電源抵抗部','text-anchor="middle" font-size="15"')+`<circle cx="940" cy="385" r="18" fill="none" stroke="#000" stroke-width="2"/>`;
   s+=T(930,505,'IP-R2,3形','text-anchor="middle" font-size="15"');
