@@ -252,6 +252,15 @@ table.s.eq td.eqg{height:23mm}
 .sldhead{position:sticky;top:49px;z-index:4;background:#fff;display:flex;flex-direction:column;gap:6px;padding:4px 0;border-bottom:1px solid var(--line)}
 .sldzoom{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .sldwrap{height:min(72vh,900px);overflow:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:760px){
+  .sldhead{position:static;border-bottom:none}
+  .sldtools{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .sldtools button{flex:none}
+  .sldzoom .note,.sldc>.note:first-of-type{display:none}
+  .sldwrap{height:62vh}
+  .sldprop{gap:4px;padding:4px 6px}.sldprop .grp{padding-right:4px}
+}
+@media (max-width:760px){.sldprop .btn.small{font-size:12px;padding:3px 7px}.cbtn{width:20px;height:20px}.sldprop .grp b{font-size:11px}}
 
 </style>
 </head>
@@ -698,6 +707,7 @@ const SYM={
 const SLD_TOOLS=[['sel','選択・移動'],['wire','線'],...Object.keys(SYM).map(k=>[k,SYM[k].n])];
 const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['10','12','14','16','18','20','24','28'];
 const DASH={'':'',d:'6 4',dd:'12 4 2 4'};
+let sldEat=0;document.addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('#sld'))sldEat=0},true);document.addEventListener('click',e=>{if(Date.now()-sldEat<700&&!e.target.closest('#sld')&&!e.target.closest('#sldInl')){e.stopPropagation();e.preventDefault()}sldEat=0},true);
 let sldZoom=null,sldPtrs=new Map(),sldPinch=null;
 let sldT='sel',sldSel=[],sldWs=null,sldDrag=null,sldHist=[],sldHov=null,sldBand=null,sldClip=null,sldSty={lw:'1.8',ld:'',c:'#000000'};
 function sldData(s){s=s||site();s.sld=s.sld||{items:[],wires:[]};return s.sld}
@@ -760,7 +770,7 @@ function sldEditorHTML(s){sldData(s);
     <div class="note">記号は JIS C 0617(IEC 60617)の形にそろえています。描いた系統図は設備概要の用紙に印刷されます(画像より優先)。パソコンでは Delete で削除、Ctrl+C / Ctrl+V でコピー・貼り付け、Ctrl+Z で元に戻す。</div></div>`}
 function sldPush(){sldHist.push(JSON.stringify(sldData()));if(sldHist.length>50)sldHist.shift()}
 function sldRedraw(){const w=document.querySelector('.sldwrap');if(w){w.querySelector('svg').outerHTML=sldSVG(site(),true)}sldBind()}
-function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;const y=window.scrollY;c.outerHTML=sldEditorHTML(site());window.scrollTo(0,y);sldBind()}
+function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;const y=window.scrollY;c.outerHTML=sldEditorHTML(site());window.scrollTo(0,y);sldBind()}
 function sldPropRefresh(){const p=document.querySelector('.sldprop');if(p)p.outerHTML=sldPropHTML()}
 function sldPt(e,raw){const sv=document.getElementById('sld');const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(sv.getScreenCTM().inverse());
   if(raw)return [q.x/SU,q.y/SU];return [Math.max(0,Math.min(SW,Math.round(q.x/SU))),Math.max(0,Math.min(SH_,Math.round(q.y/SU)))]}
@@ -791,8 +801,8 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
         wr.scrollLeft-=m[0]-sldPinch.m[0];wr.scrollTop-=m[1]-sldPinch.m[1];if(Math.abs(d/sldPinch.d-1)>.04){sldZoomAt(d/sldPinch.d,m[0],m[1]);sldPinch.d=d}sldPinch.m=m;e.stopPropagation()}},true);
     const end=e=>{sldPtrs.delete(e.pointerId);if(sldPtrs.size<2)sldPinch=null};wr.addEventListener('pointerup',end,true);wr.addEventListener('pointercancel',end,true)}
   const sv=document.getElementById('sld');if(!sv||sv.dataset.b)return;sv.dataset.b=1;
-  sv.addEventListener('dblclick',e=>{const tg=e.target.closest('[data-id]');const it=tg&&sldData().items.find(x=>x.id===tg.dataset.id);if(it){sldSel=[it.id];sldPropRefresh();sldInline(it)}});
-  sv.addEventListener('pointerdown',e=>{if(sldPinch)return;const D=sldData();const p=sldPt(e);const tg=e.target.closest('[data-id]');
+  sv.addEventListener('dblclick',e=>{if(sldT!=='sel')return;const tg=e.target.closest('[data-id]');const it=tg&&sldData().items.find(x=>x.id===tg.dataset.id);if(it){sldSel=[it.id];sldPropRefresh();sldInline(it)}});
+  sv.addEventListener('pointerdown',e=>{sldEat=Date.now();if(sldPinch)return;const D=sldData();const p=sldPt(e);const tg=e.target.closest('[data-id]');
     const inl=document.getElementById('sldInl');if(inl){inl.blur();return}
     if(sldT==='sel'){
       // 選んだ線の端(橙の丸):ドラッグで端だけ移動、タップで延長
@@ -828,6 +838,7 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
       sldSel=D.items.filter(it=>inR([it.x,it.y])).map(x=>x.id).concat(D.wires.filter(w=>inR(w.a)&&inR(w.b)).map(x=>x.id));sldBand=null;sldRedraw();sldPropRefresh()}};
   sv.addEventListener('pointerup',up);sv.addEventListener('pointercancel',up);
 }
+['pointerup','pointercancel'].forEach(ev=>document.addEventListener(ev,e=>{sldPtrs.delete(e.pointerId);if(sldPtrs.size<2)sldPinch=null},true));
 document.addEventListener('keydown',e=>{if(view.name!=='site'||view.tab!=='sld')return;if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
   if((e.key==='Delete'||e.key==='Backspace')&&sldSel.length){e.preventDefault();sldAct('sldDel')}
   if(e.key==='Escape'){sldWs=null;sldHov=null;sldSel=[];sldRefresh()}
