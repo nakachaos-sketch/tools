@@ -300,12 +300,14 @@ function kitHTML(r,L){const ic=L.calc;if(!isFinite(ic)||ic<=0)return '<div class
     return `<div class="kj kj-${cls}"><span>${esc(t.name)}(許容 ${tm} mA)</span><b>${txt}</b></div>`}).join('')}
 
 // ===== 結線図(別紙) =====
-function diagDefault(p){return p&&p.insts&&p.insts.some(x=>/IP-R/i.test((x.model||'')+(x.name||'')))?'ipr':''}
+function diagDefault(p){return p&&p.insts&&p.insts.some(x=>/IP-R/i.test((x.model||'')+(x.name||'')))?'auto':''}
 function diagKind(p){return p?(p.diag!==undefined?p.diag:diagDefault(p)):''}
-APP.projectExtra=p=>`<label>結線図(測定計器の別紙に印刷)${sel('data-p="diag"',diagKind(p),['','ipr','iprR'],['なし','ムサシ IP-R形','ムサシ IP-R形+リアクトル'])}</label>`;
-APP.instExtra=(p,mode)=>{const k=diagKind(p);if(!k)return '';
-  return `<div class="dgw"><div class="dgt">結 線 図(ムサシ IP-R形${k==='iprR'?'・リアクトル使用':''})</div>${k==='iprR'?diagIPRrx():diagIPR(false)}</div>`};
-function diagIPR(rx){
+APP.projectExtra=p=>`<label>結線図(測定計器の別紙に印刷)${sel('data-p="diag"',diagKind(p),['','auto','ipr','iprR'],['なし','ムサシ IP-R形(リアクトルは自動)','ムサシ IP-R形 リアクトルなし','ムサシ IP-R形 リアクトルあり'])}</label>
+  <div class="note">「自動」は、試験回路の充電電流が IP-R の許容を超えるとき、リアクトルありの図にします。</div>`;
+function needRx(p){const t=(kitGet().tr||[]).find(x=>/IP-R/i.test(x.name));const ma=t?+t.ma:250;return (p.items||[]).some(r=>{const c=lkChk(r).calc;return isFinite(c)&&c>ma})}
+APP.instExtra=(p,mode)=>{let k=diagKind(p);if(!k)return '';if(k==='auto')k=needRx(p)?'iprR':'ipr';
+  return `<div class="dgw"><div class="dgt">結 線 図(ムサシ IP-R形${k==='iprR'?'・リアクトル使用':''})</div>${k==='iprR'?diagIPRrx():diagIPR()}</div>`};
+function diagIPR(){
   const W=(d,w)=>`<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w||3)+7}"/><path d="${d}" fill="none" stroke="#000" stroke-width="${w||3}" stroke-linejoin="round"/>`;
   const T=(x,y,s,o)=>`<text x="${x}" y="${y}" ${o||''}>${s}</text>`;
   const C=(x,y)=>`<circle cx="${x}" cy="${y}" r="7" fill="#fff" stroke="#000" stroke-width="2.5"/>`;
@@ -319,28 +321,26 @@ function diagIPR(rx){
   s+=box(330,20,180,160)+T(420,48,'トランス部','text-anchor="middle" font-size="18"');
   s+=`<circle cx="370" cy="85" r="18" fill="none" stroke="#000" stroke-width="2.5"/><circle cx="370" cy="85" r="8" fill="none" stroke="#000" stroke-width="2.5"/>`+T(370,125,'12000V','text-anchor="middle" font-size="15"');
   s+=W('M352 85H170',4)+T(260,75,'高圧出力','text-anchor="middle" font-size="16"');
-  if(rx){s+=W('M240 85V150')+`<circle cx="240" cy="85" r="5"/>`+box(200,150,80,52)+T(240,173,'リアクトル','text-anchor="middle" font-size="15"')+T(240,193,'(並列)','text-anchor="middle" font-size="13"')+W('M240 202V222')+G(240,222)}
   // 制御部
   s+=box(30,270,250,180)+T(155,470,'トランス制御部','text-anchor="middle" font-size="18"');
   s+=`<rect x="50" y="285" width="130" height="55" fill="#fff" stroke="#000" stroke-width="2"/><path d="M70 330Q115 295 160 330" fill="none" stroke="#000" stroke-width="1.5"/>`+T(115,334,'mA','text-anchor="middle" font-size="16"');
-  s+=T(60,368,'200mA','font-size="14"')+T(60,388,'25mA','font-size="14"')+T(88,436,'(S.POINT ADJ)','font-size="12"');
   s+=T(232,330,'⏚','text-anchor="end" font-size="16"')+T(232,365,'TE','text-anchor="end" font-size="16"')+T(232,405,'120V','text-anchor="end" font-size="16"')+T(88,420,'PUN','font-size="16"');
   // 計器操作部・電源抵抗部
   s+=box(470,270,250,180)+T(595,470,'計器操作部','text-anchor="middle" font-size="18"');
   s+=`<rect x="490" y="345" width="95" height="50" fill="none" stroke="#000" stroke-width="2"/><rect x="605" y="345" width="95" height="50" fill="none" stroke="#000" stroke-width="2"/>`;
-  s+=T(520,318,'EARTH','text-anchor="middle" font-size="13"')+T(600,318,'PUN','text-anchor="middle" font-size="13"')+T(692,318,'SC','text-anchor="end" font-size="13"');
+  s+=T(495,318,'EARTH','text-anchor="middle" font-size="13"')+T(565,318,'PUN','text-anchor="middle" font-size="13"')+T(693,335,'SC','text-anchor="end" font-size="13"');
   s+=box(760,270,210,180)+T(865,470,'電源抵抗部','text-anchor="middle" font-size="18"')+`<rect x="790" y="300" width="150" height="55" fill="none" stroke="#000" stroke-width="2"/><circle cx="865" cy="400" r="26" fill="none" stroke="#000" stroke-width="2"/>`;
   // 配線(後から描くほど上を通る)
-  s+=W('M400 180V200H520V290');               // トランス⊗ → 計器操作部1
-  s+=W('M480 180V222H300V360H270')+T(480,165,'E','text-anchor="middle" font-size="15"')+T(305,300,'黄','font-size="17"'); // E → TE
+  s+=W('M400 180V200H495V290');               // トランス⊗ → 計器操作部1
+  s+=W('M480 180V222H300V360H270')+T(480,155,'E','text-anchor="middle" font-size="18"')+T(305,300,'黄','font-size="17"'); // E → TE
   s+=W('M360 180V400H270')+T(342,300,'青','font-size="17"');                         // → 120V
-  s+=W('M270 325H320V440')+G(320,440)+T(345,455,'緑(接地)','font-size="15"');        // 25mA⏚ → 接地
-  s+=W('M70 415V500H450V262H600V290');                                             // PUN → 計器操作部3
-  s+=W('M720 310H760',7)+T(740,302,'接続','text-anchor="middle" font-size="12"');
+  s+=W('M270 325H320V440')+G(320,440)+T(345,455,'緑','font-size="16"');        // 25mA⏚ → 接地
+  s+=W('M70 415V500H450V262H565V290');                                             // PUN → 計器操作部3
+  s+=W('M705 330H780',7)+T(742,322,'接続','text-anchor="middle" font-size="12"');
   s+=W('M705 290V240H785V290')+T(745,232,'PMアースコード','text-anchor="middle" font-size="14"');
-  s+=W('M800 290V215H900V240')+G(900,240)+T(850,207,'AEコード','text-anchor="middle" font-size="14"');
-  s+=W('M970 330H990V250')+`<path d="M983 262L990 245L997 262Z"/>`+T(985,238,'AC100V','text-anchor="end" font-size="16"');
-  s+=[[400,180],[360,180],[480,180],[520,290],[600,290],[270,325],[270,360],[270,400],[70,415],[705,290],[785,290],[800,290]].map(a=>C(a[0],a[1])).join('');
+  s+=W('M785 290L805 215H900V240')+G(900,240)+T(850,207,'AEコード','text-anchor="middle" font-size="14"');
+  s+=W('M970 330H980V250')+`<path d="M973 262L980 245L987 262Z"/>`+T(970,237,'AC100V','text-anchor="middle" font-size="16"');
+  s+=[[400,180],[360,180],[480,180],[495,290],[530,290],[565,290],[600,290],[635,290],[670,290],[270,325],[270,360],[270,400],[70,415],[705,290],[785,290],[705,330],[780,330]].map(a=>C(a[0],a[1])).join('');
   return `<svg class="dg" viewBox="0 10 1000 500" font-family="sans-serif">${s}</svg>`}
 
 function diagIPRrx(){
