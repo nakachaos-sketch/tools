@@ -838,6 +838,22 @@ function saveFile(blob,a){const name=a.download;
 const APPID='ocr';const APPNAMES={ocr:'過電流継電器',uvr:'不足電圧継電器',ovr:'過電圧継電器',dgr:'方向地絡継電器',cable:'高圧ケーブル絶縁診断',taiatsu:'絶縁耐力試験'};
 function projOK(x){return x&&typeof x==='object'&&Array.isArray(x.relays)}
 (function(){const n=state.projects.length;state.projects=state.projects.filter(projOK);if(state.projects.length!==n){save();render()}})();
+
+/* ===== 自家用工作物 管理アプリとの連携(?kanri=事業場:点検) ===== */
+(function(){const q=new URLSearchParams(location.search);const kn=q.get('kanri');if(!kn)return;const [sid,iid]=kn.split(':');
+  let pid=q.get('pid');
+  if(!pid||!state.projects.find(p=>p.id===pid)){
+    if(!q.get('new'))return;
+    const b=document.createElement('button');b.dataset.act='newProject';b.style.display='none';document.body.appendChild(b);b.click();b.remove();
+    const np=state.projects[state.projects.length-1];np.name=q.get('name')||np.name;if(q.get('date'))np.date=q.get('date');save();pid=np.id;
+    try{const K=JSON.parse(localStorage.getItem('kanri.v1')||'null');const s=K&&K.sites.find(x=>x.id===sid);const i=s&&s.insps.find(x=>x.id===iid);
+      if(i){i.links=i.links||{};i.links[APPID]=pid;localStorage.setItem('kanri.v1',JSON.stringify(K))}}catch(e){}
+    try{history.replaceState(null,'','?kanri='+encodeURIComponent(kn)+'&pid='+encodeURIComponent(pid))}catch(e){}
+  }
+  go({name:'project',pid});
+  const st=document.createElement('style');st.textContent='.kanri-back{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;background:#16496b;color:#fff;text-decoration:none;padding:9px 16px;border-radius:999px;font-size:14px;font-family:sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.3)}@media print{.kanri-back{display:none!important}}';document.head.appendChild(st);
+  const a=document.createElement('a');a.href='kanri.html#s='+encodeURIComponent(sid)+'&i='+encodeURIComponent(iid);a.className='kanri-back';a.textContent='← 管理アプリ';document.body.appendChild(a);
+})();
 </script>
 </body>
 </html>

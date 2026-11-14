@@ -621,6 +621,13 @@ window.addEventListener("beforeunload", e => { if (dirty) { e.preventDefault(); 
 // 初期表示（前回開いていた現場・版を復元）
 const last = readLS("pcoord_last");
 if (last) { curSite = last.site; curVer = last.ver === "henko" ? "henko" : "genjou"; }
+// 管理アプリから開いたとき(?site=事業場ID&kanri=事業場ID)
+const kanriQ = new URLSearchParams(location.search);
+if (kanriQ.get("site") && getSites().some(x => x.id === kanriQ.get("site"))) { curSite = kanriQ.get("site"); curVer = "genjou"; }
+if (kanriQ.get("kanri")) {
+  const st = document.createElement("style"); st.textContent = '.kanri-back{position:fixed;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:30;background:#16496b;color:#fff;text-decoration:none;padding:9px 16px;border-radius:999px;font-size:14px;font-family:sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.3)}@media print{.kanri-back{display:none!important}}'; document.head.appendChild(st);
+  const a = document.createElement("a"); a.href = "kanri.html#s=" + encodeURIComponent(kanriQ.get("kanri")); a.className = "kanri-back"; a.textContent = "← 管理アプリ"; document.body.appendChild(a);
+}
 fillSiteSel();
 if (!last && !readLS(slotKey(curSite, "genjou")) && readLS(slotKey(curSite, "henko"))) curVer = "henko";
 verSel.value = curVer;
