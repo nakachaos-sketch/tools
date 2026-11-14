@@ -501,7 +501,7 @@ function homeHTML(){
     <div class="list" id="plist">${listHTML()}</div>
     <div class="card"><h2>用紙</h2><div class="btns"><button class="btn" data-act="blank">白紙の記入用紙</button></div>
       <h2>バックアップ</h2><div class="btns"><button class="btn" data-act="exportJson">バックアップを保存</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
-      <div class="note">データはこの端末のブラウザに保存されます。ほかの端末で使うときは、バックアップを保存して読み込んでください。</div></div>
+      <div class="note">データはこの端末のブラウザに保存されます。ほかの端末で使うときは、バックアップを保存して読み込んでください。保存のときは保存先を選べます(Box なども可)。</div></div>
   </div>`;
 }
 function listHTML(){
@@ -622,7 +622,7 @@ document.addEventListener('click',e=>{
     case 'doPrint':{setPortrait(getOrient()==='P');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
     case 'exportJson':{const bl=new Blob([JSON.stringify(state,null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
       a2.href=URL.createObjectURL(bl);a2.download=`${APP.backupName}_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
-      document.body.appendChild(a2);a2.click();setTimeout(()=>{URL.revokeObjectURL(a2.href);a2.remove()},500);break}
+      saveFile(bl,a2);break}
     case 'importJson':$('#importFile').click();break;
     case 'addInst':p.insts=p.insts||[];p.insts.push({name:'',model:'',r1:'',r2:'',maker:'',year:''});save();render();break;
     case 'delInst':p.insts.splice(+b.dataset.i,1);save();render();break;
@@ -654,6 +654,18 @@ window.addEventListener('resize',()=>{if(view.name==='preview')fit()});
 window.addEventListener('beforeprint',()=>{const el=$('#pages');if(el)el.style.zoom=1});
 window.addEventListener('afterprint',()=>{if(view.name==='preview')fit()});
 render();
+
+/* バックアップ保存:パソコンは保存先を選ぶ画面、iPhone・iPadは共有メニュー(Box・ファイルに保存など) */
+function saveFile(blob,a){const name=a.download;
+  const dl=()=>{document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
+  const err=e=>{if(e&&e.name==='AbortError')return;dl()};
+  try{
+    if(window.showSaveFilePicker){showSaveFilePicker({suggestedName:name,types:[{description:'バックアップ(JSON)',accept:{'application/json':['.json']}}]})
+      .then(h=>h.createWritable()).then(w=>w.write(blob).then(()=>w.close())).then(()=>URL.revokeObjectURL(a.href)).catch(err);return}
+    const f=new File([blob],name,{type:'application/json'});
+    if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).then(()=>URL.revokeObjectURL(a.href)).catch(err);return}
+  }catch(e){}
+  dl()}
 
 </script>
 </body>
