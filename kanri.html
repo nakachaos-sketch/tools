@@ -738,9 +738,10 @@ const SYM={
   ctt:{c:'CTT',n:'電流試験端子 CTT',lb:'CTT',hz:1,d:()=>sL(-20,0,-9,0)+sL(9,0,20,0)+`<rect x="-9" y="-6" width="18" height="12"/><circle cx="-3.5" cy="0" r="2.2" class="fillc"/><circle cx="3.5" cy="0" r="2.2" class="fillc"/>`},
   arw:{c:'',n:'矢印',lb:'',d:()=>sL(0,-20,0,12)+`<path d="M-5 10 L0 20 L5 10 Z" class="fillc"/>`},
   apfr:{c:'APFR',n:'自動力率調整器 APFR',lb:'APFR',mt:1,mw:28,d:()=>`<rect x="-18" y="-11" width="36" height="22" class="fillw"/>`},
+  whd:{c:'Wh',n:'電力量計 Wh(点線枠・電力会社)',lb:'Wh',mt:1,mw:22,d:()=>`<rect x="-18" y="-12" width="36" height="24" stroke-dasharray="4 3" class="fillw"/>`},
   dot:{n:'接続点',lb:'',t0:1,d:()=>`<circle cx="0" cy="0" r="3.5" class="fillc"/>`},
 };
-const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','tc','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['zct','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['ct','vt','fz','vs','as','v','a','w','wh','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
+const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','tc','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['zct','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['ct','vt','fz','vs','as','v','a','w','wh','whd','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
 let sldGrp=0;
 const SLD_TOOLS=[['sel','選択・移動'],['wire','線']];
 const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['10','12','14','16','18','20','24','28'];
@@ -759,7 +760,7 @@ const wLW=w=>w.lw||(w.w===2?'5':'1.8');
 const rotP=(a,b,r)=>{for(let i=0;i<((r||0)%4+4)%4;i++)[a,b]=[b,-a];return [a,b]};
 function sldTerms(it){const S=SYM[it.t];if(!S)return [];
   if(S.box){const k=boxK(it),h=+(it.bh||1);const t=[[it.x-k,it.y],[it.x+k,it.y],[it.x,it.y]];if(h>=2&&h%2===0)t.push([it.x,it.y-h/2],[it.x,it.y+h/2]);return t}
-  if(S.txt||S.t0)return [[it.x,it.y]];if(S.mt){const w=S.mw>20?.9:.6;return [[it.x,it.y-.55],[it.x,it.y+.55],[it.x-w,it.y],[it.x+w,it.y],[it.x,it.y]]}const h=S.h||1;const ts=S.hz?[[-h,0],[h,0]]:S.t1?[[0,-h]]:[[0,-h],[0,h]];
+  if(S.txt||S.t0)return [[it.x,it.y]];if(S.mt){const w=S.mw>20?.9:.6,hy=it.t==='whd'?.6:.55;return [[it.x,it.y-hy],[it.x,it.y+hy],[it.x-w,it.y],[it.x+w,it.y],[it.x,it.y]]}const h=S.h||1;const ts=S.hz?[[-h,0],[h,0]]:S.t1?[[0,-h]]:[[0,-h],[0,h]];
   return ts.map(([a,b])=>{const [u,v]=rotP(a,b,it.r);return [it.x+u,it.y+v]}).concat([[it.x,it.y]])}
 function tLines(x,y,t,fs,anc,col){const L=String(t).split('\n');const y0=y-(L.length-1)*fs*.6+fs*.36;
   return `<text x="${x}" y="${y0}" text-anchor="${anc}" font-size="${fs}" fill="${col}">${L.map((l,i)=>`<tspan x="${x}" ${i?`dy="${fs*1.2}"`:''}>${esc(l)||' '}</tspan>`).join('')}</text>`}
