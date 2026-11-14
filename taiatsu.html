@@ -304,7 +304,7 @@ function diagDefault(p){return p&&p.insts&&p.insts.some(x=>/IP-R/i.test((x.model
 function diagKind(p){return p?(p.diag!==undefined?p.diag:diagDefault(p)):''}
 APP.projectExtra=p=>`<label>結線図(測定計器の別紙に印刷)${sel('data-p="diag"',diagKind(p),['','ipr','iprR'],['なし','ムサシ IP-R形','ムサシ IP-R形+リアクトル'])}</label>`;
 APP.instExtra=(p,mode)=>{const k=diagKind(p);if(!k)return '';
-  return `<div class="dgw"><div class="dgt">結 線 図(ムサシ IP-R形)</div>${diagIPR(k==='iprR')}</div>`};
+  return `<div class="dgw"><div class="dgt">結 線 図(ムサシ IP-R形${k==='iprR'?'・リアクトル使用':''})</div>${k==='iprR'?diagIPRrx():diagIPR(false)}</div>`};
 function diagIPR(rx){
   const W=(d,w)=>`<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w||3)+7}"/><path d="${d}" fill="none" stroke="#000" stroke-width="${w||3}" stroke-linejoin="round"/>`;
   const T=(x,y,s,o)=>`<text x="${x}" y="${y}" ${o||''}>${s}</text>`;
@@ -328,6 +328,7 @@ function diagIPR(rx){
   // 計器操作部・電源抵抗部
   s+=box(470,270,250,180)+T(595,470,'計器操作部','text-anchor="middle" font-size="18"');
   s+=`<rect x="490" y="345" width="95" height="50" fill="none" stroke="#000" stroke-width="2"/><rect x="605" y="345" width="95" height="50" fill="none" stroke="#000" stroke-width="2"/>`;
+  s+=T(520,318,'EARTH','text-anchor="middle" font-size="13"')+T(600,318,'PUN','text-anchor="middle" font-size="13"')+T(692,318,'SC','text-anchor="end" font-size="13"');
   s+=box(760,270,210,180)+T(865,470,'電源抵抗部','text-anchor="middle" font-size="18"')+`<rect x="790" y="300" width="150" height="55" fill="none" stroke="#000" stroke-width="2"/><circle cx="865" cy="400" r="26" fill="none" stroke="#000" stroke-width="2"/>`;
   // 配線(後から描くほど上を通る)
   s+=W('M400 180V200H520V290');               // トランス⊗ → 計器操作部1
@@ -341,6 +342,66 @@ function diagIPR(rx){
   s+=W('M970 330H990V250')+`<path d="M983 262L990 245L997 262Z"/>`+T(985,238,'AC100V','text-anchor="end" font-size="16"');
   s+=[[400,180],[360,180],[480,180],[520,290],[600,290],[270,325],[270,360],[270,400],[70,415],[705,290],[785,290],[800,290]].map(a=>C(a[0],a[1])).join('');
   return `<svg class="dg" viewBox="0 10 1000 500" font-family="sans-serif">${s}</svg>`}
+
+function diagIPRrx(){
+  const W=(d,w,da)=>`<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w||3)+7}"/><path d="${d}" fill="none" stroke="#000" stroke-width="${w||3}" stroke-linejoin="round" ${da?'stroke-dasharray="12 8"':''}/>`;
+  const T=(x,y,t,o)=>`<text x="${x}" y="${y}" ${o||''}>${t}</text>`;
+  const M='text-anchor="middle"';
+  const C=(x,y)=>`<circle cx="${x}" cy="${y}" r="7" fill="#fff" stroke="#000" stroke-width="2.5"/>`;
+  const D=(x,y)=>`<circle cx="${x}" cy="${y}" r="5"/>`;
+  const G=(x,y,da)=>`<path d="M${x} ${y}v12M${x-18} ${y+12}h36M${x-11} ${y+19}h22M${x-5} ${y+26}h10" stroke="#000" stroke-width="2.5" fill="none" ${da?'stroke-dasharray="6 4"':''}/>`;
+  const box=(x,y,w,h,da)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#000" stroke-width="2.5" ${da?'stroke-dasharray="12 8"':''}/>`;
+  const B=(x,y)=>`<circle cx="${x}" cy="${y}" r="14" fill="#fff" stroke="#000" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#000" stroke-width="2.5"/>`;
+  const meter=(x,y)=>`<rect x="${x}" y="${y}" width="80" height="45" fill="#fff" stroke="#000" stroke-width="2"/><path d="M${x+12} ${y+35}Q${x+40} ${y+8} ${x+68} ${y+35}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+  let s='';
+  // 試験ケーブル
+  s+=box(15,120,50,230)+[...'試験ケーブル'].map((c,i)=>T(40,160+i*30,c,M+' font-size="20"')).join('');
+  s+=W('M40 350V375')+G(40,375);
+  // リアクトル(2台目以降:点線)
+  s+=box(130,80,120,120,1)+T(190,155,'2台目以降','text-anchor="middle" font-size="14"');
+  s+=W('M160 93V58H318V91',3,1)+W('M160 200V250H330',3,1)+W('M225 200V215',3,1)+G(225,215,1);
+  s+=B(160,105)+C(160,200)+C(225,200);
+  s+=box(300,80,130,120)+T(345,72,'リアクトル','font-size="17"')+T(365,162,'DR-1220M・1230M','text-anchor="middle" font-size="12"');
+  s+=T(340,110,'12000V','font-size="13"')+T(318,192,'0','font-size="15"')+T(395,192,'⏚','font-size="15"');
+  // 耐圧トランス
+  s+=box(510,80,170,120)+T(560,72,'耐圧トランス','font-size="17"')+T(615,140,'R-1220・1230','text-anchor="middle" font-size="12"');
+  s+=T(570,110,'12000V','font-size="13"')+T(580,172,'120V','text-anchor="middle" font-size="14"')+T(650,172,'E','text-anchor="middle" font-size="14"');
+  // 高圧配線: トランス → リアクトル → ケーブル
+  s+=W('M40 120V18H320V91',4)+W('M332 91V32H540V91',4);
+  // 漏れ電流計(A2)
+  s+=box(200,300,160,120)+meter(215,320)+T(280,440,'漏れ電流計','text-anchor="middle" font-size="16"');
+  s+=T(318,328,'0','text-anchor="end" font-size="14"')+T(318,400,'⏚','text-anchor="end" font-size="14"');
+  // トランス制御部(A1)
+  s+=box(500,300,160,150)+meter(515,315)+T(505,294,'トランス制御部','font-size="15"');
+  s+=T(625,328,'⏚','text-anchor="end" font-size="14"')+T(625,368,'TE','text-anchor="end" font-size="14"')+T(540,420,'PUN','text-anchor="middle" font-size="13"')+T(605,420,'120V','text-anchor="middle" font-size="13"');
+  // 計器操作部・電源抵抗部(IP-R2,3形)
+  s+=box(715,300,140,120)+T(785,440,'計器操作部','text-anchor="middle" font-size="15"');
+  s+=T(740,352,'EARTH','text-anchor="middle" font-size="12"')+T(790,352,'PUN','text-anchor="middle" font-size="12"')+T(832,372,'SC','text-anchor="middle" font-size="12"');
+  s+=`<rect x="730" y="375" width="50" height="30" fill="none" stroke="#000" stroke-width="2"/><rect x="790" y="385" width="50" height="25" fill="none" stroke="#000" stroke-width="2"/>`;
+  s+=box(880,300,110,120)+T(935,440,'電源抵抗部','text-anchor="middle" font-size="15"')+`<circle cx="940" cy="385" r="18" fill="none" stroke="#000" stroke-width="2"/>`;
+  s+=T(930,505,'IP-R2,3形','text-anchor="middle" font-size="15"');
+  // 配線
+  s+=W('M395 200V215')+G(395,215)+T(410,225,'緑','font-size="15"');                 // リアクトル⏚ → 接地
+  s+=W('M330 200V250H470V275H690V320H660')+T(400,244,'緑','font-size="15"');         // リアクトル0 → 制御部⏚
+  s+=W('M330 250V315')+T(300,290,'緑','font-size="15"');                            // リアクトル0 → 漏れ電流計0
+  s+=W('M330 400H385V410')+G(385,410)+T(400,425,'緑','font-size="15"');              // 漏れ電流計⏚ → 接地
+  s+=W('M650 200V215H700V360H660')+T(705,240,'黄','font-size="16"');                 // E → TE
+  s+=W('M580 200V245H740V320');                                                    // 120V(2) → EARTH
+  s+=W('M555 200V230H480V485H605V450')+T(462,330,'青','font-size="16"');            // 120V(1) → 制御部120V
+  s+=W('M540 450V505H705V262H790V320');                                            // 制御部PUN → PUN
+  s+=W('M840 335H880',7);                                                          // SC ⇔ 電源抵抗部
+  s+=W('M845 312V288H895V312')+T(870,282,'PMアース','text-anchor="middle" font-size="11"');
+  s+=W('M925 312V262H950V268')+G(950,268)+T(925,256,'AEコード','text-anchor="middle" font-size="11"');
+  s+=W('M975 315V250')+`<path d="M968 262L975 245L982 262Z"/>`+T(965,240,'AC100V','text-anchor="end" font-size="15"');
+  s+=D(330,250);
+  s+=[[330,200],[395,200],[555,200],[580,200],[650,200],[330,315],[330,400],[660,320],[660,360],[540,450],[605,450],[740,320],[790,320],[840,335],[845,312],[895,312],[925,312],[975,315]].map(a=>C(a[0],a[1])).join('');
+  s+=B(320,105)+B(550,105);
+  // A1 / A2
+  s+=`<circle cx="160" cy="355" r="18" fill="#fff" stroke="#000" stroke-width="2"/>`+T(160,361,'A2',M+' font-size="15"')+`<path d="M178 355L220 345" stroke="#000" stroke-width="1.5"/>`;
+  s+=`<circle cx="450" cy="400" r="18" fill="#fff" stroke="#000" stroke-width="2"/>`+T(450,406,'A1',M+' font-size="15"')+`<path d="M468 395L530 345" stroke="#000" stroke-width="1.5"/>`;
+  s+=T(20,540,'※ リアクトルを2台以上連結するときは点線のように結線する。','font-size="15"');
+  s+=T(20,562,'※ 2台以上のときは計器操作部の漏れ電流計は電流レンジの関係で使えないため、携帯用電流計(A2)を使用し、電流計端子にアレスタを付ける。','font-size="15"');
+  return `<svg class="dg" viewBox="0 5 1000 570" font-family="sans-serif">${s}</svg>`}
 
 'use strict';
 /* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
