@@ -300,12 +300,13 @@ function kitHTML(r,L){const ic=L.calc;if(!isFinite(ic)||ic<=0)return '<div class
     return `<div class="kj kj-${cls}"><span>${esc(t.name)}(許容 ${tm} mA)</span><b>${txt}</b></div>`}).join('')}
 
 // ===== 結線図(別紙) =====
-function diagDefault(p){return p&&p.insts&&p.insts.some(x=>/IP-R/i.test((x.model||'')+(x.name||'')))?'auto':''}
+function diagDefault(p){const h=re=>p&&p.insts&&p.insts.some(x=>re.test((x.model||'')+(x.name||'')));return h(/IP-R/i)?'auto':h(/BCT/i)?'bauto':''}
 function diagKind(p){return p?(p.diag!==undefined?p.diag:diagDefault(p)):''}
-APP.projectExtra=p=>`<label>結線図(測定計器の別紙に印刷)${sel('data-p="diag"',diagKind(p),['','auto','ipr','iprR'],['なし','ムサシ IP-R形(リアクトルは自動)','ムサシ IP-R形 リアクトルなし','ムサシ IP-R形 リアクトルあり'])}</label>
-  <div class="note">「自動」は、試験回路の充電電流が IP-R の許容を超えるとき、リアクトルありの図にします。</div>`;
-function needRx(p){const t=(kitGet().tr||[]).find(x=>/IP-R/i.test(x.name));const ma=t?+t.ma:250;return (p.items||[]).some(r=>{const c=lkChk(r).calc;return isFinite(c)&&c>ma})}
-APP.instExtra=(p,mode)=>{let k=diagKind(p);if(!k)return '';if(k==='auto')k=needRx(p)?'iprR':'ipr';
+APP.projectExtra=p=>`<label>結線図(測定計器の別紙に印刷)${sel('data-p="diag"',diagKind(p),['','auto','ipr','iprR','bauto','bct','bctR'],['なし','ムサシ IP-R形(リアクトルは自動)','ムサシ IP-R形 リアクトルなし','ムサシ IP-R形 リアクトルあり','双興 BCT-25K(リアクトルは自動)','双興 BCT-25K リアクトルなし','双興 BCT-25K リアクトルあり'])}</label>
+  <div class="note">「自動」は、試験回路の充電電流が試験器の許容を超えるとき、リアクトルありの図にします。</div>`;
+function needRx(p,re,def){const t=(kitGet().tr||[]).find(x=>re.test(x.name));const ma=t?+t.ma:def;return (p.items||[]).some(r=>{const c=lkChk(r).calc;return isFinite(c)&&c>ma})}
+APP.instExtra=(p,mode)=>{let k=diagKind(p);if(!k)return '';if(k==='auto')k=needRx(p,/IP-R/i,250)?'iprR':'ipr';if(k==='bauto')k=needRx(p,/BCT/i,150)?'bctR':'bct';
+  if(k==='bct'||k==='bctR')return `<div class="dgw"><div class="dgt">結 線 図(双興 BCT-25K${k==='bctR'?'・リアクトル使用':''})</div>${diagBCT(k==='bctR')}</div>`;
   return `<div class="dgw"><div class="dgt">結 線 図(ムサシ IP-R形${k==='iprR'?'・リアクトル使用':''})</div>${k==='iprR'?diagIPRrx():diagIPR()}</div>`};
 function diagIPR(){
   const W=(d,w)=>`<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w||3)+7}"/><path d="${d}" fill="none" stroke="#000" stroke-width="${w||3}" stroke-linejoin="round"/>`;
@@ -401,6 +402,56 @@ function diagIPRrx(){
   s+=T(20,540,'※ リアクトルを2台以上連結するときは点線のように結線する。','font-size="15"');
   s+=T(20,562,'※ 2台以上のときは計器操作部の漏れ電流計は電流レンジの関係で使えないため、携帯用電流計(A2)を使用し、電流計端子にアレスタを付ける。','font-size="15"');
   return `<svg class="dg" viewBox="0 5 1000 570" font-family="sans-serif">${s}</svg>`}
+
+function diagBCT(rx){
+  const W=(d,w,da)=>`<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w||3)+7}"/><path d="${d}" fill="none" stroke="#000" stroke-width="${w||3}" stroke-linejoin="round" ${da?'stroke-dasharray="12 8"':''}/>`;
+  const T=(x,y,t,o)=>`<text x="${x}" y="${y}" ${o||''}>${t}</text>`;
+  const M='text-anchor="middle"';
+  const C=(x,y,r)=>`<circle cx="${x}" cy="${y}" r="${r||7}" fill="#fff" stroke="#000" stroke-width="2.5"/>`;
+  const CC=(x,y)=>C(x,y,13)+`<circle cx="${x}" cy="${y}" r="6" fill="none" stroke="#000" stroke-width="2.5"/>`;
+  const G=(x,y)=>`<path d="M${x} ${y}v12M${x-18} ${y+12}h36M${x-11} ${y+19}h22M${x-5} ${y+26}h10" stroke="#000" stroke-width="2.5" fill="none"/>`;
+  const box=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="10" fill="#fff" stroke="#000" stroke-width="2.5"/>`;
+  const B=(x,y)=>`<circle cx="${x}" cy="${y}" r="18" fill="#fff" stroke="#000" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="8" fill="none" stroke="#000" stroke-width="2.5"/>`;
+  const meter=(x,y)=>`<rect x="${x}" y="${y}" width="80" height="45" fill="#fff" stroke="#000" stroke-width="2"/><path d="M${x+12} ${y+35}Q${x+40} ${y+8} ${x+68} ${y+35}" fill="none" stroke="#000" stroke-width="1.5"/>`;
+  let s='';
+  // 被試験物
+  s+=box(25,90,60,200)+[...'被試験物'].map((c,i)=>T(55,135+i*40,c,M+' font-size="22"')).join('')+W('M55 290V310')+G(55,310);
+  // 耐圧トランス
+  s+=box(250,70,170,130)+T(345,62,'耐圧トランス T-13K15','font-size="16"');
+  s+=T(285,150,'E','font-size="13"')+T(392,190,'0V',M+' font-size="12"')+T(362,190,'120V',M+' font-size="12"');
+  // 高圧(被試験物へ)
+  s+=W('M55 90V30H330V77',3);
+  if(rx)s+=W('M330 30H570V77',3)+W('M570 30H750V77',3,1)+`<circle cx="330" cy="30" r="5"/><circle cx="570" cy="30" r="5"/>`;
+  if(rx){
+    s+=box(490,70,160,130)+T(585,62,'高圧リアクトル L-13K','font-size="16"');
+    s+=T(605,190,'L',M+' font-size="13"')+T(630,190,'E',M+' font-size="13"');
+    s+=`<rect x="680" y="70" width="150" height="130" rx="10" fill="#fff" stroke="#000" stroke-width="2.5" stroke-dasharray="12 8"/>`+T(755,140,'2台目以降',M+' font-size="14"')+T(785,190,'L',M+' font-size="13"')+T(810,190,'E',M+' font-size="13"');
+    s+=W('M605 172V215H785V172',3,1)+W('M630 172V230H810V172',3,1)+T(708,250,'L どうし・E どうしをつなぐ',M+' font-size="13"');
+  }
+  // E端子 → 接地
+  s+=W('M285 125H235V240')+G(235,240)+T(225,236,'接地','text-anchor="end" font-size="14"');
+  // 計器部・電源部
+  s+=box(150,340,330,150)+T(315,512,'BCT-25K(計器部)',M+' font-size="16"');
+  s+=meter(185,400)+meter(300,400)+`<circle cx="430" cy="455" r="14" fill="none" stroke="#000" stroke-width="2"/>`;
+  s+=box(500,340,220,150)+T(610,512,'BCT-25K(電源部)',M+' font-size="16"');
+  s+=`<rect x="600" y="390" width="70" height="25" fill="none" stroke="#000" stroke-width="2"/><circle cx="575" cy="445" r="28" fill="none" stroke="#000" stroke-width="2"/>`;
+  // トランスコード
+  s+=W('M330 172V262H185V357',9)+T(232,287,'トランスコード','font-size="14"');
+  if(rx)s+=W('M570 172V295H222V357',9)+T(430,287,'リアクトルコード',M+' font-size="14"');
+  // 計器部 ⇔ 電源部
+  s+=W('M455 360H525',7)+W('M455 395H525',7);
+  // 電源・極性確認用端子
+  s+=W('M695 357V300H730',5)+T(740,300,'電源 AC100V','font-size="15"');
+  s+=W('M708 385H770V420')+G(770,420)+T(780,405,'極性確認用端子','font-size="13"')+T(780,423,'も接地','font-size="13"');
+  // 端子
+  s+=B(330,95)+CC(330,172)+C(285,125,6)+C(362,172,6)+C(392,172,6)+C(270,172,6)+C(300,172,6);
+  if(rx)s+=B(570,95)+CC(570,172)+C(605,172,6)+C(630,172,6)+B(750,95)+C(785,172,6)+C(810,172,6);
+  s+=CC(185,357)+CC(222,357)+CC(455,360)+CC(455,395)+CC(525,360)+CC(525,395)+CC(695,357)+C(708,385,5);
+  // 注意
+  const N=['※ 耐圧トランスのE端子(接地端子)は必ず接地する。','※ 極性確認用端子も保安用として接地する。'];
+  if(rx)N.push('※ 耐圧トランスの0V・E端子間、高圧リアクトルのL・E端子間の短絡バーは外す。(リアクトルは耐圧トランスで容量不足のときに使用)','※ リアクトルを2台以上使うときは点線のように、リアクトルのL端子どうし・E端子どうしをつなぐ。');
+  s+=N.map((t,i)=>T(20,545+i*22,t,'font-size="15"')).join('');
+  return `<svg class="dg" viewBox="0 15 1000 ${545+N.length*22-15}" font-family="sans-serif">${s}</svg>`}
 
 'use strict';
 /* ===== 共通部分(件名の保存・一覧・印刷・バックアップ) ===== */
