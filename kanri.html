@@ -133,7 +133,7 @@ textarea{width:100%;border:1px solid var(--line);border-radius:4px;padding:5px 7
 .tabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 .item.nolink{cursor:default}
 .span2{grid-column:span 2}
-.eqg{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;background:#e3f4e8;border-radius:6px;padding:6px 8px}
+.eqgE{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end;background:#e3f4e8;border-radius:6px;padding:6px 8px}
 .eqr{border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:4px}
 .mv{align-self:end;flex-wrap:nowrap}
 .row{display:grid;gap:6px;align-items:end;border-top:1px dashed var(--line);padding-top:6px}
@@ -142,7 +142,7 @@ textarea{width:100%;border:1px solid var(--line);border-radius:4px;padding:5px 7
 .row.er{grid-template-columns:80px minmax(0,2fr) 90px 90px minmax(0,1fr) 40px auto}
 .row.hr{grid-template-columns:minmax(0,2.4fr) 70px repeat(4,minmax(0,1fr)) 80px 40px auto}
 .row.lg{grid-template-columns:minmax(0,1fr) 150px auto;background:#e6f6fb;border-radius:6px;padding:6px}
-.row.lr{grid-template-columns:50px minmax(0,1.6fr) minmax(0,1.3fr) 70px repeat(3,minmax(0,.8fr)) 70px minmax(0,1fr) 40px auto}
+.row.lr{grid-template-columns:44px minmax(0,1.5fr) minmax(0,1.2fr) 62px repeat(3,minmax(0,.7fr)) 62px minmax(0,1.9fr) 40px auto}
 .row.rr{grid-template-columns:28px minmax(0,1.6fr) 70px minmax(0,2fr) auto}
 .row.rr .no{align-self:center;text-align:right;color:var(--sub)}
 @media (max-width:760px){
@@ -208,6 +208,25 @@ table.s.eq td.eqg{background:#cdeccd;letter-spacing:.3em;font-size:17pt}
 table.s.eq td.nb{border-left:1px solid #222}
 table.s.eq th{font-size:15pt;height:10mm}
 .sheet.p .sheet-in{gap:5mm}
+.insw{display:flex;gap:4mm;align-items:stretch}
+.insw table.ins{flex:1}
+table.s.crit{width:auto;min-width:85mm;max-width:120mm}
+table.s.crit td{white-space:normal;text-align:left;font-size:14pt;line-height:1.35;padding:1mm 3mm}
+table.s.crit th{height:9mm}
+table.s td.nw{white-space:normal;font-size:15pt}
+table.s.dt th{line-height:1.15}
+.ditto{display:inline-block;width:12mm;text-align:center}
+.brk{display:grid;grid-template-columns:1fr 1fr 1.2fr;gap:2px}
+.brk select{padding:5px 2px;font-size:13px}
+.sheet.p table.s.dt th,.sheet.p table.s.dt td{font-size:14pt;height:11mm}
+.sheet.p table.s.ins td,.sheet.p table.s.ins th{font-size:13pt}
+.sheet.p table.s.ins td.rt{font-size:11pt}
+.sheet.p .insw{flex-direction:column}
+.sheet.p table.s.crit{max-width:none;width:100%}
+.sheet.p table.s.crit td{font-size:13pt}
+.sheet.p .s-panel{font-size:17pt;min-width:55mm}
+.sheet.p table.s td.jg{font-size:16pt}
+table.s.eq td.eqg{height:23mm}
 
 </style>
 </head>
@@ -228,6 +247,10 @@ const APPS=[
   {k:'taiatsu',n:'絶縁耐力試験',key:'taiatsu.v1',f:'taiatsu.html',cnt:p=>`試験回路 ${(p.items||[]).length}件`}];
 const REPORT_ITEMS=['引込高圧開閉器 動作試験','過電流継電器 動作試験','方向地絡継電器 動作試験','高圧機器 汚れ','高圧開閉器 操作機構','高圧絶縁抵抗 測定','高圧ケーブル 絶縁診断','接地抵抗 測定','接地線 布設状況','配分電盤 表示灯','配分電盤接続端子 締付','計器類','低圧絶縁抵抗 測定','低圧ブレーカー 動作','漏電ブレーカー 動作','高圧ヒューズ 予備','ディスコン棒','高圧ケーブル 埋設表示','危険標識','消火器','キュービクル 外観'];
 const REPORT_DEF=['良','良','良','良','良','良','良','良','良','良','良','良','良','良','良','有','有','有','有','有','良'];
+const BRK_A=['15','20','30','40','50','60','75','100','125','150','175','200','225','250','300','350','400','500','600','700','800','1000','1200'];
+const CRIT={hv:'高圧電路 6MΩ以上\n(6kV回路の参考値)',lv:'対地電圧150V以下 0.1MΩ以上\n300V以下 0.2MΩ以上\n300V超 0.4MΩ以上 (電技第58条)'};
+function brkText(r){return r.bt||r.bp||r.ba?[r.bt,r.bp?r.bp+(r.ba?r.ba+'A':''):(r.ba?r.ba+'A':'')].filter(Boolean).join(' '):(r.brk||'')}
+const EQ_MAKERS=['戸上電機製作所','三菱電機','東芝産業機器システム','富士電機','日立産機システム','明電舎','日新電機','光商工','エナジーサポート','ダイヘン','愛知電機','北芝電機','東光高岳','寺田電機製作所','河村電器産業','指月電機製作所','ニチコン','岡谷電機産業','音羽電機工業','正興電機製作所'];
 const EQ_NAMES=['PAS','UGS','VCB','LBS','DS','VT','CT','ZCT','ZPD','LA','PF','MOF','TR','SC','SR','GR','OCR','DGR','UVR','OVR'];
 let state=load(),view={name:'home'};
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7)}
@@ -300,11 +323,11 @@ function homeHTML(){
     <div class="list">${L.map(s=>{const last=s.insps.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
       return `<button class="item" data-act="openSite" data-id="${s.id}"><div class="t"><b>${esc(s.name)}</b><span>${esc(s.owner||'')}${last?` ・ 最新: ${fmtDate(last.date)} ${KIND[last.kind]}`:' ・ 点検記録なし'}</span></div><span class="badge b-none">${s.insps.length}件</span></button>`}).join('')||'<div class="empty">事業場がありません。「+ 新しい事業場」から作ります。</div>'}</div>
     <div class="card"><h2>電気管理技術者(書類に印刷されます)</h2>
-      <div class="g2">${inp('me.office','事務所名')}${inp('me.name','氏名')}</div>
-      <div class="g3">${inp('me.no','管理技術者 番号','',{ph:'例) F1234号'})}${inp('me.addr','住所')}${inp('me.tel','電話')}</div></div>
+      <div class="g2">${inp('me.office','事務所名','',{ph:'例) ○○電気管理事務所'})}${inp('me.name','氏名','',{ph:'例) ○○ ○○'})}</div>
+      <div class="g3">${inp('me.no','管理技術者 番号','',{ph:'例) F1234号'})}${inp('me.addr','住所','',{ph:'例) ○○県○○市○○町'})}${inp('me.tel','電話','',{ph:'例) 000-000-0000'})}</div></div>
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
-      <div class="note">事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
+      <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
   </div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
@@ -324,12 +347,12 @@ function siteHTML(){
   else if(tab==='eq'){
     body=`<div class="card"><h2>高圧機器表</h2>
       ${s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv"><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
-        return e.t==='g'?`<div class="eqg">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
-        :`<div class="eqr"><div class="g4">${inp(q+'name','機器名','',{list:'eqn'})}${inp(q+'use','用途')}${inp(q+'cap','定格容量')}${inp(q+'maker','製造者名')}</div>
+        return e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
+        :`<div class="eqr"><div class="g4">${inp(q+'name','機器名','',{list:'eqn'})}${inp(q+'use','用途')}${inp(q+'cap','定格容量')}${inp(q+'maker','製造者名','',{list:'eqm'})}</div>
           <div class="g4">${inp(q+'model','型式')}${inp(q+'v','定格電圧')}${inp(q+'i','定格電流')}${inp(q+'made','製造年月')}</div>
           <div class="g4">${inp(q+'serial','製造番号')}${inp(q+'note','備考','',{cls:'span2'})}${mv}</div></div>`}).join('')||'<div class="empty">機器がありません。</div>'}
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
-      <datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
+      <datalist id="eqm">${EQ_MAKERS.map(x=>`<option value="${x}">`).join('')}</datalist><datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="eq">高圧機器表を印刷</button></div>`}
   else if(tab==='hogo'){
     body=`<div class="card"><h2>保護協調検討</h2><div class="note">保護協調アプリを、この事業場の現場として開きます(データは保護協調アプリに保存され、この事業場のバックアップにも入ります)。</div>
@@ -355,12 +378,13 @@ function secEditor(k,sc,P){
   if(k==='hv')rows=sc.rows.map((r,j)=>{const R=`${q}rows.${j}.`;return `<div class="row hr">${inp(R+'nm','回路名 及 機器名')}${inp(R+'kv','試験電圧(kV)','',{dec:1})}${inp(R+'all','一括','',{dec:1})}${inp(R+'r','R-E','',{dec:1})}${inp(R+'s','S-E','',{dec:1})}${inp(R+'t','T-E','',{dec:1})}${inp(R+'lim','判定目安(MΩ)','',{dec:1})}<span class="jg" id="j-${R}">${badge(jHv(r))}</span>${rowBtns(k,j)}</div>`}).join('');
   if(k==='lv'){let ph='3';rows=sc.rows.map((r,j)=>{const R=`${q}rows.${j}.`;
     if(r.t==='g'){ph=r.ph||'3';return `<div class="row lg">${inp(R+'nm','見出し(変圧器など)','',{ph:'例) 電灯 №1 (単相 210/105V 75kVA)'})}<label>相${sel(`data-fr="${R}ph"`,r.ph||'3',['1','3'],['単相(N-E)','三相(S-E)'])}</label>${rowBtns(k,j)}</div>`}
-    return `<div class="row lr">${inp(R+'no','番号')}${inp(R+'nm','負荷名称')}${inp(R+'sub','2行目(任意)','',{ph:'例) 〃 二次側 一括'})}${inp(R+'v','試験電圧(V)','',{dec:1})}${inp(R+'a','R-E','',{dec:1})}${inp(R+'b',ph==='1'?'N-E':'S-E','',{dec:1})}${inp(R+'c','T-E','',{dec:1})}${inp(R+'lim','規定値(MΩ)','',{dec:1,ph:isFinite(lvLim({v:r.v}))?String(lvLim({v:r.v})):''})}${inp(R+'brk','ブレーカー')}<span class="jg" id="j-${R}">${badge(jLv(r))}</span>${rowBtns(k,j)}</div>`}).join('')}
+    return `<div class="row lr">${inp(R+'no','番号')}${inp(R+'nm','負荷名称')}${inp(R+'sub','2行目(任意)','',{ph:'例) 〃 二次側 一括'})}${inp(R+'v','試験電圧(V)','',{dec:1})}${inp(R+'a','R-E','',{dec:1})}${inp(R+'b',ph==='1'?'N-E':'S-E','',{dec:1})}${inp(R+'c','T-E','',{dec:1})}${inp(R+'lim','規定値(MΩ)','',{dec:1,ph:isFinite(lvLim({v:r.v}))?String(lvLim({v:r.v})):''})}<label>ブレーカー<span class="brk">${sel(`data-f="${R}bt"`,r.bt||'',['','MCB','ELB'],['—','MCB','ELB'])}${sel(`data-f="${R}bp"`,r.bp||'',['','3P','2P'],['—','3P','2P'])}${sel(`data-f="${R}ba"`,r.ba||'',['',...BRK_A],['—',...BRK_A.map(x=>x+'A')])}</span></label><span class="jg" id="j-${R}">${badge(jLv(r))}</span>${rowBtns(k,j)}</div>`}).join('')}
   const I=q+'inst.';
-  return `<div class="card sec"><div class="sech"><h2>${esc(sc.name||'(名前なし)')}</h2><div class="btns"><button class="btn small" data-act="secUp" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">↑</button><button class="btn small danger" data-act="secDel" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">この設備を削除</button></div></div>
-    <div class="g4">${inp(q+'name','設備名(緑の枠)','',{ph:'例) 受電設備'})}${inp(q+'date','測定日(空欄は点検日)','',{type:'date'})}<label>天候${sel(`data-f="${q}weather"`,sc.weather,['','晴','曇り','雨','雪'],['(点検と同じ)','晴','曇り','雨','雪'])}</label><div class="g2">${inp(q+'temp','温度(℃)','',{dec:1})}${inp(q+'hum','湿度(%)','',{dec:1})}</div></div>
+  return `<div class="card sec"><div class="sech"><h2 id="h-${q}">${esc(sc.name||'(名前なし)')}</h2><div class="btns"><button class="btn small" data-act="secUp" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">↑</button><button class="btn small danger" data-act="secDel" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">この設備を削除</button></div></div>
+    <div class="g4">${inp(q+'name','設備名(緑の枠)','',{ph:'例) 受電設備'})}${inp(q+'date',`測定日(空欄＝点検日 ${fmtDate(D.date)||'未入力'})`,'',{type:'date'})}<label>天候${sel(`data-f="${q}weather"`,sc.weather,['','晴','曇り','雨','雪'],[`(点検と同じ${D.weather?'：'+D.weather:''})`,'晴','曇り','雨','雪'])}</label><div class="g2">${inp(q+'temp','温度(℃)','',{dec:1,ph:D.temp?D.temp+'(自動)':''})}${inp(q+'hum','湿度(%)','',{dec:1,ph:D.hum?D.hum+'(自動)':''})}</div></div>
+    <div class="note">測定日・天候・温度・湿度は、空欄なら点検の基本(一番上)の値が入ります。違うときだけ入力してください。</div>
     <details><summary>測定計器 ${esc([sc.inst.name,sc.inst.model].filter(Boolean).join(' '))}</summary><div class="g3">${inp(I+'name','測定計器名')}${inp(I+'rating','定格',{area:3})}${inp(I+'model','型式')}${inp(I+'maker','製造者名')}${inp(I+'serial','製造番号')}${inp(I+'year','製造年月')}</div></details>
-    <div class="rows">${rows||'<div class="empty">行がありません。</div>'}</div>
+    ${k!=='earth'?inp(q+'crit','判定基準(測定計器の右に印刷)','',{area:3,ph:CRIT[k]}):''}<div class="rows">${rows||'<div class="empty">行がありません。</div>'}</div>
     <div class="btns">${k==='lv'?`<button class="btn small" data-act="rowAddG" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">+ 見出し</button>`:''}<button class="btn small" data-act="rowAdd" data-k="${k}" data-i="${D[k].secs.indexOf(sc)}">+ 行</button></div></div>`;
   function rowBtns(k,j){const si=D[k].secs.indexOf(sc);return `<div class="rb"><button class="btn small" data-act="rowUp" data-k="${k}" data-i="${si}" data-j="${j}">↑</button><button class="btn small danger" data-act="rowDel" data-k="${k}" data-i="${si}" data-j="${j}">×</button></div>`}
 }
@@ -391,16 +415,16 @@ function inspHTML(){
     <div class="btns"><button class="btn main" data-act="pv" data-docs="cover,report">表紙と報告書を印刷</button></div>`}
   else if(['earth','hv','lv'].includes(tab)){
     const D=i[tab];
-    body=D.secs.map((sc,j)=>secEditor(tab,sc,`${P}${tab}.secs.${j}.`)).join('')+`
+    body=`<div class="btns"><button class="btn" data-act="tab" data-tab="apps">← 各成績表の一覧へ</button></div><div class="card"><h2>${{earth:'接地抵抗測定成績表',hv:'高圧絶縁抵抗測定成績表',lv:'低圧絶縁抵抗測定成績表'}[tab]}</h2><div class="note">設備(受電設備・第1変電設備 など)ごとに1枚になります。</div></div>`+D.secs.map((sc,j)=>secEditor(tab,sc,`${P}${tab}.secs.${j}.`)).join('')+`
     <div class="btns"><button class="btn" data-act="secAdd" data-k="${tab}">+ 設備(受電設備・第1変電設備 など)</button><button class="btn main" data-act="pv" data-docs="${tab}">印刷</button></div>
     <div class="note">${{earth:'判定:抵抗値が規定値以下なら良。',hv:'判定:入力した絶縁抵抗値がすべて判定目安以上なら良。値がない欄は「－」と入れてください。',lv:'判定:絶縁抵抗値がすべて規定値以上なら良。規定値を空欄にすると試験電圧から自動(125V→0.1・250V→0.2・500V→0.4 MΩ)。'}[tab]}</div>`}
   else if(tab==='apps'){
-    body=`<div class="card"><h2>各成績表(それぞれのアプリで作成・印刷)</h2>
-      <div class="list">${APPS.map(a=>{const p=linkedProj(a,i);return `<div class="item nolink"><div class="t"><b>${a.n}</b><span>${p?esc(p.name)+' ・ '+a.cnt(p):'まだ作っていません'}</span></div><button class="btn small ${p?'':'main'}" data-act="openApp" data-k="${a.k}">${p?'開く':'作成して開く'}</button>${p?`<button class="btn small danger" data-act="unlinkApp" data-k="${a.k}">外す</button>`:''}</div>`}).join('')}</div>
-      <div class="note">開いたアプリの右下の「← 管理アプリ」で、ここに戻れます。作った成績表は、この事業場のバックアップにいっしょに保存されます。</div></div>`}
+    body=`<div class="card"><h2>各成績表</h2>
+      <div class="list">${[['earth','接地抵抗測定'],['hv','高圧絶縁抵抗測定'],['lv','低圧絶縁抵抗測定']].map(([k,n])=>{const D=i[k];const c=D.secs.reduce((a,sc)=>a+sc.rows.filter(r=>r.t!=='g').length,0);return `<div class="item nolink"><div class="t"><b>${n}</b><span>${D.secs.length?`${D.secs.map(x=>esc(x.name)).join('・')} ・ ${c}行`:'まだ作っていません'}</span></div><button class="btn small ${D.secs.length?'':'main'}" data-act="tab" data-tab="${k}">${D.secs.length?'開く':'作る'}</button></div>`}).join('')}${APPS.map(a=>{const p=linkedProj(a,i);return `<div class="item nolink"><div class="t"><b>${a.n}</b><span>${p?esc(p.name)+' ・ '+a.cnt(p):'まだ作っていません'}</span></div><button class="btn small ${p?'':'main'}" data-act="openApp" data-k="${a.k}">${p?'開く':'作成して開く'}</button>${p?`<button class="btn small danger" data-act="unlinkApp" data-k="${a.k}">外す</button>`:''}</div>`}).join('')}</div>
+      <div class="note">接地・高圧絶縁・低圧絶縁はこのアプリの中で作ります。OCR などの成績表はそれぞれのアプリが開きます。開いたアプリの上の「← 管理アプリへ戻る」(または右下のボタン)で、ここに戻れます。作った成績表は、この事業場のバックアップにいっしょに保存されます。</div></div>`}
   return `${bar(`${s.name}  ${fmtDate(i.date)} ${KIND[i.kind]}`,'toSite')}
   <div class="wrap narrow">
-    ${tabs(tab,[['base','基本・印刷'],['notice','お知らせ'],['report','報告書'],['earth','接地抵抗'],['hv','高圧絶縁'],['lv','低圧絶縁'],['apps','各成績表']])}
+    ${tabs(['earth','hv','lv'].includes(tab)?'apps':tab,[['base','基本・印刷'],['notice','お知らせ'],['report','報告書'],['apps','各成績表']])}
     ${body}
   </div>`}
 
@@ -446,43 +470,44 @@ function docEq(s){const units=e=>2;const pages=[];let cur=[],u=0;const CAP=34;
     <table class="s eq"><colgroup><col style="width:13%"><col style="width:16%"><col style="width:16%"><col style="width:15%"><col style="width:17%"><col></colgroup>
     <tr><th rowspan="2" class="hb2">機 器 名</th><th>用　途</th><th>製 造 者 名</th><th>定 格 電 圧</th><th>製 造 年 月</th><th rowspan="2" class="hb2">備　考</th></tr>
     <tr class="hb"><th>定 格 容 量</th><th>型　式</th><th>定 格 電 流</th><th>製 造 番 号</th></tr>
-    ${pg.map(e=>e.t==='g'?`<tr><td colspan="2" rowspan="2" class="eqg">${esc(e.name)}</td><td rowspan="2" colspan="4" class="nb"></td></tr><tr></tr>`
+    ${pg.map(e=>e.t==='g'?`<tr><td colspan="2" class="eqg">${esc(e.name)}</td><td colspan="4" class="nb"></td></tr>`
       :`<tr><td rowspan="2">${esc(e.name)}</td><td>${esc(e.use)}</td><td>${esc(e.maker)}</td><td>${esc(e.v)}</td><td>${esc(e.made)}</td><td rowspan="2" class="sm">${br(e.note)}</td></tr>
         <tr><td>${esc(e.cap)}</td><td>${esc(e.model)}</td><td>${esc(e.i)}</td><td class="sm">${esc(e.serial)}</td></tr>`).join('')}${fill.join('')}</table>`)})}
-function secHead(title,sc,i){const d=sc.date||i.date,w=sc.weather||i.weather,t=sc.temp||(sc.date?'':i.temp),h=sc.hum||(sc.date?'':i.hum);
+const o3=()=>state.o3==='P'?'P':'L';
+const SHo=inner=>SH(o3()==='P'?'p doc':'doc',inner);
+function secHead(title,sc,i,crit){const d=sc.date||i.date,w=sc.weather||i.weather,t=sc.temp||i.temp,h=sc.hum||i.hum;
   const I=sc.inst;
+  const ins=`<table class="s ins"><colgroup><col style="width:16%"><col style="width:20%"><col style="width:16%"><col style="width:16%"><col style="width:16%"><col></colgroup>
+      <tr><th>測 定 計 器 名</th><th>定　格</th><th>型　式</th><th>製 造 者 名</th><th>製 造 番 号</th><th>製 造 年 月</th></tr>
+      <tr><td class="nw">${esc(I.name)}</td><td class="rt">${br(I.rating)}</td><td>${esc(I.model)}</td><td class="nw">${esc(I.maker)}</td><td>${esc(I.serial)}</td><td>${esc(I.year)}</td></tr></table>`;
   return `<div class="s-title">${title}</div>
     <div class="s-top"><div class="s-panel">${esc(sc.name)}</div><div class="s-date">${fmtDate(d)}${w?` ・ 天候 ${esc(w)}`:''}${t?` ・ 温度 ${esc(t)}℃`:''}${h?` ・ 湿度 ${esc(h)}%`:''}</div></div>
-    <table class="s ins"><colgroup><col style="width:16%"><col style="width:20%"><col style="width:16%"><col style="width:16%"><col style="width:16%"><col></colgroup>
-      <tr class="hb"><th>測 定 計 器 名</th><th>定　格</th><th>型　式</th><th>製 造 者 名</th><th>製 造 番 号</th><th>製 造 年 月</th></tr>
-      <tr><td>${esc(I.name)}</td><td class="rt">${br(I.rating)}</td><td>${esc(I.model)}</td><td>${esc(I.maker)}</td><td>${esc(I.serial)}</td><td>${esc(I.year)}</td></tr></table>`}
+    ${crit!=null?`<div class="insw">${ins}<table class="s crit"><tr><th>判 定 基 準</th></tr><tr><td>${br(crit)}</td></tr></table></div>`:ins}`}
 const jv=j=>j==='否'?`<td class="jg ng">否</td>`:`<td class="jg">${j}</td>`;
 const vv=(x,bad)=>`<td class="v${bad?' ng':''}">${esc(x)}</td>`;
-function docEarth(s,i){const out=[];i.earth.secs.forEach(sc=>{const pages=chunk(sc.rows,8);pages.forEach(pg=>{
-  const rows=pg.map(r=>{const j=jEarth(r);const lim=r.lim?`${esc(r.lim)} 以下`:'';return `<tr><td>${esc(r.k)}</td><td class="l">${esc(r.tg)}</td>${vv(r.v,j==='否')}<td>${lim}</td>${jv(j)}<td class="l">${esc(r.note)}</td></tr><tr class="sp"><td></td><td></td><td></td><td></td><td></td><td></td></tr>`}).join('');
-  const fill=Array(8-pg.length).fill('<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr><tr class="sp"><td></td><td></td><td></td><td></td><td></td><td></td></tr>').join('');
-  out.push(SH('doc',`${secHead('接 地 抵 抗 測 定 成 績 表',sc,i)}<table class="s dt"><colgroup><col style="width:7%"><col style="width:33%"><col style="width:11%"><col style="width:11%"><col style="width:8%"><col></colgroup>
-    <tr class="hb"><th>種別</th><th>接 地 対 象</th><th>抵抗値 (Ω)</th><th>規定値 (Ω)</th><th>判 定</th><th>備　考</th></tr><tr class="sp"><td></td><td></td><td></td><td></td><td></td><td></td></tr>${rows}${fill}</table>`))})});return out}
-function docHv(s,i){const out=[];i.hv.secs.forEach(sc=>{chunk(sc.rows,10).forEach(pg=>{
+const blank=n=>`<tr>${'<td></td>'.repeat(n)}</tr>`;
+function docEarth(s,i){const out=[];const N=o3()==='P'?36:10;i.earth.secs.forEach(sc=>{chunk(sc.rows,N).forEach(pg=>{
+  const rows=pg.map(r=>{const j=jEarth(r);const lim=r.lim?`${esc(r.lim)} 以下`:'';return `<tr><td>${esc(r.k)}</td><td class="l">${esc(r.tg)}</td>${vv(r.v,j==='否')}<td>${lim}</td>${jv(j)}<td class="l sm">${esc(r.note)}</td></tr>`}).join('');
+  out.push(SHo(`${secHead('接 地 抵 抗 測 定 成 績 表',sc,i)}<table class="s dt"><colgroup><col style="width:8%"><col style="width:33%"><col style="width:12%"><col style="width:12%"><col style="width:8%"><col></colgroup>
+    <tr><th>種別</th><th>接 地 対 象</th><th>抵抗値 (Ω)</th><th>規定値 (Ω)</th><th>判 定</th><th>備　考</th></tr>${rows}${blank(6).repeat(N-pg.length)}</table>`))})});return out}
+function docHv(s,i){const out=[];const N=o3()==='P'?32:10;i.hv.secs.forEach(sc=>{chunk(sc.rows,N).forEach(pg=>{
   const rows=pg.map(r=>{const j=jHv(r),l=num(r.lim);const b=x=>{const n=num(x);return isFinite(n)&&isFinite(l)&&n<l};return `<tr><td class="l">${esc(r.nm)}</td><td>${esc(r.kv)}</td>${vv(r.all||'－',b(r.all))}${vv(r.r||'－',b(r.r))}${vv(r.s||'－',b(r.s))}${vv(r.t||'－',b(r.t))}<td>${esc(r.lim)}</td>${jv(j)}</tr>`}).join('');
-  const fill=Array(10-pg.length).fill('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>').join('');
-  out.push(SH('doc',`${secHead('高 圧 絶 縁 抵 抗 測 定 成 績 表',sc,i)}<table class="s dt"><colgroup><col style="width:34%"><col style="width:8%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col></colgroup>
-    <tr><th rowspan="2">回 路 名　及　機 器 名</th><th>試験電圧</th><th colspan="4">絶 縁 抵 抗 値 (MΩ)</th><th>判定目安</th><th rowspan="2">判 定</th></tr>
-    <tr class="hb"><th>(kV)</th><th>一 括</th><th>R-E間</th><th>S-E間</th><th>T-E間</th><th>(MΩ)</th></tr>${rows}${fill}</table>`))})});return out}
-function docLv(s,i){const out=[];const LN=15;
-  i.lv.secs.forEach(sc=>{ // 1行=1ライン、2行目ありは2ライン
+  out.push(SHo(`${secHead('高 圧 絶 縁 抵 抗 測 定 成 績 表',sc,i,sc.crit||CRIT.hv)}<table class="s dt"><colgroup><col style="width:32%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:9%"><col style="width:10%"><col></colgroup>
+    <tr><th rowspan="2">回 路 名　及　機 器 名</th><th rowspan="2">試験電圧<br>(kV)</th><th colspan="4">絶 縁 抵 抗 値 (MΩ)</th><th rowspan="2">判定目安<br>(MΩ)</th><th rowspan="2">判 定</th></tr>
+    <tr><th>一 括</th><th>R-E間</th><th>S-E間</th><th>T-E間</th></tr>${rows}${blank(8).repeat(N-pg.length)}</table>`))})});return out}
+function docLv(s,i){const out=[];const LN=o3()==='P'?35:15;
+  i.lv.secs.forEach(sc=>{
     const lines=[];let ph='3';sc.rows.forEach(r=>{if(r.t==='g'){ph=r.ph||'3';lines.push({g:r});return}
       const j=jLv(r),l=lvLim(r);const b=x=>{const n=num(x);return isFinite(n)&&isFinite(l)&&n<l};
       const vals=`<td>${esc(r.v)}</td>${vv(r.a||'－',b(r.a))}${vv(r.b||'－',b(r.b))}${vv(r.c||'－',b(r.c))}<td>${isFinite(l)?l:''}</td>${jv(j)}`;
-      if(r.sub){lines.push({h:`<tr><td>${esc(r.no)}</td><td class="l" colspan="2">${esc(r.nm)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="l sm">${esc(r.brk)}</td></tr>`,ph});
-        lines.push({h:`<tr><td></td><td class="c">〃</td><td class="l">${esc(r.sub)}</td>${vals}<td></td></tr>`,ph})}
-      else lines.push({h:`<tr><td>${esc(r.no)}</td><td class="l" colspan="2">${esc(r.nm)}</td>${vals}<td class="l sm">${esc(r.brk)}</td></tr>`,ph})});
-    const pages=chunk(lines,LN);if(!pages.length)pages.push([]);
-    pages.forEach(pg=>{const phs=new Set(pg.map(x=>x.g?(x.g.ph||'3'):x.ph).filter(Boolean));const phL=phs.size>1?'N(S)-E間':phs.has('1')?'N-E間':'S-E間';
-      const body=pg.map(x=>x.g?`<tr><td colspan="10" class="lgp">${esc(x.g.nm)}</td></tr>`:x.h).join('')+Array(LN-pg.length).fill('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>').join('');
-      out.push(SH('doc',`${secHead('低 圧 絶 縁 抵 抗 測 定 成 績 表',sc,i)}<table class="s dt lv"><colgroup><col style="width:7%"><col style="width:6%"><col style="width:24%"><col style="width:7%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:7%"><col style="width:6%"><col></colgroup>
-      <tr><th rowspan="2">回路番号</th><th rowspan="2" colspan="2">負 荷 名 称</th><th>試験電圧</th><th colspan="3">絶縁抵抗値 (MΩ)</th><th>規定値</th><th rowspan="2">判定</th><th rowspan="2">ブレーカー容量</th></tr>
-      <tr class="hb"><th>(V)</th><th>R-E間</th><th>${phL}</th><th>T-E間</th><th>(MΩ)</th></tr>${body}</table>`))})});return out}
+      if(r.sub){lines.push({h:`<tr><td>${esc(r.no)}</td><td class="l">${esc(r.nm)}</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="sm">${esc(brkText(r))}</td></tr>`,ph});
+        lines.push({h:`<tr><td></td><td class="l"><span class="ditto">〃</span>${esc(r.sub)}</td>${vals}<td></td></tr>`,ph})}
+      else lines.push({h:`<tr><td>${esc(r.no)}</td><td class="l">${esc(r.nm)}</td>${vals}<td class="sm">${esc(brkText(r))}</td></tr>`,ph})});
+    chunk(lines,LN).forEach(pg=>{const phs=new Set(pg.map(x=>x.g?(x.g.ph||'3'):x.ph).filter(Boolean));const phL=phs.size>1?'N(S)-E間':phs.has('1')?'N-E間':'S-E間';
+      const body=pg.map(x=>x.g?`<tr><td colspan="9" class="lgp">${esc(x.g.nm)}</td></tr>`:x.h).join('')+blank(9).repeat(LN-pg.length);
+      out.push(SHo(`${secHead('低 圧 絶 縁 抵 抗 測 定 成 績 表',sc,i,sc.crit||CRIT.lv)}<table class="s dt lv"><colgroup><col style="width:7%"><col style="width:30%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col></colgroup>
+      <tr><th rowspan="2">回路番号</th><th rowspan="2">負 荷 名 称</th><th rowspan="2">試験電圧<br>(V)</th><th colspan="3">絶縁抵抗値 (MΩ)</th><th rowspan="2">規定値<br>(MΩ)</th><th rowspan="2">判定</th><th rowspan="2">ブレーカー容量</th></tr>
+      <tr><th>R-E間</th><th>${phL}</th><th>T-E間</th></tr>${body}</table>`))})});return out}
 function chunk(a,n){const o=[];for(let k=0;k<a.length;k+=n)o.push(a.slice(k,k+n));if(!o.length)o.push([]);return o}
 function buildDocs(docs){const s=site(),i=insp();const out=[];
   docs.forEach(d=>{if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
@@ -491,7 +516,7 @@ function buildDocs(docs){const s=site(),i=insp();const out=[];
   return out}
 function pvHTML(){const pages=buildDocs(view.docs);
   return `${bar('印刷プレビュー','pvBack')}<div class="wrap" style="max-width:none">
-    <div class="pv-bar noprint"><button class="btn main" data-act="doPrint">印刷する</button><span class="note">${pages.length}枚。縦と横の用紙が混ざるときは、パソコンの Chrome・Edge なら自動で向きが変わります。うまくいかないときは書類ごとに印刷してください。</span></div>
+    <div class="pv-bar noprint">${view.docs.some(d=>['earth','hv','lv'].includes(d))?`<span class="seg"><button data-act="o3" data-o="L" class="${o3()==='L'?'on':''}">成績表 A4横</button><button data-act="o3" data-o="P" class="${o3()==='P'?'on':''}">A4縦</button></span>`:''}<button class="btn main" data-act="doPrint">印刷する</button><span class="note">${pages.length}枚。縦と横の用紙が混ざるときは、パソコンの Chrome・Edge なら自動で向きが変わります。うまくいかないときは書類ごとに印刷してください。</span></div>
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')||'<div class="empty">印刷するものがありません(設備が未登録など)。</div>'}</div></div>`}
 function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/(297*96/25.4))}
 window.addEventListener('resize',()=>{if(view.name==='pv')fit()});
@@ -564,6 +589,7 @@ document.addEventListener('click',e=>{
     case 'pvAll':{const pk=state.pk||{};view.ret={...view};view={...view,name:'pv',docs:['cover','report','earth','hv','lv','ov','eq'].filter(k=>pk[k]!==false)};render();window.scrollTo(0,0);break}
     case 'pvBack':view=view.ret||{name:'home'};render();break;
     case 'doPrint':window.print();break;
+    case 'o3':state.o3=b.dataset.o;save();render();break;
     case 'openApp':openApp(b.dataset.k);break;
     case 'unlinkApp':if(confirm('この点検記録から外しますか?(成績表アプリのデータは消えません)')){delete i.links[b.dataset.k];save();render()}break;
     case 'openHogo':hogoReg(s);location.href=`hogo.html?site=${encodeURIComponent(s.id)}&kanri=${encodeURIComponent(s.id)}`;break;
@@ -580,6 +606,7 @@ function onField(t){const p=t.dataset.f||t.dataset.fr;setPath(state,p,t.value);
   if(/\.rows\.\d+\.k$/.test(p)){const r=getPath(state,p.replace(/\.k$/,''));if(!r.lim||Object.values(EARTH_LIM).includes(r.lim))r.lim=EARTH_LIM[t.value]}
   save();
   const m=p.match(/^(.*\.(earth|hv|lv)\.secs\.\d+\.rows\.\d+\.)/);if(m){const el=document.getElementById('j-'+m[1]);if(el)el.innerHTML=badge(JF[m[2]](getPath(state,m[1].slice(0,-1))))}
+  if(/secs\.\d+\.name$/.test(p)){const h=document.getElementById('h-'+p.slice(0,-4));if(h)h.textContent=t.value||'(名前なし)'}
   if(p.endsWith('.name')&&view.name==='site'&&p.split('.').length===3){const h=$('.bar h1');if(h)h.textContent=t.value}
   if(t.dataset.fr)render()}
 document.addEventListener('input',e=>{const t=e.target;if(t.dataset.f&&t.tagName!=='SELECT')onField(t)});
