@@ -719,7 +719,7 @@ function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const lb=lbOf(it),c
     else hit=`<rect class="hit" x="${X-16}" y="${Y-20}" width="32" height="40" data-id="${it.id}"/>`}
   return `<g class="it${ed&&sldSel.includes(it.id)?' on':''}">${g}${t}${hit}</g>`}
 function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.b[1]*SU}`;const on=ed&&sldSel.includes(w.id);
-  return `<path d="${d}" fill="none" stroke="${w.c||'#000'}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}${on&&sldSel.length===1?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="6" class="ep"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="6" class="ep"/>`:''}`}
+  return `<path d="${d}" fill="none" stroke="${w.c||'#000'}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
 function sldSVG(s,ed){const D=sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
@@ -732,7 +732,7 @@ function sldSVG(s,ed){const D=sldData(s);
   const band=ed&&sldBand?`<rect x="${Math.min(sldBand[0],sldBand[2])*SU}" y="${Math.min(sldBand[1],sldBand[3])*SU}" width="${Math.abs(sldBand[2]-sldBand[0])*SU}" height="${Math.abs(sldBand[3]-sldBand[1])*SU}" class="band"/>`:'';
   return `<svg ${ed?'id="sld" ':''}class="sldsvg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" font-family="sans-serif">
     <style>.sym{fill:none;stroke-linecap:round}.sym .fillw{fill:#fff}.fillc{fill:currentColor;stroke:none}.won{filter:drop-shadow(0 0 2px #ff922b)}.it.on .sym,.it.on text{filter:drop-shadow(0 0 2px #ff922b)}.whit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}.hit{fill:transparent;cursor:move}.gl{stroke:#e8edf2;stroke-width:1}.gl.g5{stroke:#cfd8e2}.stp{fill:#1c7ed6}.ep{fill:#fff;stroke:#e67700;stroke-width:2;cursor:crosshair}.band{fill:rgba(28,126,214,.08);stroke:#1c7ed6;stroke-dasharray:4 3}</style>
-    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${pre}${st}${band}</svg>`}
+    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${(()=>{if(!ed||sldSel.length!==1)return '';const w=D.wires.find(x=>x.id===sldSel[0]);return w?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="7" class="ep" data-ep="a"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="7" class="ep" data-ep="b"/>`:''})()}${pre}${st}${band}</svg>`}
 function selObjs(){const D=sldData();return {its:D.items.filter(x=>sldSel.includes(x.id)),ws:D.wires.filter(x=>sldSel.includes(x.id))}}
 function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.length?its[0]:null;const S=one&&SYM[one.t];
   const btn=(a,l,on,extra)=>`<button class="btn small${on?' on':''}" data-act="${a}" ${extra||''}>${l}</button>`;
@@ -744,7 +744,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
     <span class="grp"><b>文字</b><select data-sld="fs">${FS.map(v=>`<option ${String(one.fs||(S.txt?14:S.box?13:12))===v?'selected':''}>${v}</option>`).join('')}</select>${S.box?`<b>箱</b>${btn('sldBW','幅－','',`data-v="-1"`)}${btn('sldBW','幅＋','',`data-v="1"`)}${btn('sldBH','高さ－','',`data-v="-1"`)}${btn('sldBH','高さ＋','',`data-v="1"`)}`:''}${S.txt||S.box?'':`<b>記号の線</b><select data-sld="sw">${['1.2','1.8','2.6'].map(v=>`<option value="${v}" ${String(one.sw||'1.8')===v?'selected':''}>${{'1.2':'細','1.8':'普通','2.6':'太'}[v]}</option>`).join('')}</select>`}</span>`}
   else if(its.length+ws.length>1)it=`<span class="grp"><b>${its.length+ws.length}個を選択中</b>(ドラッグでまとめて移動)</span>`;
   const act=sldSel.length?`<span class="grp">${btn('sldCopy','コピー')}${btn('sldDel','削除','','style="color:#c62828"')}</span>`:(sldClip?`<span class="grp">${btn('sldPaste','貼り付け')}</span>`:'');
-  const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)をタップすると延ばせます。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
+  const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択、ドラッグで移動。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)はタップで延長、ドラッグで端だけ移動。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){sldData(s);
   return `<div class="card sldc"><h2>引込系統図エディター</h2>
@@ -776,9 +776,9 @@ function sldBind(){const sv=document.getElementById('sld');if(!sv||sv.dataset.b)
   sv.addEventListener('pointerdown',e=>{const D=sldData();const p=sldPt(e);const tg=e.target.closest('[data-id]');
     const inl=document.getElementById('sldInl');if(inl){inl.blur();return}
     if(sldT==='sel'){
-      // 選んだ線の端 → 延長
-      if(sldSel.length===1){const w=D.wires.find(x=>x.id===sldSel[0]);if(w){const rp=sldPt(e,1);const near=q=>Math.hypot(rp[0]-q[0],rp[1]-q[1])<.4;
-        const end=near(w.a)?w.a:near(w.b)?w.b:null;if(end){sldWs=end.slice();sldHov=end.slice();sldSty={lw:wLW(w),ld:w.ld||'',c:w.c||'#000000'};sldT='wire';sldSel=[];sldRefresh();return}}}
+      // 選んだ線の端(橙の丸):ドラッグで端だけ移動、タップで延長
+      if(e.target.dataset&&e.target.dataset.ep&&sldSel.length===1){const w=D.wires.find(x=>x.id===sldSel[0]);if(w){const k=e.target.dataset.ep;
+        sldDrag={ep:k,w,p0:p,o:w[k].slice(),moved:false,snap:JSON.stringify(D)};sv.setPointerCapture(e.pointerId);return}}
       if(tg){const id=tg.dataset.id;const again=sldSel.length===1&&sldSel[0]===id;if(!sldSel.includes(id))sldSel=[id];
         const its=D.items.filter(x=>sldSel.includes(x.id)),ws=D.wires.filter(x=>sldSel.includes(x.id));
         const tset=new Set();its.forEach(it=>sldTerms(it).forEach(t=>tset.add(t.join(','))));
@@ -795,12 +795,16 @@ function sldBind(){const sv=document.getElementById('sld');if(!sv||sv.dataset.b)
       if(SYM[t].txt||SYM[t].box)setTimeout(()=>sldInline(it),30)}
   });
   sv.addEventListener('pointermove',e=>{
+    if(sldDrag&&sldDrag.ep){const p=sldPt(e);if(eqP(p,sldDrag.p0)&&!sldDrag.moved)return;sldDrag.moved=true;const w=sldDrag.w,o=w[sldDrag.ep==='a'?'b':'a'];
+      w[sldDrag.ep]=Math.abs(p[0]-o[0])>=Math.abs(p[1]-o[1])?[p[0],o[1]]:[o[0],p[1]];sldRedraw();return}
     if(sldDrag){const p=sldPt(e);const dx=p[0]-sldDrag.p0[0],dy=p[1]-sldDrag.p0[1];if(!dx&&!dy&&!sldDrag.moved)return;sldDrag.moved=true;
       sldDrag.its.forEach(([it,x,y])=>{it.x=x+dx;it.y=y+dy});sldDrag.ws.forEach(([w,a,b])=>{w.a=[a[0]+dx,a[1]+dy];w.b=[b[0]+dx,b[1]+dy]});sldDrag.att.forEach(([w,k,o])=>{w[k]=[o[0]+dx,o[1]+dy]});sldRedraw();return}
     if(sldBand){const rp=sldPt(e,1);sldBand[2]=rp[0];sldBand[3]=rp[1];sldRedraw();return}
     if(sldWs){const p=sldPt(e);const b=Math.abs(p[0]-sldWs[0])>=Math.abs(p[1]-sldWs[1])?[p[0],sldWs[1]]:[sldWs[0],p[1]];
       if(!sldHov||!eqP(b,sldHov)){sldHov=b;sldRedraw()}}});
-  const up=()=>{if(sldDrag){const d=sldDrag;sldDrag=null;if(d.moved){sldHist.push(d.snap);save()}else if(d.again)sldInline(d.again)}
+  const up=()=>{if(sldDrag){const d=sldDrag;sldDrag=null;if(d.moved){sldHist.push(d.snap);save()}
+      else if(d.ep){const w=d.w;sldWs=w[d.ep].slice();sldHov=sldWs.slice();sldSty={lw:wLW(w),ld:w.ld||'',c:w.c||'#000000'};sldT='wire';sldSel=[];sldRefresh()}
+      else if(d.again)sldInline(d.again)}
     if(sldBand){const D=sldData();const [a,b,c,d]=sldBand;const x0=Math.min(a,c),x1=Math.max(a,c),y0=Math.min(b,d),y1=Math.max(b,d);const inR=q=>q[0]>=x0&&q[0]<=x1&&q[1]>=y0&&q[1]<=y1;
       sldSel=D.items.filter(it=>inR([it.x,it.y])).map(x=>x.id).concat(D.wires.filter(w=>inR(w.a)&&inR(w.b)).map(x=>x.id));sldBand=null;sldRedraw();sldPropRefresh()}};
   sv.addEventListener('pointerup',up);sv.addEventListener('pointercancel',up);
