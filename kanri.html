@@ -275,6 +275,9 @@ table.s.eq td.eqg{height:23mm}
   body.sld-m .sldc{padding:8px}
   body.sld-m .sldtitle h2{font-size:14px}
 }
+.sldgrp{display:flex;gap:2px;border-bottom:2px solid var(--accent);overflow-x:auto}
+.sldgrp button{flex:none;border:1px solid var(--line);border-bottom:none;background:#fff;color:var(--accent);padding:4px 10px;border-radius:6px 6px 0 0;font-size:12px;cursor:pointer;font-family:inherit}
+.sldgrp button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
 
 </style>
 </head>
@@ -717,9 +720,23 @@ const SYM={
   gen:{n:'発電機',lb:'',d:()=>sL(0,-20,0,-11)+`<circle cx="0" cy="0" r="11"/><text x="0" y="5" text-anchor="middle" font-size="14" stroke="none" class="tf">G</text>`},
   box:{n:'文字の箱(リレー等)',lb:'OCR',box:1,d:it=>{const k=boxK(it),H=boxH(it);return `<rect x="${-k*SU}" y="${-H/2}" width="${2*k*SU}" height="${H}" class="fillw"/>`}},
   text:{n:'文字',lb:'文字',txt:1,d:()=>''},
+  lbsf:{c:'LBS(F付)',n:'負荷開閉器 PF付',lb:'LBS',h:2,d:()=>`<g transform="translate(0,-20)">${SYM.lbs.d()}</g><g transform="translate(0,20)">${SYM.pf.d()}</g>`},
+  pcsf:{c:'PCS(F付)',n:'高圧カットアウト ヒューズ付',lb:'PCS',d:()=>sL(0,-20,0,-9)+sL(0,9,0,20)+sL(0,9,-9,-7)+`<g transform="translate(-4.5,1) rotate(-29.4)"><rect x="-3.2" y="-7" width="6.4" height="14" class="fillw"/></g>`+sL(0,9,-9,-7)},
+  pcs:{c:'PCS(F無)',n:'高圧カットアウト 素通し',lb:'PCS',d:()=>sL(0,-20,0,-9)+sL(0,9,0,20)+sL(0,9,-1.07,7.1)+sL(-7.93,-5.1,-9,-7)+`<g transform="translate(-4.5,1) rotate(-29.4)"><rect x="-3.2" y="-7" width="6.4" height="14" class="fillw"/></g>`},
+  vcs:{c:'VCS',n:'真空電磁接触器 VCS',lb:'VCS',d:()=>BLADE()+`<path d="M-4 -9 a4 4 0 0 1 8 0"/>`},
+  vmc:{c:'VMC',n:'真空電磁接触器 VMC',lb:'VMC',d:()=>BLADE()+`<path d="M-4 -9 a4 4 0 0 1 8 0"/>`},
+  mc:{c:'MC',n:'電磁接触器 MC',lb:'MC',d:()=>BLADE()+`<path d="M-4 -9 a4 4 0 0 1 8 0"/>`},
+  vct:{lo:21,c:'VCT',n:'計器用変成器 VCT(点線枠)',lb:'VCT',d:()=>sL(0,-20,0,20)+`<rect x="-15" y="-15" width="30" height="30" stroke-dasharray="4 3"/><circle cx="0" cy="0" r="6"/><circle cx="8" cy="-4" r="4"/><circle cx="8" cy="3" r="4"/>`},
+  ch:{c:'CH',n:'ケーブルヘッド',lb:'CH',d:()=>sL(0,-20,0,-6)+`<path d="M-7 -6 H7 L0 7 Z"/>`+sL(0,7,0,20)},
+  vtt:{c:'VTT',n:'電圧試験端子 VTT',lb:'VTT',t1:1,d:()=>sL(0,-20,0,-7)+`<rect x="-8" y="-7" width="16" height="12"/><circle cx="-3" cy="-1" r="1.6"/><circle cx="3" cy="-1" r="1.6"/>`},
+  ctt:{c:'CTT',n:'電流試験端子 CTT',lb:'CTT',t1:1,d:()=>sL(0,-20,0,-7)+`<rect x="-8" y="-7" width="16" height="12"/><circle cx="-3" cy="-1" r="1.6"/><circle cx="3" cy="-1" r="1.6"/>`},
+  arw:{c:'',n:'矢印',lb:'',d:()=>sL(0,-20,0,12)+`<path d="M-5 10 L0 20 L5 10 Z" class="fillc"/>`},
+  apfr:{c:'APFR',n:'自動力率調整器 APFR',lb:'APFR',mt:1,mw:28,d:()=>`<rect x="-18" y="-11" width="36" height="22" class="fillw"/>`},
   dot:{n:'接続点',lb:'',t0:1,d:()=>`<circle cx="0" cy="0" r="3.5" class="fillc"/>`},
 };
-const SLD_TOOLS=[['sel','選択・移動'],['wire','線'],...Object.keys(SYM).map(k=>[k,SYM[k].n])];
+const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['ct','zct','vt','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['vs','as','v','a','w','wh','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
+let sldGrp=0;
+const SLD_TOOLS=[['sel','選択・移動'],['wire','線']];
 const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['10','12','14','16','18','20','24','28'];
 const DASH={'':'',d:'6 4',dd:'12 4 2 4'};
 let sldEat=0;document.addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('#sld'))sldEat=0},true);document.addEventListener('click',e=>{if(Date.now()-sldEat<700&&!e.target.closest('#sld')&&!e.target.closest('#sldInl')){e.stopPropagation();e.preventDefault()}sldEat=0},true);
@@ -732,29 +749,33 @@ function txW(t,fs){let w=0;for(const c of String(t))w+=c.charCodeAt(0)<256?fs*.6
 function boxK(it){if(it&&it.bw)return +it.bw;const fs=+(it&&it.fs||13);const w=Math.max(0,...String(it&&it.lb!=null?it.lb:'OCR').split('\n').map(l=>txW(l,fs)));return Math.max(1,Math.ceil((w+10)/(2*SU)))}
 function boxH(it){const h=+(it&&it.bh||1);return h<=1?22:h*SU}
 const wLW=w=>w.lw||(w.w===2?'5':'1.8');
+[['vs','VS','電圧計切換スイッチ'],['as','AS','電流計切換スイッチ'],['v','V','電圧計'],['a','A','電流計'],['w','W','電力計'],['wh','Wh','電力量計'],['cos','cosφ','力率計'],['hz','Hz','周波数計'],['mm','MM','マルチメータ'],['dt','DT','DT']].forEach(([k,l,n])=>{SYM[k]={c:l,n:n+' '+l,lb:l,mt:1,mw:20,d:()=>`<circle cx="0" cy="0" r="12" class="fillw"/>`}});
+const rotP=(a,b,r)=>{for(let i=0;i<((r||0)%4+4)%4;i++)[a,b]=[b,-a];return [a,b]};
 function sldTerms(it){const S=SYM[it.t];if(!S)return [];
   if(S.box){const k=boxK(it),h=+(it.bh||1);const t=[[it.x-k,it.y],[it.x+k,it.y],[it.x,it.y]];if(h>=2&&h%2===0)t.push([it.x,it.y-h/2],[it.x,it.y+h/2]);return t}
-  if(S.txt||S.t0)return [[it.x,it.y]];const ts=S.t1?[[0,-1]]:[[0,-1],[0,1]];
-  return ts.map(([a,b])=>it.r?[it.x+b,it.y-a]:[it.x+a,it.y+b]).concat([[it.x,it.y]])}
+  if(S.txt||S.t0)return [[it.x,it.y]];if(S.mt)return [[it.x,it.y-.6],[it.x,it.y]];const h=S.h||1;const ts=S.t1?[[0,-h]]:[[0,-h],[0,h]];
+  return ts.map(([a,b])=>{const [u,v]=rotP(a,b,it.r);return [it.x+u,it.y+v]}).concat([[it.x,it.y]])}
 function tLines(x,y,t,fs,anc,col){const L=String(t).split('\n');const y0=y-(L.length-1)*fs*.6+fs*.36;
   return `<text x="${x}" y="${y0}" text-anchor="${anc}" font-size="${fs}" fill="${col}">${L.map((l,i)=>`<tspan x="${x}" ${i?`dy="${fs*1.2}"`:''}>${esc(l)||' '}</tspan>`).join('')}</text>`}
-function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const lb=lbOf(it),col=it.c||'#000',fs=+(it.fs||(S.txt?14:S.box?13:12)),sw=it.sw||1.8;const X=it.x*SU,Y=it.y*SU;
-  const g=`<g class="sym" style="stroke:${col};stroke-width:${sw}" transform="translate(${X},${Y})${it.r&&!S.box&&!S.txt?' rotate(-90)':''}">${S.d(it).replace('class="tf"',`fill="${col}"`)}</g>`;
+function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel.includes(it.id);const lb=lbOf(it),col=on?'#e8590c':(it.c||'#000'),fs=+(it.fs||(S.txt?14:S.box?13:12)),sw=it.sw||1.8;const X=it.x*SU,Y=it.y*SU;
+  const g=`<g class="sym" style="stroke:${col};stroke-width:${sw}" transform="translate(${X},${Y})${it.r&&!S.box&&!S.txt?` rotate(${-90*it.r})`:''}">${S.d(it).replace('class="tf"',`fill="${col}"`)}</g>`;
   let t='';
-  if(S.box)t=tLines(X,Y,lb,fs,'middle',col);
-  else if(S.txt)t=tLines(X,Y,lb,fs,{s:'start',e:'end'}[it.al]||'middle',col);
-  else if(lb)t=it.r?tLines(X,Y-15-fs*.4,lb,fs,'middle',col):it.lp?tLines(X-15,Y,lb,fs,'end',col):tLines(X+15,Y,lb,fs,'start',col);
+  const hh=(S.h||1)*SU;
+  if(S.box||S.mt)t=tLines(X,Y,lb,S.mt?Math.min(fs,11,(S.mw||20)/Math.max(.5,txW(lb,1))):fs,'middle',col);
+  else if(S.txt){t=tLines(X,Y,lb,fs,{s:'start',e:'end'}[it.al]||'middle',col);if(it.r)t=`<g transform="rotate(${-90*it.r} ${X} ${Y})">${t}</g>`}
+  else if(lb)t=it.r%2?tLines(X,Y-15-fs*.4,lb,fs,'middle',col):it.lp?tLines(X-(S.lo||15),Y,lb,fs,'end',col):tLines(X+(S.lo||15),Y,lb,fs,'start',col);
   let hit='';if(ed){if(S.box){const k=boxK(it)*SU,H=boxH(it);hit=`<rect class="hit" x="${X-k-2}" y="${Y-H/2-2}" width="${2*k+4}" height="${H+4}" data-id="${it.id}"/>`}
     else if(S.txt){const w=Math.max(30,...String(lb).split('\n').map(l=>txW(l,fs))),h=String(lb).split('\n').length*fs*1.2+6;const x0=it.al==='s'?X-4:it.al==='e'?X-w-4:X-w/2-4;hit=`<rect class="hit" x="${x0}" y="${Y-h/2}" width="${w+8}" height="${h}" data-id="${it.id}"/>`}
-    else hit=`<rect class="hit" x="${X-16}" y="${Y-20}" width="32" height="40" data-id="${it.id}"/>`}
+    else if(S.mt)hit=`<rect class="hit" x="${X-14}" y="${Y-14}" width="28" height="28" data-id="${it.id}"/>`;
+    else hit=it.r%2?`<rect class="hit" x="${X-hh}" y="${Y-16}" width="${2*hh}" height="32" data-id="${it.id}"/>`:`<rect class="hit" x="${X-16}" y="${Y-hh}" width="32" height="${2*hh}" data-id="${it.id}"/>`}
   return `<g class="it${ed&&sldSel.includes(it.id)?' on':''}">${g}${t}${hit}</g>`}
 function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.b[1]*SU}`;const on=ed&&sldSel.includes(w.id);
-  return `<path d="${d}" fill="none" stroke="${w.c||'#000'}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
+  return `<path d="${d}" fill="none" stroke="${on?'#e8590c':(w.c||'#000')}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
 function sldSVG(s,ed){const D=sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
       if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w:it.x-w/2,it.al==='s'?it.x+w:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw));
-      ys.push(it.y-(S.box?boxH(it)/SU/2:1.1),it.y+(S.box?boxH(it)/SU/2:1.1))});D.wires.forEach(w=>{xs.push(w.a[0],w.b[0]);ys.push(w.a[1],w.b[1])});
+      ys.push(it.y-(S.box?boxH(it)/SU/2:(S.h||1)+.1),it.y+(S.box?boxH(it)/SU/2:(S.h||1)+.1))});D.wires.forEach(w=>{xs.push(w.a[0],w.b[0]);ys.push(w.a[1],w.b[1])});
     if(xs.length){const x0=Math.min(...xs)-.6,x1=Math.max(...xs)+.6,y0=Math.min(...ys)-.6,y1=Math.max(...ys)+.6;vb=`${x0*SU} ${y0*SU} ${(x1-x0)*SU} ${(y1-y0)*SU}`}}
   let grid='';if(ed){for(let y=0;y<=SH_;y++)grid+=`<path d="M0 ${y*SU} H${SW*SU}" class="gl${y%5?'':' g5'}"/>`;for(let x=0;x<=SW;x++)grid+=`<path d="M${x*SU} 0 V${SH_*SU}" class="gl${x%5?'':' g5'}"/>`}
   const pre=ed&&sldWs&&sldHov?`<path d="M${sldWs[0]*SU} ${sldWs[1]*SU} L${sldHov[0]*SU} ${sldHov[1]*SU}" stroke="#1c7ed6" stroke-width="${sldSty.lw}" stroke-dasharray="6 4" fill="none"/>`:'';
@@ -770,7 +791,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
     <span class="grp">${LD.map(([v,l])=>btn('sldLD',l,((ws[0]?ws[0].ld:sldSty.ld)||'')===v,`data-v="${v}"`)).join('')}</span>
     <span class="grp"><b>色</b>${LC.map(c=>`<button class="cbtn${((ws[0]||its[0]||{}).c||sldSty.c)===c?' on':''}" data-act="sldC" data-v="${c}" style="background:${c}"></button>`).join('')}</span>`;
   let it='';
-  if(one){it=`<span class="grp"><b>${S.c||S.n}</b>${btn('sldEdit','文字を入力')}${S.txt?['s','m','e'].map((v,i)=>btn('sldAl',['先頭起点','中央起点','後部起点'][i],(one.al||'m')===v,`data-v="${v}"`)).join(''):''}${S.box||S.txt||S.t0?'':btn('sldRot',`向き(${one.r?'横':'縦'})`)}${S.box||S.txt||S.t0||one.r?'':btn('sldLp',`名前を${one.lp?'右':'左'}へ`)}</span>
+  if(one){it=`<span class="grp"><b>${S.c||S.n}</b>${btn('sldEdit','文字を入力')}${S.txt?['s','m','e'].map((v,i)=>btn('sldAl',['先頭起点','中央起点','後部起点'][i],(one.al||'m')===v,`data-v="${v}"`)).join(''):''}${S.box||S.t0||S.mt?'':btn('sldRot',`回転 ↻ (${((4-(one.r||0))%4)*90}°)`)}${S.box||S.txt||S.t0||S.mt||one.r%2?'':btn('sldLp',`名前を${one.lp?'右':'左'}へ`)}</span>
     <span class="grp"><b>文字</b><select data-sld="fs">${FS.map(v=>`<option ${String(one.fs||(S.txt?14:S.box?13:12))===v?'selected':''}>${v}</option>`).join('')}</select>${S.box?`<b>箱</b>${btn('sldBW','幅－','',`data-v="-1"`)}${btn('sldBW','幅＋','',`data-v="1"`)}${btn('sldBH','高さ－','',`data-v="-1"`)}${btn('sldBH','高さ＋','',`data-v="1"`)}`:''}${S.txt||S.box?'':`<b>記号の線</b><select data-sld="sw">${['1.2','1.8','2.6'].map(v=>`<option value="${v}" ${String(one.sw||'1.8')===v?'selected':''}>${{'1.2':'細','1.8':'普通','2.6':'太'}[v]}</option>`).join('')}</select>`}</span>`}
   else if(its.length+ws.length>1)it=`<span class="grp"><b>${its.length+ws.length}個を選択中</b>(ドラッグでまとめて移動)</span>`;
   const act=sldSel.length?`<span class="grp">${btn('sldCopy','コピー')}${btn('sldDel','削除','','style="color:#c62828"')}</span>`:(sldClip?`<span class="grp">${btn('sldPaste','貼り付け')}</span>`:'');
@@ -779,7 +800,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
 function sldEditorHTML(s){sldData(s);
   return `<div class="card sldc"><div class="sldtitle"><h2>引込系統図エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
     <div class="note sldhelp">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
-    <div class="sldhead"><div class="sldtools">${SLD_TOOLS.map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 -22 48 44" width="26" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
+    <div class="sldhead"><div class="sldgrp">${SLD_GROUPS.map(([g],i)=>`<button class="${sldGrp===i?'on':''}" data-act="sldGrp" data-v="${i}">${g}</button>`).join('')}</div><div class="sldtools">${SLD_TOOLS.concat(SLD_GROUPS[sldGrp][1].filter(k=>SYM[k]).map(k=>[k,SYM[k].n])).map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 ${-22*(SYM[k].h||1)} 48 ${44*(SYM[k].h||1)}" width="26" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':SYM[k].mt?`<text x="0" y="4" text-anchor="middle" font-size="11">${SYM[k].lb}</text>`:''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
     ${sldPropHTML()}<div class="sldzoom"><button class="btn small" data-act="sldZ" data-v="0.8">－ 縮小</button><button class="btn small" data-act="sldZ" data-v="1.25">＋ 拡大</button><button class="btn small" data-act="sldZ" data-v="fit">全体を表示</button><span class="note">図の中は2本指(パソコンは Ctrl＋ホイール)でも拡大・縮小、2本指で移動できます。</span></div></div>
     <div class="sldwrap">${sldSVG(s,true)}</div>
     <div class="btns"><button class="btn small" data-act="sldAll">全部選択</button><button class="btn small" data-act="sldTpl">ひな形を入れる</button><button class="btn small danger" data-act="sldClear">全部消す</button><button class="btn main" data-act="pv" data-docs="ov">概要と系統図を印刷</button></div>
@@ -792,10 +813,10 @@ function sldPt(e,raw){const sv=document.getElementById('sld');const p=sv.createS
   if(raw)return [q.x/SU,q.y/SU];return [Math.max(0,Math.min(SW,Math.round(q.x/SU))),Math.max(0,Math.min(SH_,Math.round(q.y/SU)))]}
 const eqP=(a,b)=>a[0]===b[0]&&a[1]===b[1];
 function sldInline(it){const sv=document.getElementById('sld'),wr=document.querySelector('.sldwrap');if(!sv||!wr)return;
-  const S=SYM[it.t];let x=it.x*SU,y=it.y*SU;if(!S.box&&!S.txt){if(it.r)y-=18;else x+=it.lp?-15:15}
+  const S=SYM[it.t];let x=it.x*SU,y=it.y*SU;if(!S.box&&!S.txt&&!S.mt){if(it.r%2)y-=18;else x+=it.lp?-15:15}
   const m=sv.getScreenCTM();const p=sv.createSVGPoint();p.x=x;p.y=y;const q=p.matrixTransform(m);const r=wr.getBoundingClientRect();
   let t=document.getElementById('sldInl');if(t)t.remove();t=document.createElement('textarea');t.id='sldInl';t.rows=String(lbOf(it)).split('\n').length;t.value=lbOf(it);
-  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;t.style.cssText=`left:${q.x-r.left+wr.scrollLeft-(S.box||S.txt?70:(!it.r&&it.lp?140:0))}px;top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${Math.max(14,fs)}px`;
+  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;t.style.cssText=`left:${q.x-r.left+wr.scrollLeft-(S.box||S.txt||S.mt?70:(!(it.r%2)&&it.lp?140:0))}px;top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${Math.max(14,fs)}px`;
   wr.appendChild(t);t.focus();t.select();
   const fin=()=>{if(!t.isConnected)return;it.lb=t.value;t.remove();save();sldRedraw()};
   let comp=false;const upd=()=>{it.lb=t.value;t.rows=Math.max(1,t.value.split('\n').length);sldRedraw()};
@@ -865,11 +886,12 @@ document.addEventListener('keydown',e=>{if(view.name!=='site'||view.tab!=='sld')
 document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.sld;if(!k)return;const {its}=selObjs();if(!its.length)return;sldPush();its.forEach(it=>{it[k]=e.target.value});save();sldRedraw()});
 function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.length===1?its[0]:null;const v=b&&b.dataset.v;
   if(a==='sldZ'){const wr=document.querySelector('.sldwrap');const cur=sldZoom||(wr?wr.clientWidth/(SW*SU):1);sldZoom=v==='fit'?null:Math.max(.4,Math.min(4,cur*(+v)));sldRedraw();return}
+  if(a==='sldGrp'){sldGrp=+v;sldRefresh();return}
   if(a==='sldTool'){sldT=b.dataset.t;sldWs=null;sldHov=null;sldSel=[];sldRefresh();return}
   if(a==='sldDel'){if(!sldSel.length)return;sldPush();D.items=D.items.filter(x=>!sldSel.includes(x.id));D.wires=D.wires.filter(x=>!sldSel.includes(x.id));sldSel=[];save();sldRefresh();return}
   if(a==='sldEdit'){if(one)sldInline(one);return}
   if(a==='sldAl'){if(one){sldPush();one.al=v;save();sldRefresh()}return}
-  if(a==='sldRot'){if(one){sldPush();one.r=one.r?0:1;save();sldRefresh()}return}
+  if(a==='sldRot'){if(one){sldPush();one.r=((one.r||0)+3)%4;save();sldRefresh()}return}
   if(a==='sldLp'){if(one){sldPush();one.lp=one.lp?0:1;save();sldRefresh()}return}
   if(a==='sldBW'){if(one){sldPush();one.bw=Math.max(1,Math.min(10,boxK(one)+(+v)));save();sldRefresh()}return}
   if(a==='sldBH'){if(one){sldPush();one.bh=Math.max(1,Math.min(10,(+(one.bh||1))+(+v)));save();sldRefresh()}return}
