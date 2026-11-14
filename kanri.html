@@ -268,6 +268,13 @@ table.s.eq td.eqg{height:23mm}
 }
 .ver{font-size:11px;color:var(--sub);text-align:center;margin:10px 0}
 .sldtitle{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.sldtitle h2{flex:1;margin:0}
+@media (max-width:760px){
+  body.sld-m .sldhelp{display:none}
+  body.sld-m .tabs button{padding:4px 9px;font-size:13px}
+  body.sld-m .wrap{padding-top:8px}
+  body.sld-m .sldc{padding:8px}
+  body.sld-m .sldtitle h2{font-size:14px}
+}
 
 </style>
 </head>
@@ -771,7 +778,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){sldData(s);
   return `<div class="card sldc"><div class="sldtitle"><h2>引込系統図エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
-    <div class="note">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
+    <div class="note sldhelp">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
     <div class="sldhead"><div class="sldtools">${SLD_TOOLS.map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 -22 48 44" width="26" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
     ${sldPropHTML()}<div class="sldzoom"><button class="btn small" data-act="sldZ" data-v="0.8">－ 縮小</button><button class="btn small" data-act="sldZ" data-v="1.25">＋ 拡大</button><button class="btn small" data-act="sldZ" data-v="fit">全体を表示</button><span class="note">図の中は2本指(パソコンは Ctrl＋ホイール)でも拡大・縮小、2本指で移動できます。</span></div></div>
     <div class="sldwrap">${sldSVG(s,true)}</div>
