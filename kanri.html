@@ -707,7 +707,7 @@ const sL=(a,b,c,d)=>`<line x1="${a}" y1="${b}" x2="${c}" y2="${d}"/>`;
 // 開閉器の基本形(上が固定接点、下の支点から左上へ可動接点)
 const BLADE=()=>sL(0,-20,0,-9)+sL(0,9,0,20)+sL(0,9,-9,-7);
 const SYM={
-  pas:{c:'PAS',n:'区分開閉器 PAS/UGS',lb:'PAS',d:()=>BLADE()+`<circle cx="0" cy="-9" r="2.6" class="fillw"/>`+`<rect x="-14" y="-14" width="28" height="28" stroke-dasharray="4 3"/>`},
+  pas:{c:'PAS',n:'区分開閉器 PAS(SOG付)',lb:'PAS',lo:50,iw:24,d:()=>BLADE()+`<circle cx="0" cy="-9" r="2.6" class="fillw"/>`+`<rect x="-14" y="-14" width="28" height="28"/>`+sL(14,0,19,0)+`<rect x="19" y="-8" width="26" height="16" class="fillw"/><text x="32" y="4" text-anchor="middle" font-size="9" class="tf" stroke="none">SOG</text>`},
   ds:{c:'DS',n:'断路器 DS',lb:'DS',d:()=>BLADE()+sL(-5,-9,5,-9)},
   vcb:{c:'VCB',n:'遮断器 VCB',lb:'VCB',d:()=>BLADE()+sL(-3.5,-12.5,3.5,-5.5)+sL(-3.5,-5.5,3.5,-12.5)},
   lbs:{c:'LBS',n:'負荷開閉器 LBS',lb:'LBS',d:()=>BLADE()+`<circle cx="0" cy="-9" r="2.6" class="fillw"/>`},
@@ -716,7 +716,9 @@ const SYM={
   ct:{c:'CT',n:'変流器 CT',lb:'CT',d:()=>sL(0,-20,0,20)+`<circle cx="0" cy="0" r="7"/>`},
   zct:{c:'ZCT',n:'零相変流器 ZCT',lb:'ZCT',d:()=>sL(0,-20,0,20)+`<circle cx="0" cy="0" r="7"/>`+sL(-11,-3,11,-3)+sL(-11,3,11,3)},
   tr:{c:'TR',n:'変圧器 TR',lb:'TR',d:()=>sL(0,-20,0,-15)+`<circle cx="0" cy="-6" r="9"/><circle cx="0" cy="6" r="9"/>`+sL(0,15,0,20)},
-  vt:{c:'VT',n:'計器用変圧器 VT',lb:'VT',t1:1,d:()=>sL(0,-20,0,-13)+`<circle cx="0" cy="-5" r="8"/><circle cx="0" cy="7" r="8"/>`},
+  vt:{c:'VT',n:'計器用変圧器 VT',lb:'VT',hz:1,d:()=>sL(-20,0,-13,0)+`<circle cx="-5" cy="0" r="8"/><circle cx="5" cy="0" r="8"/>`+sL(13,0,20,0)},
+  fz:{c:'F',n:'ヒューズ F(横)',lb:'F',hz:1,d:()=>sL(-20,0,-9,0)+`<rect x="-9" y="-4" width="18" height="8"/>`+sL(-9,0,9,0)+sL(9,0,20,0)},
+  tc:{c:'TC',n:'引外しコイル TC',lb:'TC',d:()=>sL(0,-20,0,-8)+`<rect x="-5" y="-8" width="10" height="16"/>`+sL(0,8,0,20)},
   sc:{c:'SC',n:'コンデンサ SC',lb:'SC',d:()=>sL(0,-20,0,-3)+sL(-11,-3,11,-3)+sL(-11,3,11,3)+sL(0,3,0,20)},
   sr:{c:'SR',n:'リアクトル SR',lb:'SR',d:()=>sL(0,-20,0,-12)+`<path d="M0 -12 a4 4 0 0 1 0 8 a4 4 0 0 1 0 8 a4 4 0 0 1 0 8"/>`+sL(0,12,0,20)},
   la:{c:'LA',n:'避雷器 LA',lb:'LA',t1:1,d:()=>sL(0,-20,0,-10)+`<rect x="-6" y="-10" width="12" height="16"/>`+`<path d="M0 -7 v9 M-3 -1 l3 4 l3 -4"/>`+sL(0,6,0,12)+sL(-9,12,9,12)+sL(-6,16,6,16)+sL(-3,20,3,20)},
@@ -732,13 +734,13 @@ const SYM={
   mc:{c:'MC',n:'電磁接触器 MC',lb:'MC',d:()=>BLADE()+`<path d="M-4 -9 a4 4 0 0 1 8 0"/>`},
   vct:{lo:21,c:'VCT',n:'計器用変成器 VCT(点線枠)',lb:'VCT',d:()=>sL(0,-20,0,20)+`<rect x="-15" y="-15" width="30" height="30" stroke-dasharray="4 3"/><circle cx="0" cy="0" r="6"/><circle cx="8" cy="-4" r="4"/><circle cx="8" cy="3" r="4"/>`},
   ch:{c:'CH',n:'ケーブルヘッド',lb:'CH',d:()=>sL(0,-20,0,-6)+`<path d="M-7 -6 H7 L0 7 Z"/>`+sL(0,7,0,20)},
-  vtt:{c:'VTT',n:'電圧試験端子 VTT',lb:'VTT',hz:1,d:()=>sL(-20,0,-9,0)+sL(9,0,20,0)+`<rect x="-9" y="-6" width="18" height="12"/><circle cx="-3.5" cy="0" r="1.8"/><circle cx="3.5" cy="0" r="1.8"/>`},
-  ctt:{c:'CTT',n:'電流試験端子 CTT',lb:'CTT',hz:1,d:()=>sL(-20,0,-9,0)+sL(9,0,20,0)+`<rect x="-9" y="-6" width="18" height="12"/><circle cx="-3.5" cy="0" r="1.8"/><circle cx="3.5" cy="0" r="1.8"/>`},
+  vtt:{c:'VTT',n:'電圧試験端子 VTT',lb:'VTT',hz:1,d:()=>sL(-20,0,-9,0)+sL(9,0,20,0)+`<rect x="-9" y="-6" width="18" height="12"/><circle cx="-3.5" cy="0" r="2.2" class="fillc"/><circle cx="3.5" cy="0" r="2.2" class="fillc"/>`},
+  ctt:{c:'CTT',n:'電流試験端子 CTT',lb:'CTT',hz:1,d:()=>sL(-20,0,-9,0)+sL(9,0,20,0)+`<rect x="-9" y="-6" width="18" height="12"/><circle cx="-3.5" cy="0" r="2.2" class="fillc"/><circle cx="3.5" cy="0" r="2.2" class="fillc"/>`},
   arw:{c:'',n:'矢印',lb:'',d:()=>sL(0,-20,0,12)+`<path d="M-5 10 L0 20 L5 10 Z" class="fillc"/>`},
   apfr:{c:'APFR',n:'自動力率調整器 APFR',lb:'APFR',mt:1,mw:28,d:()=>`<rect x="-18" y="-11" width="36" height="22" class="fillw"/>`},
   dot:{n:'接続点',lb:'',t0:1,d:()=>`<circle cx="0" cy="0" r="3.5" class="fillc"/>`},
 };
-const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['ct','zct','vt','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['vs','as','v','a','w','wh','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
+const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','tc','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['zct','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['ct','vt','fz','vs','as','v','a','w','wh','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
 let sldGrp=0;
 const SLD_TOOLS=[['sel','選択・移動'],['wire','線']];
 const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['10','12','14','16','18','20','24','28'];
@@ -757,7 +759,7 @@ const wLW=w=>w.lw||(w.w===2?'5':'1.8');
 const rotP=(a,b,r)=>{for(let i=0;i<((r||0)%4+4)%4;i++)[a,b]=[b,-a];return [a,b]};
 function sldTerms(it){const S=SYM[it.t];if(!S)return [];
   if(S.box){const k=boxK(it),h=+(it.bh||1);const t=[[it.x-k,it.y],[it.x+k,it.y],[it.x,it.y]];if(h>=2&&h%2===0)t.push([it.x,it.y-h/2],[it.x,it.y+h/2]);return t}
-  if(S.txt||S.t0)return [[it.x,it.y]];if(S.mt)return [[it.x,it.y-.6],[it.x,it.y]];const h=S.h||1;const ts=S.hz?[[-h,0],[h,0]]:S.t1?[[0,-h]]:[[0,-h],[0,h]];
+  if(S.txt||S.t0)return [[it.x,it.y]];if(S.mt){const w=S.mw>20?.9:.6;return [[it.x,it.y-.55],[it.x,it.y+.55],[it.x-w,it.y],[it.x+w,it.y],[it.x,it.y]]}const h=S.h||1;const ts=S.hz?[[-h,0],[h,0]]:S.t1?[[0,-h]]:[[0,-h],[0,h]];
   return ts.map(([a,b])=>{const [u,v]=rotP(a,b,it.r);return [it.x+u,it.y+v]}).concat([[it.x,it.y]])}
 function tLines(x,y,t,fs,anc,col){const L=String(t).split('\n');const y0=y-(L.length-1)*fs*.6+fs*.36;
   return `<text x="${x}" y="${y0}" text-anchor="${anc}" font-size="${fs}" fill="${col}">${L.map((l,i)=>`<tspan x="${x}" ${i?`dy="${fs*1.2}"`:''}>${esc(l)||' '}</tspan>`).join('')}</text>`}
@@ -778,11 +780,11 @@ function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.
 function sldSVG(s,ed){const D=sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
-      if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w:it.x-w/2,it.al==='s'?it.x+w:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw));
+      if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w:it.x-w/2,it.al==='s'?it.x+w:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw+((S.lo||15)-15)/SU));
       ys.push(it.y-(S.box?boxH(it)/SU/2:(S.h||1)+.1),it.y+(S.box?boxH(it)/SU/2:(S.h||1)+.1))});D.wires.forEach(w=>{xs.push(w.a[0],w.b[0]);ys.push(w.a[1],w.b[1])});
     if(xs.length){const x0=Math.min(...xs)-.6,x1=Math.max(...xs)+.6,y0=Math.min(...ys)-.6,y1=Math.max(...ys)+.6;vb=`${x0*SU} ${y0*SU} ${(x1-x0)*SU} ${(y1-y0)*SU}`}}
   let grid='';if(ed){for(let y=0;y<=SH_;y++)grid+=`<path d="M0 ${y*SU} H${SW*SU}" class="gl${y%5?'':' g5'}"/>`;for(let x=0;x<=SW;x++)grid+=`<path d="M${x*SU} 0 V${SH_*SU}" class="gl${x%5?'':' g5'}"/>`}
-  const pre=ed&&sldWs&&sldHov?`<path d="M${sldWs[0]*SU} ${sldWs[1]*SU} L${sldHov[0]*SU} ${sldHov[1]*SU}" stroke="#1c7ed6" stroke-width="${sldSty.lw}" stroke-dasharray="6 4" fill="none"/>`:'';
+  const pre=ed&&sldWs&&sldHov?`<path d="M${sldWs[0]*SU} ${sldWs[1]*SU} ${sldHov.map(q=>`L${q[0]*SU} ${q[1]*SU}`).join(' ')}" stroke="#1c7ed6" stroke-width="${sldSty.lw}" stroke-dasharray="6 4" fill="none"/>`:'';
   const st=ed&&sldWs?`<circle cx="${sldWs[0]*SU}" cy="${sldWs[1]*SU}" r="5" class="stp"/>`:'';
   const band=ed&&sldBand?`<rect x="${Math.min(sldBand[0],sldBand[2])*SU}" y="${Math.min(sldBand[1],sldBand[3])*SU}" width="${Math.abs(sldBand[2]-sldBand[0])*SU}" height="${Math.abs(sldBand[3]-sldBand[1])*SU}" class="band"/>`:'';
   return `<svg ${ed?`id="sld" style="${sldZoom?`width:${SW*SU*sldZoom}px;max-width:none`:''}" `:''}class="sldsvg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" font-family="sans-serif">
@@ -804,7 +806,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
 function sldEditorHTML(s){sldData(s);
   return `<div class="card sldc"><div class="sldtitle"><h2>引込系統図エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
     <div class="note sldhelp">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
-    <div class="sldhead"><div class="sldgrp">${SLD_GROUPS.map(([g],i)=>`<button class="${sldGrp===i?'on':''}" data-act="sldGrp" data-v="${i}">${g}</button>`).join('')}</div><div class="sldtools">${SLD_TOOLS.concat(SLD_GROUPS[sldGrp][1].filter(k=>SYM[k]).map(k=>[k,SYM[k].n])).map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 ${-22*(SYM[k].h||1)} 48 ${44*(SYM[k].h||1)}" width="26" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':SYM[k].mt?`<text x="0" y="4" text-anchor="middle" font-size="11">${SYM[k].lb}</text>`:''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
+    <div class="sldhead"><div class="sldgrp">${SLD_GROUPS.map(([g],i)=>`<button class="${sldGrp===i?'on':''}" data-act="sldGrp" data-v="${i}">${g}</button>`).join('')}</div><div class="sldtools">${SLD_TOOLS.concat(SLD_GROUPS[sldGrp][1].filter(k=>SYM[k]).map(k=>[k,SYM[k].n])).map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 ${-22*(SYM[k].h||1)} ${48+(SYM[k].iw||0)} ${44*(SYM[k].h||1)}" width="${26+(SYM[k].iw||0)/2}" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':SYM[k].mt?`<text x="0" y="4" text-anchor="middle" font-size="11">${SYM[k].lb}</text>`:''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
     ${sldPropHTML()}<div class="sldzoom"><button class="btn small" data-act="sldZ" data-v="0.8">－ 縮小</button><button class="btn small" data-act="sldZ" data-v="1.25">＋ 拡大</button><button class="btn small" data-act="sldZ" data-v="fit">全体を表示</button><span class="note">図の中は2本指(パソコンは Ctrl＋ホイール)でも拡大・縮小、2本指で移動できます。</span></div></div>
     <div class="sldwrap">${sldSVG(s,true)}</div>
     <div class="btns"><button class="btn small" data-act="sldAll">全部選択</button><button class="btn small" data-act="sldTpl">ひな形を入れる</button><button class="btn small danger" data-act="sldClear">全部消す</button><button class="btn main" data-act="pv" data-docs="ov">概要と系統図を印刷</button></div>
@@ -815,7 +817,15 @@ function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPt
 function sldPropRefresh(){const p=document.querySelector('.sldprop');if(p)p.outerHTML=sldPropHTML()}
 function sldPt(e,raw){const sv=document.getElementById('sld');const p=sv.createSVGPoint();p.x=e.clientX;p.y=e.clientY;const q=p.matrixTransform(sv.getScreenCTM().inverse());
   if(raw)return [q.x/SU,q.y/SU];return [Math.max(0,Math.min(SW,Math.round(q.x/SU))),Math.max(0,Math.min(SH_,Math.round(q.y/SU)))]}
-const eqP=(a,b)=>a[0]===b[0]&&a[1]===b[1];
+const eqP=(a,b)=>Math.abs(a[0]-b[0])<1e-6&&Math.abs(a[1]-b[1])<1e-6;
+// 線の端は部品の端子に吸い付く(近くに端子がなければ方眼)
+function sldSnap(e){const rp=sldPt(e,1);let best=null,bd=.7;
+  sldData().items.forEach(it=>{const S=SYM[it.t];if(!S||S.txt)return;const ts=sldTerms(it);const use=S.t0?ts:ts.slice(0,-1);use.forEach(t=>{const d=Math.hypot(t[0]-rp[0],t[1]-rp[1]);if(d<bd){bd=d;best=t}})});
+  sldData().wires.forEach(w=>[w.a,w.b].forEach(t=>{const d=Math.hypot(t[0]-rp[0],t[1]-rp[1]);if(d<bd*.8){bd=d;best=t}}));
+  if(best)return {p:[+best[0].toFixed(3),+best[1].toFixed(3)],term:true};
+  return {p:[Math.max(0,Math.min(SW,Math.round(rp[0]))),Math.max(0,Math.min(SH_,Math.round(rp[1])))],term:false}}
+function wirePts(a,sn){const p=sn.p;if(eqP(a,p))return [a];if(Math.abs(a[0]-p[0])<1e-6||Math.abs(a[1]-p[1])<1e-6)return [a,p];
+  if(sn.term)return [a,[p[0],a[1]],p];return [a,Math.abs(p[0]-a[0])>=Math.abs(p[1]-a[1])?[p[0],a[1]]:[a[0],p[1]]]}
 function sldInline(it){const sv=document.getElementById('sld'),wr=document.querySelector('.sldwrap');if(!sv||!wr)return;
   const S=SYM[it.t];let x=it.x*SU,y=it.y*SU;if(!S.box&&!S.txt&&!S.mt){if(it.r%2)y-=18;else x+=it.lp?-15:15}
   const m=sv.getScreenCTM();const p=sv.createSVGPoint();p.x=x;p.y=y;const q=p.matrixTransform(m);const r=wr.getBoundingClientRect();
@@ -858,24 +868,23 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
         sldDrag={p0:p,its:its.map(it=>[it,it.x,it.y]),ws:ws.map(w=>[w,w.a.slice(),w.b.slice()]),att,moved:false,snap:JSON.stringify(D),again:again&&its.length===1?its[0]:null};
         sv.setPointerCapture(e.pointerId);sldRedraw();sldPropRefresh();return}
       const rp=sldPt(e,1);sldBand=[rp[0],rp[1],rp[0],rp[1]];sldBandAdd=add?sldSel.slice():null;if(!add)sldSel=[];sv.setPointerCapture(e.pointerId);sldRedraw();sldPropRefresh();return}
-    if(sldT==='wire'){
-      if(!sldWs){sldWs=p;sldHov=p;sldRefresh();return}
-      let b=Math.abs(p[0]-sldWs[0])>=Math.abs(p[1]-sldWs[1])?[p[0],sldWs[1]]:[sldWs[0],p[1]];
-      if(eqP(b,sldWs)){sldWs=null;sldHov=null;sldRefresh();return}
-      sldPush();D.wires.push({id:uid(),a:sldWs,b,lw:sldSty.lw,ld:sldSty.ld,c:sldSty.c});sldWs=b;save();sldRefresh();return}
+    if(sldT==='wire'){const sn=sldSnap(e);
+      if(!sldWs){sldWs=sn.p;sldHov=[sn.p];sldRefresh();return}
+      const pts=wirePts(sldWs,sn);if(pts.length<2){sldWs=null;sldHov=null;sldRefresh();return}
+      sldPush();for(let i=1;i<pts.length;i++)D.wires.push({id:uid(),a:pts[i-1],b:pts[i],lw:sldSty.lw,ld:sldSty.ld,c:sldSty.c});sldWs=pts[pts.length-1];sldHov=[sldWs];save();sldRefresh();return}
     if(SYM[sldT]){sldPush();const it={id:uid(),t:sldT,x:p[0],y:p[1],r:0};if(sldSty.c!=='#000000')it.c=sldSty.c;D.items.push(it);sldSel=[it.id];const t=sldT;sldT='sel';save();sldRefresh();
       if(SYM[t].txt||SYM[t].box)setTimeout(()=>sldInline(it),30)}
   });
   sv.addEventListener('pointermove',e=>{
-    if(sldDrag&&sldDrag.ep){const p=sldPt(e);if(eqP(p,sldDrag.p0)&&!sldDrag.moved)return;sldDrag.moved=true;const w=sldDrag.w,o=w[sldDrag.ep==='a'?'b':'a'];
-      w[sldDrag.ep]=Math.abs(p[0]-o[0])>=Math.abs(p[1]-o[1])?[p[0],o[1]]:[o[0],p[1]];sldRedraw();return}
+    if(sldDrag&&sldDrag.ep){const sn=sldSnap(e),p=sn.p;if(eqP(p,sldDrag.p0)&&!sldDrag.moved)return;sldDrag.moved=true;const w=sldDrag.w,o=w[sldDrag.ep==='a'?'b':'a'];
+      w[sldDrag.ep]=sn.term?p:Math.abs(p[0]-o[0])>=Math.abs(p[1]-o[1])?[p[0],o[1]]:[o[0],p[1]];sldRedraw();return}
     if(sldDrag){const p=sldPt(e);const dx=p[0]-sldDrag.p0[0],dy=p[1]-sldDrag.p0[1];if(!dx&&!dy&&!sldDrag.moved)return;sldDrag.moved=true;
       sldDrag.its.forEach(([it,x,y])=>{it.x=x+dx;it.y=y+dy});sldDrag.ws.forEach(([w,a,b])=>{w.a=[a[0]+dx,a[1]+dy];w.b=[b[0]+dx,b[1]+dy]});sldDrag.att.forEach(([w,k,o])=>{w[k]=[o[0]+dx,o[1]+dy]});sldRedraw();return}
     if(sldBand){const rp=sldPt(e,1);sldBand[2]=rp[0];sldBand[3]=rp[1];sldRedraw();return}
-    if(sldWs){const p=sldPt(e);const b=Math.abs(p[0]-sldWs[0])>=Math.abs(p[1]-sldWs[1])?[p[0],sldWs[1]]:[sldWs[0],p[1]];
-      if(!sldHov||!eqP(b,sldHov)){sldHov=b;sldRedraw()}}});
+    if(sldWs){const pts=wirePts(sldWs,sldSnap(e)).slice(1);if(!pts.length)pts.push(sldWs);
+      if(!sldHov||sldHov.length!==pts.length||!pts.every((q,i)=>eqP(q,sldHov[i]))){sldHov=pts;sldRedraw()}}});
   const up=()=>{if(sldDrag){const d=sldDrag;sldDrag=null;if(d.moved){sldHist.push(d.snap);sldFut=[];save();sldTitleRefresh()}
-      else if(d.ep){const w=d.w;sldWs=w[d.ep].slice();sldHov=sldWs.slice();sldSty={lw:wLW(w),ld:w.ld||'',c:w.c||'#000000'};sldT='wire';sldSel=[];sldRefresh()}
+      else if(d.ep){const w=d.w;sldWs=w[d.ep].slice();sldHov=[sldWs.slice()];sldSty={lw:wLW(w),ld:w.ld||'',c:w.c||'#000000'};sldT='wire';sldSel=[];sldRefresh()}
       else if(d.again)sldInline(d.again)}
     if(sldBand){const D=sldData();const [a,b,c,d]=sldBand;const x0=Math.min(a,c),x1=Math.max(a,c),y0=Math.min(b,d),y1=Math.max(b,d);const inR=q=>q[0]>=x0&&q[0]<=x1&&q[1]>=y0&&q[1]<=y1;
       const got=D.items.filter(it=>inR([it.x,it.y])).map(x=>x.id).concat(D.wires.filter(w=>inR(w.a)&&inR(w.b)).map(x=>x.id));sldSel=sldBandAdd?[...new Set(sldBandAdd.concat(got))]:got;sldBandAdd=null;sldBand=null;sldRedraw();sldPropRefresh()}};
