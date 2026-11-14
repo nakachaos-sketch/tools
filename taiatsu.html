@@ -159,7 +159,7 @@ svg.dg{display:block;margin:0 auto;height:135mm;max-width:100%}
 </head>
 <body>
 <div id="app"></div>
-<input type="file" id="importFile" accept="application/json,.json" hidden>
+<input type="file" id="importFile" hidden>
 <script>
 /* ===== 絶縁耐力試験 ===== */
 const MUSASHI=[
@@ -631,7 +631,7 @@ document.addEventListener('click',e=>{
   }
 });
 $('#importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!Array.isArray(d.projects))throw 0;let n=0;
+  rd.onload=()=>{try{const d=JSON.parse(String(rd.result).replace(/^\uFEFF/,""));if(!Array.isArray(d.projects))throw 0;let n=0;
     d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
     save();render();toast(`${n}件の件名を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}e.target.value=''};rd.readAsText(f)});
 function setPath(o,path,v){const ks=path.split('.');let x=o;for(let i=0;i<ks.length-1;i++){x=x[ks[i]]=x[ks[i]]||{}}x[ks[ks.length-1]]=v}
