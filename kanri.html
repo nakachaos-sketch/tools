@@ -361,6 +361,9 @@ const EARTH_LIM={EA:'10',EB:'',EC:'10',ED:'100'};
 
 /* ===== 画面 ===== */
 function bar(t,back,extra){return `<div class="bar noprint">${back?`<button data-act="${back}">← 戻る</button>`:''}<h1>${esc(t)}</h1>${extra||''}</div>`}
+const comboOther=new Set();
+function combo(path,label,list){const v=getPath(state,path)||'';const inL=list.includes(v);const oth=!inL&&(v||comboOther.has(path));
+  return `<label>${label}<select data-combo="${path}"><option value="" ${!v&&!oth?'selected':''}>選択</option>${list.map(x=>`<option ${x===v?'selected':''}>${esc(x)}</option>`).join('')}<option value="__other" ${oth?'selected':''}>その他(手入力)</option></select>${oth?`<input type="text" data-f="${path}" value="${esc(v)}" placeholder="手入力" style="margin-top:3px">`:''}</label>`}
 function inp(path,label,x,y){const o=(x&&typeof x==='object'?x:y)||{};const v=getPath(state,path);return `<label${o.cls?` class="${o.cls}"`:''}>${label}${o.area?`<textarea data-f="${path}" rows="${o.area}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}>${esc(v)}</textarea>`:`<input type="${o.type||'text'}" ${o.dec?'inputmode="decimal"':''} ${o.list?`list="${o.list}"`:''} data-f="${path}" value="${esc(v)}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}>`}</label>`}
 function render(){
   const a=$('#app');
@@ -418,7 +421,7 @@ function siteHTML(){
     body=`<div class="card"><h2>高圧機器表</h2>
       ${s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv"><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
         return e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
-        :`<div class="eqr"><div class="g4">${inp(q+'name','機器名','',{list:'eqn'})}${inp(q+'use','用途')}${inp(q+'cap','定格容量')}${inp(q+'maker','製造者名','',{list:'eqm'})}</div>
+        :`<div class="eqr"><div class="g4">${combo(q+'name','機器名',EQ_NAMES)}${inp(q+'use','用途')}${inp(q+'cap','定格容量')}${combo(q+'maker','製造者名',EQ_MAKERS)}</div>
           <div class="g4">${inp(q+'model','型式')}${inp(q+'v','定格電圧')}${inp(q+'i','定格電流')}${inp(q+'made','製造年月')}</div>
           <div class="g4">${inp(q+'serial','製造番号')}${inp(q+'note','備考','',{cls:'span2'})}${mv}</div></div>`}).join('')||'<div class="empty">機器がありません。</div>'}
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
@@ -684,6 +687,7 @@ function onField(t){const p=t.dataset.f||t.dataset.fr;setPath(state,p,t.value);
 document.addEventListener('input',e=>{const t=e.target;if(t.dataset.f&&t.tagName!=='SELECT')onField(t)});
 document.addEventListener('change',e=>{const t=e.target;
   if(t.dataset.fr||(t.dataset.f&&t.tagName==='SELECT'))onField(t);
+  if(t.dataset.combo){const p=t.dataset.combo;if(t.value==='__other'){comboOther.add(p);setPath(state,p,'')}else{comboOther.delete(p);setPath(state,p,t.value)}save();render();if(t.value==='__other'){const e=document.querySelector(`input[data-f="${p}"]`);if(e)e.focus()}return}
   if(t.dataset.rl){const o=site().ov;const a=new Set(o.rl||[]);t.checked?a.add(t.dataset.rl):a.delete(t.dataset.rl);o.rl=RLY.filter(x=>a.has(x));save();const e=document.getElementById('pv-rl');if(e)e.textContent='印刷:'+(rlText(o)||'—')}
   if(t.dataset.pk){state.pk=state.pk||{};state.pk[t.dataset.pk]=t.checked;save()}
   if(t.id==='imgFile'&&t.files[0]){const f=t.files[0];const img=new Image();const u=URL.createObjectURL(f);img.onload=()=>{const M=1600,r=Math.min(1,M/Math.max(img.width,img.height));
