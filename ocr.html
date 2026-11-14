@@ -770,7 +770,7 @@ document.addEventListener('click',e=>{
       save();render();toast('登録しました');break}
     case 'delModel':{const k='delModel:'+b.dataset.id;if(pendingConfirm!==k){pendingConfirm=k;render();break}
       state.models=state.models.filter(m=>m.id!==b.dataset.id);save();pendingConfirm=null;render();break}
-    case 'exportJson':{const blob=new Blob([JSON.stringify(state,null,1)],{type:'application/json'});
+    case 'exportJson':{const blob=new Blob([JSON.stringify(Object.assign({app:APPID},state),null,1)],{type:'application/json'});
       const a2=document.createElement('a');const d=new Date();
       a2.href=URL.createObjectURL(blob);a2.download=`継電器試験_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
       saveFile(blob,a2);break}
@@ -780,11 +780,11 @@ document.addEventListener('click',e=>{
 $('#importFile').addEventListener('change',e=>{
   const f=e.target.files[0];if(!f)return;
   const rd=new FileReader();
-  rd.onload=()=>{try{const d=JSON.parse(String(rd.result).replace(/^\uFEFF/,""));if(!Array.isArray(d.projects))throw 0;
+  rd.onload=()=>{try{const d=JSON.parse(String(rd.result).replace(/^\uFEFF/,""));if(!Array.isArray(d.projects))throw 0;if(d.app&&d.app!==APPID){toast('これは「'+(APPNAMES[d.app]||d.app)+'」のバックアップです');e.target.value='';return}const sk=d.projects.filter(x=>!projOK(x)).length;d.projects=d.projects.filter(projOK);if(!d.projects.length){toast('このアプリのデータが入っていません');e.target.value='';return}
       let n=0;d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
       (d.models||[]).forEach(m=>{if(!state.models.find(x=>x.id===m.id))state.models.push(m)});
       if(d.settings)state.settings={...DEF_SET,...d.settings};
-      save();render();toast(`${n}件の件名を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}
+      save();render();toast(`${n}件の件名を読み込みました`+(sk?`(別のアプリのデータ${sk}件は読み込みませんでした)`:''))}catch(err){toast('バックアップファイルではないようです')}
     e.target.value=''};
   rd.readAsText(f);
 });
@@ -833,6 +833,11 @@ function saveFile(blob,a){const name=a.download;
     if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).then(()=>URL.revokeObjectURL(a.href)).catch(err);return}
   }catch(e){}
   dl()}
+
+/* アプリ識別・別アプリのデータ混入対策 */
+const APPID='ocr';const APPNAMES={ocr:'過電流継電器',uvr:'不足電圧継電器',ovr:'過電圧継電器',dgr:'方向地絡継電器',cable:'高圧ケーブル絶縁診断',taiatsu:'絶縁耐力試験'};
+function projOK(x){return x&&typeof x==='object'&&Array.isArray(x.relays)}
+(function(){const n=state.projects.length;state.projects=state.projects.filter(projOK);if(state.projects.length!==n){save();render()}})();
 </script>
 </body>
 </html>

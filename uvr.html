@@ -500,16 +500,16 @@ document.addEventListener('click',e=>{
     case 'blank':go({name:'preview',mode:'blank'});break;
     case 'orientL':case 'orientP':setOrient(a==='orientP'?'P':'L');render();break;
     case 'doPrint':{setPortrait(getOrient()==='P');const el=$('#pages'),z=el.style.zoom;el.style.zoom=1;window.print();el.style.zoom=z;break}
-    case 'exportJson':{const bl=new Blob([JSON.stringify(state,null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
+    case 'exportJson':{const bl=new Blob([JSON.stringify(Object.assign({app:APPID},state),null,1)],{type:'application/json'}),a2=document.createElement('a'),d=new Date();
       a2.href=URL.createObjectURL(bl);a2.download=`UVR試験_バックアップ_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
       saveFile(bl,a2);break}
     case 'importJson':$('#importFile').click();break;
   }
 });
 $('#importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
-  rd.onload=()=>{try{const d=JSON.parse(String(rd.result).replace(/^\uFEFF/,""));if(!Array.isArray(d.projects))throw 0;let n=0;
+  rd.onload=()=>{try{const d=JSON.parse(String(rd.result).replace(/^\uFEFF/,""));if(!Array.isArray(d.projects))throw 0;if(d.app&&d.app!==APPID){toast('これは「'+(APPNAMES[d.app]||d.app)+'」のバックアップです');e.target.value='';return}const sk=d.projects.filter(x=>!projOK(x)).length;d.projects=d.projects.filter(projOK);if(!d.projects.length){toast('このアプリのデータが入っていません');e.target.value='';return}let n=0;
     d.projects.forEach(p=>{const i=state.projects.findIndex(x=>x.id===p.id);if(i>=0)state.projects[i]=p;else state.projects.push(p);n++});
-    save();render();toast(`${n}件の工事を読み込みました`)}catch(err){toast('バックアップファイルではないようです')}e.target.value=''};rd.readAsText(f)});
+    save();render();toast(`${n}件の工事を読み込みました`+(sk?`(別のアプリのデータ${sk}件は読み込みませんでした)`:''))}catch(err){toast('バックアップファイルではないようです')}e.target.value=''};rd.readAsText(f)});
 document.addEventListener('input',e=>{
   const t=e.target,p=proj(),r=relay();
   if(t.id==='q'){view.q=t.value;if(!e.isComposing)$('#plist').innerHTML=listHTML();return}
@@ -549,6 +549,11 @@ function saveFile(blob,a){const name=a.download;
     if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f]}).then(()=>URL.revokeObjectURL(a.href)).catch(err);return}
   }catch(e){}
   dl()}
+
+/* アプリ識別・別アプリのデータ混入対策 */
+const APPID='uvr';const APPNAMES={ocr:'過電流継電器',uvr:'不足電圧継電器',ovr:'過電圧継電器',dgr:'方向地絡継電器',cable:'高圧ケーブル絶縁診断',taiatsu:'絶縁耐力試験'};
+function projOK(x){return x&&typeof x==='object'&&Array.isArray(x.relays)}
+(function(){const n=state.projects.length;state.projects=state.projects.filter(projOK);if(state.projects.length!==n){save();render()}})();
 </script>
 </body>
 </html>
