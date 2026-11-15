@@ -434,7 +434,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-15 f</div></div>`}
+  <div class="ver">版 2026-11-15 g</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -1056,7 +1056,7 @@ function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb,o)=>I.push({id:uid(),t
 
 // 図面の印刷(設備概要と同じ様式。ページごとに1枚)
 function docSld(s,id,pg){const d=sldList(s).find(x=>x.id===id);if(!d)return [];const m=state.me||{};const AP=docPages(d);let P=AP.filter(pgHas);const N=P.length||1;let base=0;if(pg!=null&&AP[pg]){base=Math.max(0,P.indexOf(AP[pg]));P=[AP[pg]]}
-  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh sdh"><colgroup><col style="width:15%"><col style="width:44%"><col style="width:15%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th class="sm">電気管理技術者</th><td>${esc(m.no||'')}　${esc(m.name||'')}</td></tr><tr><th>図面名称</th><td class="ovt">${esc(d.title||'')}</td><th class="sm sp"><div>図面番号</div><div>作図年月日</div></th><td class="sm2 sp"><div>${esc(d.no||'')}</div><div>${d.dt?fmtDate(d.dt):''}</div></td></tr></table>
+  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh sdh"><colgroup><col style="width:15%"><col style="width:44%"><col style="width:15%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th class="sm">電気管理技術者</th><td class="sm2">${esc(m.no||'')}　${esc(m.name||'')}</td></tr><tr><th>図面名称</th><td class="ovt">${esc(d.title||'')}</td><th class="sm sp"><div>図面番号</div><div>作図年月日</div></th><td class="sm2 sp"><div>${esc(d.no||'')}</div><div>${d.dt?fmtDate(d.dt):''}</div></td></tr></table>
     <div class="ovd sdd">${N>1?`<div class="ovd-t">${base+k+1} / ${N}</div>`:''}${(setGrid(d),sldSVG(s,false,p,true))}</div>`))}
 
 // 移動が終わったら、折った線を本当の線(縦・横の線分)に分ける
