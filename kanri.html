@@ -240,7 +240,7 @@ table.s.eq td.eqg{height:23mm}
 .sldwrap svg{display:block;width:100%;max-width:900px;margin:0 auto;height:auto;flex:none;user-select:none;-webkit-user-select:none}
 .ovd svg.sldsvg{width:100%;height:100%}
 .sldwrap{position:relative}
-#sldInl{position:absolute;z-index:5;min-width:140px;border:2px solid #1c7ed6;border-radius:4px;padding:2px 4px;background:#fff;font-family:sans-serif;line-height:1.2;resize:none;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+#sldInl{position:absolute;z-index:5;min-width:0;overflow:hidden;white-space:pre;border:2px solid #1c7ed6;border-radius:4px;padding:2px 4px;background:#fff;font-family:sans-serif;line-height:1.2;resize:none;box-shadow:0 2px 8px rgba(0,0,0,.2)}
 .sldprop .grp{display:inline-flex;flex-wrap:wrap;gap:4px;align-items:center;padding-right:8px;border-right:1px solid var(--line)}
 .sldprop .grp:last-child{border-right:none}
 .sldprop .grp b{font-size:12px;color:var(--sub);font-weight:500}
@@ -893,12 +893,18 @@ function sldInline(it){const sv=document.getElementById('sld'),wr=document.query
   const S=SYM[it.t];let x=it.x*SU,y=it.y*SU;if(!S.box&&!S.txt&&!S.mt){if(it.r%2)y-=18;else x+=it.lp?-15:15}
   const m=sv.getScreenCTM();const p=sv.createSVGPoint();p.x=x;p.y=y;const q=p.matrixTransform(m);const r=wr.getBoundingClientRect();
   let t=document.getElementById('sldInl');if(t)t.remove();t=document.createElement('textarea');t.id='sldInl';t.rows=String(lbOf(it)).split('\n').length;t.value=lbOf(it);
-  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;t.style.cssText=`left:${q.x-r.left+wr.scrollLeft-(S.txt&&it.al==='s'?-4*sc:S.txt&&it.al==='e'?140:S.box||S.txt||S.mt?70:(!(it.r%2)&&it.lp?140:0))}px;top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${Math.max(14,fs)}px`;
-  wr.appendChild(t);t.focus();t.select();
+  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;const F=Math.max(14,fs);const ax=q.x-r.left+wr.scrollLeft;
+  const mode=S.txt?(it.al==='s'?'s':it.al==='e'?'e':'m'):(S.box||S.mt||it.r%2)?'m':(it.lp?'e':'s');
+  const cv=document.createElement('canvas').getContext('2d');cv.font=`${F}px sans-serif`;
+  // 入力した文字に合わせて枠の幅を広げる
+  const fitW=()=>{const w=Math.max(F*2,...t.value.split('\n').map(l=>cv.measureText(l||' ').width))+F+12;t.style.width=w+'px';
+    t.style.left=(mode==='s'?ax+(S.txt?4*sc:0):mode==='e'?ax-(S.txt?4*sc:0)-w:ax-w/2)+'px'};
+  t.style.cssText=`top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${F}px`;
+  wr.appendChild(t);fitW();t.focus();t.select();
   const fin=()=>{if(!t.isConnected)return;it.lb=t.value;t.remove();save();sldRedraw()};
   let comp=false;const upd=()=>{it.lb=t.value;t.rows=Math.max(1,t.value.split('\n').length);sldRedraw()};
   t.addEventListener('compositionstart',()=>{comp=true});t.addEventListener('compositionend',()=>{comp=false;upd()});
-  t.addEventListener('input',e=>{if(comp||e.isComposing)return;upd()});
+  t.addEventListener('input',e=>{t.rows=Math.max(1,t.value.split('\n').length);fitW();if(comp||e.isComposing)return;upd()});
   t.addEventListener('keydown',e=>{if(e.isComposing||e.keyCode===229)return;if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();fin()}if(e.key==='Escape'){fin()}});
   t.addEventListener('pointerdown',e=>e.stopPropagation());
   t.addEventListener('blur',()=>setTimeout(()=>{if(document.activeElement!==t)fin()},120))}
