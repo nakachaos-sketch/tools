@@ -855,7 +855,7 @@ function sldSVG(s,ed,DD,full){const D=DD||sldData(s);
   const band=ed&&sldBand?`<rect x="${Math.min(sldBand[0],sldBand[2])*SU}" y="${Math.min(sldBand[1],sldBand[3])*SU}" width="${Math.abs(sldBand[2]-sldBand[0])*SU}" height="${Math.abs(sldBand[3]-sldBand[1])*SU}" class="band"/>`:'';
   return `<svg ${ed?`id="sld" style="${sldZoom?`width:${SW*SU*sldZoom}px;max-width:none`:''}" `:''}class="sldsvg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" font-family="sans-serif">
     <style>.sym{fill:none;stroke-linecap:round}.sym .fillw{fill:#fff}.fillc{fill:currentColor;stroke:none}.won{filter:drop-shadow(0 0 2px #ff922b)}.it.on .sym,.it.on text{filter:drop-shadow(0 0 2px #ff922b)}.whit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}.hit{fill:transparent;cursor:move}.gl{stroke:#e8edf2;stroke-width:1}.gl.g5{stroke:#cfd8e2}.stp{fill:#1c7ed6}.ep{fill:#fff;stroke:#e67700;stroke-width:2;cursor:crosshair}.band{fill:rgba(28,126,214,.08);stroke:#1c7ed6;stroke-dasharray:4 3}</style>
-    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${(()=>{if(!ed||sldSel.length!==1)return '';const w=D.wires.find(x=>x.id===sldSel[0]);return w?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="7" class="ep" data-ep="a"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="7" class="ep" data-ep="b"/>`:''})()}${pre}${st}${band}</svg>`}
+    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${(()=>{if(!ed||sldSel.length!==1)return '';const w=D.wires.find(x=>x.id===sldSel[0]);return w?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="7" class="ep" data-ep="a"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="7" class="ep" data-ep="b"/>`:''})()}${ed?sldConnMarks(D):''}${pre}${st}${band}</svg>`}
 function selObjs(){const D=sldData();return {its:D.items.filter(x=>sldSel.includes(x.id)),ws:D.wires.filter(x=>sldSel.includes(x.id))}}
 function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.length?its[0]:null;const S=one&&SYM[one.t];
   const btn=(a,l,on,extra)=>`<button class="btn small${on?' on':''}" data-act="${a}" ${extra||''}>${l}</button>`;
@@ -870,7 +870,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
     <span class="grp"><b>文字</b><select data-sld="fs">${FS.map(v=>`<option ${String(one.fs||(S.txt?14:S.box?13:12))===v?'selected':''}>${v}</option>`).join('')}</select>${S.box?`<b>箱</b>${btn('sldBW','幅－','',`data-v="-1"`)}${btn('sldBW','幅＋','',`data-v="1"`)}${btn('sldBH','高さ－','',`data-v="-1"`)}${btn('sldBH','高さ＋','',`data-v="1"`)}`:''}</span>`}
   else if(its.length+ws.length>1)it=`<span class="grp"><b>${its.length+ws.length}個を選択中</b>(ドラッグでまとめて移動)</span>`;
   const act=sldSel.length?`<span class="grp">${btn('sldCopy','コピー')}${btn('sldDel','削除','','style="color:#c62828"')}</span>`:(sldClip?`<span class="grp">${btn('sldPaste','貼り付け')}</span>`:'');
-  const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択(Ctrl を押しながらクリックで追加選択、Ctrl を押しながらドラッグでコピー)、ドラッグで移動。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)はタップで延長、ドラッグで端だけ移動。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
+  const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択(Ctrl を押しながらクリックで追加選択、Ctrl を押しながらドラッグでコピー)、ドラッグで移動。線の端の緑の点=つながっている、赤い丸=つながっていない(印刷されません)。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)はタップで延長、ドラッグで端だけ移動。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldData(s);const P=D.pages;
   return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
@@ -1052,6 +1052,18 @@ function sldMaterialize(list){const D=sldData();[...new Set(list)].forEach(w=>{i
   const first=segs[0];w.a=first[0];w.b=first[1];delete w.ar;if(ar.includes('a'))w.ar='a';const at=D.wires.indexOf(w);
   const add=segs.slice(1).map((sg,i,arr)=>{const n={...w,id:uid(),a:sg[0],b:sg[1]};delete n.ar;if(i===arr.length-1&&ar.includes('b'))n.ar='b';return n});
   if(ar.includes('b')&&!add.length)w.ar=(w.ar?'ab':'b');D.wires.splice(at+1,0,...add)})}
+
+// 線の端のつながり表示(画面だけ。印刷されない):緑の点=つながっている、赤い丸=どこにもつながっていない
+function sldConnMarks(D){const key=q=>q[0].toFixed(3)+','+q[1].toFixed(3);const T=new Map();
+  D.items.forEach(it=>{const S=SYM[it.t];if(!S||S.txt)return;const ts=sldTerms(it);(S.t0?ts:ts.slice(0,-1)).forEach(t=>T.set(key(t),1))});
+  const cnt=new Map();D.wires.forEach(w=>[w.a,w.b].forEach(q=>cnt.set(key(q),(cnt.get(key(q))||0)+1)));
+  const onSeg=(q,w)=>{const [a,b]=[w.a,w.b];if(eqP(q,a)||eqP(q,b))return false;if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(q[0]-a[0])<1e-6)return q[1]>Math.min(a[1],b[1])&&q[1]<Math.max(a[1],b[1]);
+    if(Math.abs(a[1]-b[1])<1e-6&&Math.abs(q[1]-a[1])<1e-6)return q[0]>Math.min(a[0],b[0])&&q[0]<Math.max(a[0],b[0]);return false};
+  let out='';const done=new Set();
+  D.wires.forEach(w=>[w.a,w.b].forEach(q=>{const k=key(q);if(done.has(k))return;done.add(k);
+    const ok=T.has(k)||cnt.get(k)>1||D.wires.some(o=>o!==w&&onSeg(q,o));
+    out+=ok?`<circle cx="${q[0]*SU}" cy="${q[1]*SU}" r="3" fill="#2f9e44" stroke="none" pointer-events="none"/>`:`<circle cx="${q[0]*SU}" cy="${q[1]*SU}" r="4.5" fill="#fff" stroke="#e03131" stroke-width="2" pointer-events="none"/>`}));
+  return out}
 
 </script>
 </body>
