@@ -311,6 +311,10 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 .gsz{display:inline-flex;gap:3px;align-items:center}.gsz select{width:auto}
 .cbtn.fcb{box-shadow:0 0 0 1px #888}.cbtn.fcb.on{box-shadow:0 0 0 2px #1c7ed6}
 .eqh{display:grid;grid-template-columns:minmax(0,220px) auto;justify-content:space-between;gap:8px;align-items:end}
+.eqpg{display:flex;align-items:center;gap:10px;margin-top:8px;padding:4px 8px;background:#16496b;color:#fff;border-radius:6px}
+.eqpg b{flex:1;font-size:13px}
+.eqpg .btn.danger{background:#fff}
+.mv .btn.on{background:#e7f1fb;border-color:var(--accent);font-weight:700}
 
 </style>
 </head>
@@ -452,12 +456,14 @@ function siteHTML(){
   else if(tab==='sld'){body=sldEditorHTML(s)}
   else if(tab==='eq'){
     body=`<div class="card"><h2>高圧機器表</h2>
-      ${s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv"><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
-        return e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
+      ${(()=>{const pages=eqPages(s.eqs);const head={};pages.forEach((pg,n)=>{if(pg.length)head[pg[0]]=n});return s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv">${k>0?`<button class="btn small ${e.np?'on':''}" data-act="eqNp" data-i="${k}" title="この行から次のページにする">${e.np?'改ページ ✓':'改ページ'}</button>`:''}<button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
+        const ph=k in head?`<div class="eqpg"><b>${head[k]+1} ページ</b>${pages.length>1?`<button class="btn small danger" data-act="eqPgDel" data-p="${head[k]}">このページを削除</button>`:''}</div>`:'';
+        return ph+(
+        e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
         :`<div class="eqr"><div class="eqh">${combo(q+'name','機器名',EQ_NAMES)}${mv}</div>
           <div class="g4">${inp(q+'use','用途')}${combo(q+'maker','製造者名',EQ_MAKERS)}${inp(q+'v','定格電圧')}${inp(q+'made','製造年月')}</div>
           <div class="g4">${inp(q+'cap','定格容量')}${inp(q+'model','型式')}${inp(q+'i','定格電流')}${inp(q+'serial','製造番号')}</div>
-          ${inp(q+'note','備考(改行できます)','',{area:2})}</div>`}).join('')||'<div class="empty">機器がありません。</div>'}
+          ${inp(q+'note','備考(改行できます)','',{area:2})}</div>`)}).join('')})()||'<div class="empty">機器がありません。</div>'}
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
       <datalist id="eqm">${EQ_MAKERS.map(x=>`<option value="${x}">`).join('')}</datalist><datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="eq">高圧機器表を印刷</button></div>`}
@@ -570,8 +576,9 @@ function docOv(s){const o=s.ov,m=meBlock(),d=v=>esc(v||'－');
       <tr><th>引込ケーブル</th><td colspan="3" class="l">${d(caText(o))}</td><th>変圧器電圧タップ</th><td class="sm">${d(o.tap)}</td></tr>
       <tr><th>保護継電器</th><td colspan="3" class="l">${d(rlText(o))}</td><th>受電年月日</th><td>${o.recvDate?fmtDate(o.recvDate):'－'}</td></tr></table>
     <div class="ovd"><div class="ovd-t">引込系統図</div>${sldOv(s)?sldSVG(s,false,sldOv(s)):s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
-function docEq(s){const units=e=>2;const pages=[];let cur=[],u=0;const CAP=34;
-  s.eqs.forEach(e=>{if(u+units(e)>CAP){pages.push(cur);cur=[];u=0}cur.push(e);u+=units(e)});if(cur.length||!pages.length)pages.push(cur);
+// 高圧機器表のページ分け(1ページ17行。「改ページ」の行から次のページ)。行番号の配列を返す
+function eqPages(eqs){const CAP=17;const pages=[];let cur=[];eqs.forEach((e,k)=>{if(cur.length&&(cur.length>=CAP||e.np)){pages.push(cur);cur=[]}cur.push(k)});if(cur.length||!pages.length)pages.push(cur);return pages}
+function docEq(s){const CAP=34;const pages=eqPages(s.eqs).map(pg=>pg.map(k=>s.eqs[k]));
   return pages.map((pg,pn)=>{let u=pg.length*2;const fill=[];while(u<CAP){fill.push('<tr><td rowspan="2"></td><td></td><td></td><td></td><td></td><td rowspan="2"></td></tr><tr><td></td><td></td><td></td><td></td></tr>');u+=2}
     return SH('p doc',`<div class="s-title">高 圧 機 器 表</div><div class="eq-top"><div>事業場名 ： ${esc(s.name)}</div><div>№${pn+1}</div></div>
     <table class="s eq"><colgroup><col style="width:13%"><col style="width:16%"><col style="width:16%"><col style="width:15%"><col style="width:17%"><col></colgroup>
@@ -678,6 +685,8 @@ document.addEventListener('click',e=>{
     case 'eqAddG':s.eqs.push({t:'g',name:''});save();render();break;
     case 'eqUp':mvArr(s.eqs,+b.dataset.i,-1);save();render();break;
     case 'eqDn':mvArr(s.eqs,+b.dataset.i,1);save();render();break;
+    case 'eqNp':{const e=s.eqs[+b.dataset.i];if(e.np)delete e.np;else e.np=1;save();render();break}
+    case 'eqPgDel':{const pg=eqPages(s.eqs)[+b.dataset.p]||[];if(!pg.length)break;if(confirm(`${+b.dataset.p+1}ページの ${pg.length}行を削除しますか?`)){s.eqs=s.eqs.filter((e,k)=>!pg.includes(k));save();render()}break}
     case 'eqDel':s.eqs.splice(+b.dataset.i,1);save();render();break;
     case 'pickImg':$('#imgFile').click();break;
     case 'delImg':s.diagImg='';save();render();break;
