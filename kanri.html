@@ -769,10 +769,10 @@ function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel
   let t='';
   const hh=(S.h||1)*SU;
   if(S.box||S.mt)t=tLines(X,Y,lb,S.mt?Math.min(fs,11,(S.mw||20)/Math.max(.5,txW(lb,1))):fs,'middle',col);
-  else if(S.txt){t=tLines(X,Y,lb,fs,{s:'start',e:'end'}[it.al]||'middle',col);if(it.r)t=`<g transform="rotate(${-90*it.r} ${X} ${Y})">${t}</g>`}
+  else if(S.txt){const TP=SU/5;t=tLines(X+(it.al==='s'?TP:it.al==='e'?-TP:0),Y,lb,fs,{s:'start',e:'end'}[it.al]||'middle',col);if(it.r)t=`<g transform="rotate(${-90*it.r} ${X} ${Y})">${t}</g>`}
   else if(lb)t=((it.r||0)+(S.hz?1:0))%2?tLines(X,Y-15-fs*.4,lb,fs,'middle',col):it.lp?tLines(X-(S.lo||15),Y,lb,fs,'end',col):tLines(X+(S.lo||15),Y,lb,fs,'start',col);
   let hit='';if(ed){if(S.box){const k=boxK(it)*SU,H=boxH(it);hit=`<rect class="hit" x="${X-k-2}" y="${Y-H/2-2}" width="${2*k+4}" height="${H+4}" data-id="${it.id}"/>`}
-    else if(S.txt){const w=Math.max(30,...String(lb).split('\n').map(l=>txW(l,fs))),h=String(lb).split('\n').length*fs*1.2+6;const x0=it.al==='s'?X-4:it.al==='e'?X-w-4:X-w/2-4;hit=`<rect class="hit" x="${x0}" y="${Y-h/2}" width="${w+8}" height="${h}" data-id="${it.id}"/>`}
+    else if(S.txt){const w=Math.max(30,...String(lb).split('\n').map(l=>txW(l,fs))),h=String(lb).split('\n').length*fs*1.2+6;const x0=it.al==='s'?X:it.al==='e'?X-w-8:X-w/2-4;hit=`<rect class="hit" x="${x0}" y="${Y-h/2}" width="${w+8}" height="${h}" data-id="${it.id}"/>`}
     else if(S.mt)hit=`<rect class="hit" x="${X-14}" y="${Y-14}" width="28" height="28" data-id="${it.id}"/>`;
     else hit=((it.r||0)+(S.hz?1:0))%2?`<rect class="hit" x="${X-hh}" y="${Y-16}" width="${2*hh}" height="32" data-id="${it.id}"/>`:`<rect class="hit" x="${X-16}" y="${Y-hh}" width="32" height="${2*hh}" data-id="${it.id}"/>`}
   return `<g class="it${ed&&sldSel.includes(it.id)?' on':''}">${g}${t}${hit}</g>`}
@@ -781,7 +781,7 @@ function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.
 function sldSVG(s,ed){const D=sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
-      if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w:it.x-w/2,it.al==='s'?it.x+w:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw+((S.lo||15)-15)/SU));
+      if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w-.2:it.x-w/2,it.al==='s'?it.x+w+.2:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw+((S.lo||15)-15)/SU));
       ys.push(it.y-(S.box?boxH(it)/SU/2:(S.h||1)+.1),it.y+(S.box?boxH(it)/SU/2:(S.h||1)+.1))});D.wires.forEach(w=>{xs.push(w.a[0],w.b[0]);ys.push(w.a[1],w.b[1])});
     if(xs.length){const x0=Math.min(...xs)-.6,x1=Math.max(...xs)+.6,y0=Math.min(...ys)-.6,y1=Math.max(...ys)+.6;vb=`${x0*SU} ${y0*SU} ${(x1-x0)*SU} ${(y1-y0)*SU}`}}
   let grid='';if(ed){for(let y=0;y<=SH_;y++)grid+=`<path d="M0 ${y*SU} H${SW*SU}" class="gl${y%5?'':' g5'}"/>`;for(let x=0;x<=SW;x++)grid+=`<path d="M${x*SU} 0 V${SH_*SU}" class="gl${x%5?'':' g5'}"/>`}
@@ -835,7 +835,7 @@ function sldInline(it){const sv=document.getElementById('sld'),wr=document.query
   const S=SYM[it.t];let x=it.x*SU,y=it.y*SU;if(!S.box&&!S.txt&&!S.mt){if(it.r%2)y-=18;else x+=it.lp?-15:15}
   const m=sv.getScreenCTM();const p=sv.createSVGPoint();p.x=x;p.y=y;const q=p.matrixTransform(m);const r=wr.getBoundingClientRect();
   let t=document.getElementById('sldInl');if(t)t.remove();t=document.createElement('textarea');t.id='sldInl';t.rows=String(lbOf(it)).split('\n').length;t.value=lbOf(it);
-  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;t.style.cssText=`left:${q.x-r.left+wr.scrollLeft-(S.box||S.txt||S.mt?70:(!(it.r%2)&&it.lp?140:0))}px;top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${Math.max(14,fs)}px`;
+  const sc=m.a;const fs=+(it.fs||(S.txt?14:S.box?13:12))*sc;t.style.cssText=`left:${q.x-r.left+wr.scrollLeft-(S.txt&&it.al==='s'?-4*sc:S.txt&&it.al==='e'?140:S.box||S.txt||S.mt?70:(!(it.r%2)&&it.lp?140:0))}px;top:${q.y-r.top+wr.scrollTop-fs*.9}px;font-size:${Math.max(14,fs)}px`;
   wr.appendChild(t);t.focus();t.select();
   const fin=()=>{if(!t.isConnected)return;it.lb=t.value;t.remove();save();sldRedraw()};
   let comp=false;const upd=()=>{it.lb=t.value;t.rows=Math.max(1,t.value.split('\n').length);sldRedraw()};
@@ -877,7 +877,7 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
       if(!sldWs){sldWs=sn.p;sldHov=[sn.p];sldRefresh();return}
       const pts=wirePts(sldWs,sn);if(pts.length<2){sldWs=null;sldHov=null;sldRefresh();return}
       sldPush();for(let i=1;i<pts.length;i++)D.wires.push({id:uid(),a:pts[i-1],b:pts[i],lw:sldSty.lw,ld:sldSty.ld,c:sldSty.c});sldWs=pts[pts.length-1];sldHov=[sldWs];save();sldRefresh();return}
-    if(SYM[sldT]){sldPush();const it={id:uid(),t:sldT,x:p[0],y:p[1],r:0};if(sldSty.c!=='#000000')it.c=sldSty.c;D.items.push(it);sldSel=[it.id];const t=sldT;sldT='sel';save();sldRefresh();
+    if(SYM[sldT]){sldPush();const it={id:uid(),t:sldT,x:p[0],y:p[1],r:0};if(SYM[sldT].txt)it.al='s';if(sldSty.c!=='#000000')it.c=sldSty.c;D.items.push(it);sldSel=[it.id];const t=sldT;sldT='sel';save();sldRefresh();
       if(SYM[t].txt||SYM[t].box)setTimeout(()=>sldInline(it),30)}
   });
   sv.addEventListener('pointermove',e=>{
@@ -929,7 +929,7 @@ function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.le
   if(a==='sldTpl'){if((D.items.length||D.wires.length)&&!confirm('今の図を消して、ひな形を入れますか?(「元に戻す」で戻せます)'))return;sldPush();const T=sldTemplate();D.items=T.items;D.wires=T.wires;sldSel=[];save();sldRefresh();return}
 }
 function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb,o)=>I.push({id:uid(),t,x,y,r:0,...(lb!=null?{lb}:{}),...(o||{})});const w=(a,b,c,d,lw)=>W.push({id:uid(),a:[a,b],b:[c,d],lw:lw||'1.8'});
-  it('text',9,1,'電力会社 配電線');w(9,2,9,3);it('pas',9,4,'PAS (SOG)');
+  it('text',6,1,'電力会社 配電線',{al:'s'});w(9,2,9,3);it('pas',9,4,'PAS (SOG)');
   w(9,5,9,9);w(9,7,12,7);it('la',12,8,'LA');it('text',8,7,'引込ケーブル',{al:'e'});
   it('ds',9,10,'DS');w(9,11,9,12);it('vcb',9,13,'VCB');w(9,14,9,15);it('ct',9,16,'CT',{lp:1});w(9,17,9,18);it('zct',9,19,'ZCT',{lp:1});w(9,20,9,22);
   W.push({id:uid(),a:[9,16],b:[14,16],lw:'1.2',ld:'d'});it('box',15,16,'OCR');W.push({id:uid(),a:[9,19],b:[14,19],lw:'1.2',ld:'d'});it('box',15,19,'DGR');
