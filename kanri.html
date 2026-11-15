@@ -278,6 +278,19 @@ table.s.eq td.eqg{height:23mm}
 .sldgrp{display:flex;gap:2px;border-bottom:2px solid var(--accent);overflow-x:auto}
 .sldgrp button{flex:none;border:1px solid var(--line);border-bottom:none;background:#fff;color:var(--accent);padding:4px 10px;border-radius:6px 6px 0 0;font-size:12px;cursor:pointer;font-family:inherit}
 .sldgrp button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sldtabs{display:flex;flex-wrap:wrap;gap:4px;border-bottom:2px solid var(--accent)}
+.sldtabs button{border:1px solid var(--line);border-bottom:none;background:#fff;color:var(--accent);padding:5px 12px;border-radius:6px 6px 0 0;font-size:13px;cursor:pointer;font-family:inherit}
+.sldtabs button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.sldmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:end;background:#f4f7fa;border-radius:6px;padding:6px 8px}
+.sldmeta label{display:flex;flex-direction:column;font-size:11px;color:var(--sub)}
+.sldmeta label.sw{flex-direction:row}
+.sldmeta input#sldTitleIn{width:220px}.sldmeta select{width:auto}
+.sd-title{text-align:center;font-size:28pt;letter-spacing:.3em;margin:2mm 0 4mm}
+.sd-body{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;border:2px solid #000;padding:6mm}
+.sd-body svg{width:100%;height:100%}
+table.s.sd-tb{width:auto;margin-left:auto;margin-top:3mm}
+table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-size:15pt;min-width:60mm;padding:0 4mm;text-align:left}
+@media (max-width:760px){body.sld-m .sldmeta{padding:4px}body.sld-m .sldmeta input#sldTitleIn{width:160px}}
 
 </style>
 </head>
@@ -471,7 +484,7 @@ function inspHTML(){
     body=`<div class="card"><h2>点検の基本</h2>
       <div class="g4"><label>種類${sel(`data-fr="${P}kind"`,i.kind,['nenji','shunko'],['年次点検','竣工試験'])}</label>${inp(P+'date','点検日','',{type:'date'})}<label>天候${sel(`data-f="${P}weather"`,i.weather,['','晴','曇り','雨','雪'])}</label><div class="g2">${inp(P+'temp','温度(℃)','',{dec:1})}${inp(P+'hum','湿度(%)','',{dec:1})}</div></div></div>
     <div class="card"><h2>書類をまとめて印刷</h2>
-      <div class="chk">${[['cover','表紙'],['report',KIND[i.kind]+'報告書'],['earth','接地抵抗'],['hv','高圧絶縁抵抗'],['lv','低圧絶縁抵抗'],['ov','設備概要'],['eq','高圧機器表']].map(([k,l])=>`<label class="sw"><input type="checkbox" data-pk="${k}" ${(state.pk||{})[k]===false?'':'checked'}><span>${l}</span></label>`).join('')}</div>
+      <div class="chk">${[['cover','表紙'],['report',KIND[i.kind]+'報告書'],['earth','接地抵抗'],['hv','高圧絶縁抵抗'],['lv','低圧絶縁抵抗'],['ov','設備概要'],['sldall','単線結線図'],['eq','高圧機器表']].map(([k,l])=>`<label class="sw"><input type="checkbox" data-pk="${k}" ${(state.pk||{})[k]===false?'':'checked'}><span>${l}</span></label>`).join('')}</div>
       <div class="btns"><button class="btn main" data-act="pvAll">まとめて印刷プレビュー</button></div>
       <div class="note">保護継電器・ケーブル診断・耐圧試験の成績表は、それぞれのアプリから印刷してください(「各成績表」のタブから開けます)。</div></div>
     <div class="btns"><button class="btn danger" data-act="delInsp">この点検記録を削除</button></div>`}
@@ -535,7 +548,7 @@ function docOv(s){const o=s.ov,m=meBlock(),d=v=>esc(v||'－');
       <tr><th>受電用遮断器</th><td colspan="3" class="l">${d(cbText(o))}</td><th>供給配電線</th><td>${o.feeder?esc(o.feeder)+' 線':'－'}</td></tr>
       <tr><th>引込ケーブル</th><td colspan="3" class="l">${d(caText(o))}</td><th>変圧器電圧タップ</th><td class="sm">${d(o.tap)}</td></tr>
       <tr><th>保護継電器</th><td colspan="3" class="l">${d(rlText(o))}</td><th>受電年月日</th><td>${o.recvDate?fmtDate(o.recvDate):'－'}</td></tr></table>
-    <div class="ovd"><div class="ovd-t">引込系統図</div>${(s.sld&&(s.sld.items.length||s.sld.wires.length))?sldSVG(s,false):s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
+    <div class="ovd"><div class="ovd-t">引込系統図</div>${sldOv(s)?sldSVG(s,false,sldOv(s)):s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
 function docEq(s){const units=e=>2;const pages=[];let cur=[],u=0;const CAP=34;
   s.eqs.forEach(e=>{if(u+units(e)>CAP){pages.push(cur);cur=[];u=0}cur.push(e);u+=units(e)});if(cur.length||!pages.length)pages.push(cur);
   return pages.map((pg,pn)=>{let u=pg.length*2;const fill=[];while(u<CAP){fill.push('<tr><td rowspan="2"></td><td></td><td></td><td></td><td></td><td rowspan="2"></td></tr><tr><td></td><td></td><td></td><td></td></tr>');u+=2}
@@ -583,7 +596,7 @@ function docLv(s,i){const out=[];const LN=o3()==='P'?35:15;
       <tr><th>R-E間</th><th>${phL}</th><th>T-E間</th></tr>${body}</table>`))})});return out}
 function chunk(a,n){const o=[];for(let k=0;k<a.length;k+=n)o.push(a.slice(k,k+n));if(!o.length)o.push([]);return o}
 function buildDocs(docs){const s=site(),i=insp();const out=[];
-  docs.forEach(d=>{if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
+  docs.forEach(d=>{if(d.startsWith('sld:'))out.push(...docSld(s,d.slice(4)));if(d==='sldall')sldList(s).filter(x=>!x.ov&&(x.items.length||x.wires.length)).forEach(x=>out.push(...docSld(s,x.id)));if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
     if(d==='ov')out.push(...docOv(s));if(d==='eq')out.push(...docEq(s));
     if(d==='earth'&&i.earth.secs.length)out.push(...docEarth(s,i));if(d==='hv'&&i.hv.secs.length)out.push(...docHv(s,i));if(d==='lv'&&i.lv.secs.length)out.push(...docLv(s,i))});
   return out}
@@ -660,7 +673,7 @@ document.addEventListener('click',e=>{
     case 'repDel':i.report.items.splice(+b.dataset.j,1);save();render();break;
     case 'repAllOk':i.report.items.forEach((x,k)=>{x.r=REPORT_ITEMS.indexOf(x.n)>=0?REPORT_DEF[REPORT_ITEMS.indexOf(x.n)]:'良'});save();render();break;
     case 'pv':view.ret={...view};view={...view,name:'pv',docs:b.dataset.docs.split(',')};render();window.scrollTo(0,0);break;
-    case 'pvAll':{const pk=state.pk||{};view.ret={...view};view={...view,name:'pv',docs:['cover','report','earth','hv','lv','ov','eq'].filter(k=>pk[k]!==false)};render();window.scrollTo(0,0);break}
+    case 'pvAll':{const pk=state.pk||{};view.ret={...view};view={...view,name:'pv',docs:['cover','report','earth','hv','lv','ov','sldall','eq'].filter(k=>pk[k]!==false)};render();window.scrollTo(0,0);break}
     case 'pvBack':view=view.ret||{name:'home'};render();break;
     case 'doPrint':window.print();break;
     case 'o3':state.o3=b.dataset.o;save();render();break;
@@ -750,7 +763,12 @@ let sldEat=0;document.addEventListener('pointerdown',e=>{if(!e.target.closest||!
 let sldFut=[],sldBandAdd=null;function sldTitleRefresh(){const u=document.querySelector('.sldtitle [data-act=sldUndo]'),r=document.querySelector('.sldtitle [data-act=sldRedo]');if(u)u.disabled=!sldHist.length;if(r)r.disabled=!sldFut.length}
 let sldZoom=null,sldPtrs=new Map(),sldPinch=null;
 let sldT='sel',sldSel=[],sldWs=null,sldDrag=null,sldHist=[],sldHov=null,sldBand=null,sldClip=null,sldSty={lw:'1.8',ld:'',c:'#000000'};
-function sldData(s){s=s||site();s.sld=s.sld||{items:[],wires:[]};return s.sld}
+let sldCurId=null;
+// 図面は事業場ごとに複数(引込系統図・単線結線図など)。旧データ(s.sld)は1枚目に移す
+function sldList(s){s=s||site();if(!s.slds){s.slds=[];if(s.sld&&(s.sld.items.length||s.sld.wires.length))s.slds.push({id:uid(),title:'引込系統図',ov:1,items:s.sld.items,wires:s.sld.wires});delete s.sld}
+  if(!s.slds.length)s.slds.push({id:uid(),title:'引込系統図',ov:1,items:[],wires:[]});return s.slds}
+function sldData(s){const L=sldList(s);let d=L.find(x=>x.id===sldCurId);if(!d){d=L[0];sldCurId=d.id}return d}
+function sldOv(s){const L=sldList(s);return L.find(x=>x.ov&&(x.items.length||x.wires.length))||null}
 const lbOf=it=>it.lb!=null?it.lb:SYM[it.t].lb;
 function txW(t,fs){let w=0;for(const c of String(t))w+=c.charCodeAt(0)<256?fs*.6:fs;return w}
 function boxK(it){if(it&&it.bw)return +it.bw;const fs=+(it&&it.fs||13);const w=Math.max(0,...String(it&&it.lb!=null?it.lb:'OCR').split('\n').map(l=>txW(l,fs)));return Math.max(1,Math.ceil((w+10)/(2*SU)))}
@@ -778,7 +796,7 @@ function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel
   return `<g class="it${ed&&sldSel.includes(it.id)?' on':''}">${g}${t}${hit}</g>`}
 function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.b[1]*SU}`;const on=ed&&sldSel.includes(w.id);
   return `<path d="${d}" fill="none" stroke="${on?'#e8590c':(w.c||'#000')}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
-function sldSVG(s,ed){const D=sldData(s);
+function sldSVG(s,ed,DD){const D=DD||sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
       if(S.txt){const w=txW(lbOf(it),fs)/SU;xs.push(it.al==='s'?it.x:it.al==='e'?it.x-w-.2:it.x-w/2,it.al==='s'?it.x+w+.2:it.al==='e'?it.x:it.x+w/2)}else xs.push(it.x-(bk?bk:it.lp?lw:1),it.x+(bk?bk:it.lp?1:lw+((S.lo||15)-15)/SU));
@@ -804,14 +822,19 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   const act=sldSel.length?`<span class="grp">${btn('sldCopy','コピー')}${btn('sldDel','削除','','style="color:#c62828"')}</span>`:(sldClip?`<span class="grp">${btn('sldPaste','貼り付け')}</span>`:'');
   const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択(Ctrl を押しながらで追加選択)、ドラッグで移動。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)はタップで延長、ドラッグで端だけ移動。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
-function sldEditorHTML(s){sldData(s);
-  return `<div class="card sldc"><div class="sldtitle"><h2>引込系統図エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
+function sldEditorHTML(s){const D=sldData(s),L=sldList(s);
+  return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
+    <div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label>
+      <label class="sw"><input type="checkbox" id="sldOvChk" ${D.ov?'checked':''}><span>設備概要の「引込系統図」に使う(★)</span></label>
+      <label>この図面の用紙${sel('id="sldOri"',D.o||'L',['L','P'],['A4横','A4縦'])}</label>
+      <div class="btns"><button class="btn small main" data-act="pv" data-docs="sld:${D.id}">この図面を印刷</button><button class="btn small" data-act="sldDup">複製</button><button class="btn small danger" data-act="sldDelDoc" ${L.length>1?'':'disabled'}>この図面を削除</button></div></div>
+    <div class="sldtitle"><h2>図面エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
     <div class="note sldhelp">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
     <div class="sldhead"><div class="sldgrp">${SLD_GROUPS.map(([g],i)=>`<button class="${sldGrp===i?'on':''}" data-act="sldGrp" data-v="${i}">${g}</button>`).join('')}</div><div class="sldtools">${SLD_TOOLS.concat(SLD_GROUPS[sldGrp][1].filter(k=>SYM[k]).map(k=>[k,SYM[k].n])).map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 ${-22*(SYM[k].h||1)} ${48+(SYM[k].iw||0)} ${44*(SYM[k].h||1)}" width="${26+(SYM[k].iw||0)/2}" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':SYM[k].mt?`<text x="0" y="4" text-anchor="middle" font-size="11">${SYM[k].lb}</text>`:''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
     ${sldPropHTML()}<div class="sldzoom"><button class="btn small" data-act="sldZ" data-v="0.8">－ 縮小</button><button class="btn small" data-act="sldZ" data-v="1.25">＋ 拡大</button><button class="btn small" data-act="sldZ" data-v="fit">全体を表示</button><span class="note">図の中は2本指(パソコンは Ctrl＋ホイール)でも拡大・縮小、2本指で移動できます。</span></div></div>
     <div class="sldwrap">${sldSVG(s,true)}</div>
-    <div class="btns"><button class="btn small" data-act="sldAll">全部選択</button><button class="btn small" data-act="sldTpl">ひな形を入れる</button><button class="btn small danger" data-act="sldClear">全部消す</button><button class="btn main" data-act="pv" data-docs="ov">概要と系統図を印刷</button></div>
-    <div class="note">記号は JIS C 0617(IEC 60617)の形にそろえています。描いた系統図は設備概要の用紙に印刷されます(画像より優先)。パソコンでは Delete で削除、Ctrl+C / Ctrl+V でコピー・貼り付け、Ctrl+Z で元に戻す。</div></div>`}
+    <div class="btns"><button class="btn small" data-act="sldAll">全部選択</button><button class="btn small" data-act="sldTpl">ひな形を入れる</button><button class="btn small danger" data-act="sldClear">全部消す</button><button class="btn" data-act="pv" data-docs="ov">設備概要を印刷</button></div>
+    <div class="note">記号は JIS C 0617(IEC 60617)の形にそろえています。★の付いた図面は設備概要の「引込系統図」に印刷されます(画像より優先)。図面ごとに「この図面を印刷」で1枚の図面として印刷できます。パソコンでは Delete で削除、Ctrl+C / Ctrl+V でコピー・貼り付け、Ctrl+Z で元に戻す。</div></div>`}
 function sldPush(){sldFut=[];sldHist.push(JSON.stringify(sldData()));if(sldHist.length>50)sldHist.shift()}
 function sldRedraw(){const w=document.querySelector('.sldwrap');if(w){w.querySelector('svg').outerHTML=sldSVG(site(),true)}sldBind()}
 function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;const y=window.scrollY;
@@ -903,10 +926,17 @@ document.addEventListener('keydown',e=>{if(view.name!=='site'||view.tab!=='sld')
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();sldAct('sldUndo')}
   if((e.ctrlKey||e.metaKey)&&e.key==='c'&&sldSel.length){e.preventDefault();sldAct('sldCopyClip')}
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&sldClip){e.preventDefault();sldAct('sldPaste')}});
+document.addEventListener('input',e=>{if(e.target.id!=='sldTitleIn')return;const D=sldData();D.title=e.target.value;save();const b=document.querySelector(`.sldtabs [data-id="${D.id}"]`);if(b)b.textContent=(D.title||'(無題)')+(D.ov?' ★':'')});
+document.addEventListener('change',e=>{if(e.target.id==='sldOvChk'){const L=sldList(),D=sldData();L.forEach(x=>{delete x.ov});if(e.target.checked)D.ov=1;save();const c=document.querySelector('.sldc');if(c){c.querySelector('.sldtabs').outerHTML=new DOMParser().parseFromString(sldEditorHTML(site()),'text/html').querySelector('.sldtabs').outerHTML}return}
+  if(e.target.id==='sldOri'){sldData().o=e.target.value;save();return}});
 document.addEventListener('change',e=>{const k=e.target.dataset&&e.target.dataset.sld;if(!k)return;const {its}=selObjs();if(!its.length)return;sldPush();its.forEach(it=>{it[k]=e.target.value});save();sldRedraw()});
 function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.length===1?its[0]:null;const v=b&&b.dataset.v;
   if(a==='sldZ'){const wr=document.querySelector('.sldwrap');const cur=sldZoom||(wr?wr.clientWidth/(SW*SU):1);sldZoom=v==='fit'?null:Math.max(.4,Math.min(4,cur*(+v)));sldRedraw();return}
   if(a==='sldGrp'){sldGrp=+v;sldRefresh();return}
+  if(a==='sldPick'){sldCurId=b.dataset.id;sldHist=[];sldFut=[];sldSel=[];sldWs=null;sldHov=null;const c=document.querySelector('.sldc');if(c){c.outerHTML=sldEditorHTML(site());sldBind()}return}
+  if(a==='sldNew'){const L=sldList();const d={id:uid(),title:'単線結線図',items:[],wires:[]};L.push(d);save();sldAct('sldPick',{dataset:{id:d.id}});setTimeout(()=>{const t=document.getElementById('sldTitleIn');if(t){t.focus();t.select()}},50);return}
+  if(a==='sldDup'){const L=sldList();const c=JSON.parse(JSON.stringify(D));c.id=uid();c.title=(D.title||'')+' (コピー)';delete c.ov;c.items.forEach(x=>x.id=uid());c.wires.forEach(x=>x.id=uid());L.push(c);save();sldAct('sldPick',{dataset:{id:c.id}});return}
+  if(a==='sldDelDoc'){const L=sldList();if(L.length<2)return;if(!confirm(`図面「${D.title||'(無題)'}」を削除しますか?(元に戻せません)`))return;site().slds=L.filter(x=>x!==D);sldCurId=null;save();sldAct('sldPick',{dataset:{id:site().slds[0].id}});return}
   if(a==='sldTool'){sldT=b.dataset.t;sldWs=null;sldHov=null;sldSel=[];sldRefresh();return}
   if(a==='sldDel'){if(!sldSel.length)return;sldPush();D.items=D.items.filter(x=>!sldSel.includes(x.id));D.wires=D.wires.filter(x=>!sldSel.includes(x.id));sldSel=[];save();sldRefresh();return}
   if(a==='sldEdit'){if(one)sldInline(one);return}
@@ -937,6 +967,12 @@ function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb,o)=>I.push({id:uid(),t
   [[4,'TR 1φ 75kVA'],[10,'TR 3φ 300kVA']].forEach(([x,lb])=>{w(x,22,x,23);it('lbs',x,24,'LBS');w(x,25,x,26);it('pf',x,27,'PF');w(x,28,x,29);it('tr',x,30,lb)});
   w(17,22,17,23);it('lbs',17,24,'LBS');w(17,25,17,26);it('pf',17,27,'PF');w(17,28,17,29);it('sr',17,30,'SR');w(17,31,17,32);it('sc',17,33,'SC');
   return {items:I,wires:W}}
+
+// 図面1枚の印刷
+function docSld(s,id){const d=sldList(s).find(x=>x.id===id);if(!d)return [];const m=state.me||{};
+  return [SH((d.o==='P'?'p ':'')+'doc',`<div class="sd-title">${esc(d.title||'')}</div>
+    <div class="sd-body">${sldSVG(s,false,d)}</div>
+    <table class="s sd-tb"><tr><th>事業場名</th><td>${esc(s.name)}</td><th>図面名</th><td>${esc(d.title||'')}</td></tr><tr><th>作成</th><td>${esc([m.office,m.name].filter(Boolean).join('　'))}</td><th>作成日</th><td>${fmtDate(new Date().toISOString().slice(0,10))}</td></tr></table>`)]}
 
 </script>
 </body>
