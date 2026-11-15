@@ -456,7 +456,7 @@ function siteHTML(){
   else if(tab==='sld'){body=sldEditorHTML(s)}
   else if(tab==='eq'){
     body=`<div class="card"><h2>高圧機器表</h2>
-      ${(()=>{const pages=eqPages(s.eqs);const head={};pages.forEach((pg,n)=>{if(pg.length)head[pg[0]]=n});return s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv">${k>0?`<button class="btn small ${e.np?'on':''}" data-act="eqNp" data-i="${k}" title="この行から次のページにする">${e.np?'改ページ ✓':'改ページ'}</button>`:''}<button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
+      ${(()=>{const pages=eqPages(s.eqs);const head={};pages.forEach((pg,n)=>{if(pg.length)head[pg[0]]=n});return s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv">${k>0?`<button class="btn small ${e.np?'on':''}" data-act="eqNp" data-i="${k}" title="この行から次のページにする">${e.np?'改ページ ✓':'改ページ'}</button>`:''}<button class="btn small" data-act="eqCopy" data-i="${k}" title="この行のすぐ下にコピー">コピー</button><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
         const ph=k in head?`<div class="eqpg"><b>${head[k]+1} ページ</b>${pages.length>1?`<button class="btn small danger" data-act="eqPgDel" data-p="${head[k]}">このページを削除</button>`:''}</div>`:'';
         return ph+(
         e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
@@ -685,6 +685,7 @@ document.addEventListener('click',e=>{
     case 'eqAddG':s.eqs.push({t:'g',name:''});save();render();break;
     case 'eqUp':mvArr(s.eqs,+b.dataset.i,-1);save();render();break;
     case 'eqDn':mvArr(s.eqs,+b.dataset.i,1);save();render();break;
+    case 'eqCopy':{const k=+b.dataset.i;const c=JSON.parse(JSON.stringify(s.eqs[k]));delete c.np;s.eqs.splice(k+1,0,c);save();render();break}
     case 'eqNp':{const e=s.eqs[+b.dataset.i];if(e.np)delete e.np;else e.np=1;save();render();break}
     case 'eqPgDel':{const pg=eqPages(s.eqs)[+b.dataset.p]||[];if(!pg.length)break;if(confirm(`${+b.dataset.p+1}ページの ${pg.length}行を削除しますか?`)){s.eqs=s.eqs.filter((e,k)=>!pg.includes(k));save();render()}break}
     case 'eqDel':s.eqs.splice(+b.dataset.i,1);save();render();break;
