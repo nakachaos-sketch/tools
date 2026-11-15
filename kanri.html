@@ -820,7 +820,12 @@ function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel
     else hit=((it.r||0)+(S.hz?1:0))%2?`<rect class="hit" x="${X-hh}" y="${Y-16}" width="${2*hh}" height="32" data-id="${it.id}"/>`:`<rect class="hit" x="${X-16}" y="${Y-hh}" width="32" height="${2*hh}" data-id="${it.id}"/>`}
   return `<g class="it${ed&&sldSel.includes(it.id)?' on':''}">${g}${t}${hit}</g>`}
 function sldWireSVG(w,ed){const d=`M${w.a[0]*SU} ${w.a[1]*SU} L${w.b[0]*SU} ${w.b[1]*SU}`;const on=ed&&sldSel.includes(w.id);
-  return `<path d="${d}" fill="none" stroke="${on?'#e8590c':(w.c||'#000')}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
+  return `<path d="${d}" fill="none" stroke="${on?'#e8590c':(w.c||'#000')}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${wArrow(w,on)}${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
+// 線の端の矢印(ar: 'a'=始点 'b'=終点 'ab'=両端)
+function wArrow(w,on){if(!w.ar)return '';const A=[w.a[0]*SU,w.a[1]*SU],B=[w.b[0]*SU,w.b[1]*SU];const L=Math.hypot(B[0]-A[0],B[1]-A[1]);if(L<1)return '';const ux=(B[0]-A[0])/L,uy=(B[1]-A[1])/L;
+  const k=Math.max(1,+wLW(w)/1.8),len=10*k,hw=4.5*k,col=on?'#e8590c':(w.c||'#000');
+  const head=(t,dx,dy)=>`<path d="M${t[0]} ${t[1]} L${t[0]-dx*len-dy*hw} ${t[1]-dy*len+dx*hw} L${t[0]-dx*len+dy*hw} ${t[1]-dy*len-dx*hw} Z" fill="${col}" stroke="none"/>`;
+  return (w.ar.includes('b')?head(B,ux,uy):'')+(w.ar.includes('a')?head(A,-ux,-uy):'')}
 function sldSVG(s,ed,DD,full){const D=DD||sldData(s);
   let vb=`0 0 ${SW*SU} ${SH_*SU}`;
   if(!ed&&!full){const xs=[],ys=[];D.items.forEach(it=>{const S=SYM[it.t]||{};const fs=+(it.fs||12);const lw=S.txt||S.box?0:txW(lbOf(it),fs)/SU+1;const bk=S.box?boxK(it):0;
@@ -839,6 +844,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   const btn=(a,l,on,extra)=>`<button class="btn small${on?' on':''}" data-act="${a}" ${extra||''}>${l}</button>`;
   const sty=`<span class="grp"><b>線</b>${LW.map(([v,l])=>btn('sldLW',l,(ws[0]?wLW(ws[0]):sldSty.lw)===v,`data-v="${v}"`)).join('')}</span>
     <span class="grp">${LD.map(([v,l])=>btn('sldLD',l,((ws[0]?ws[0].ld:sldSty.ld)||'')===v,`data-v="${v}"`)).join('')}</span>
+    ${ws.length?`<span class="grp"><b>矢印</b>${[['','なし'],['b','終点'],['a','始点'],['ab','両端']].map(([v,l])=>btn('sldAr',l,(ws[0].ar||'')===v,`data-v="${v}"`)).join('')}</span>`:''}
     <span class="grp"><b>色</b>${LC.map(c=>`<button class="cbtn${((ws[0]||its[0]||{}).c||sldSty.c)===c?' on':''}" data-act="sldC" data-v="${c}" style="background:${c}"></button>`).join('')}</span>`;
   let it='';
   if(one){it=`<span class="grp"><b>${S.c||S.n}</b>${btn('sldEdit','文字を入力')}${S.txt?['s','m','e'].map((v,i)=>btn('sldAl',['先頭起点','中央起点','後部起点'][i],(one.al||'m')===v,`data-v="${v}"`)).join(''):''}${S.box||S.t0||S.mt?'':btn('sldRot',`回転 ↻ (${((4-(one.r||0))%4)*90}°)`)}${S.box||S.txt||S.t0||S.mt||((one.r||0)+(S.hz?1:0))%2?'':btn('sldLp',`名前を${one.lp?'右':'左'}へ`)}</span>
@@ -979,6 +985,7 @@ function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.le
   if(a==='sldBW'){if(one){sldPush();one.bw=Math.max(1,Math.min(10,boxK(one)+(+v)));save();sldRefresh()}return}
   if(a==='sldBH'){if(one){sldPush();one.bh=Math.max(1,Math.min(10,(+(one.bh||1))+(+v)));save();sldRefresh()}return}
   if(a==='sldLW'){sldSty.lw=v;if(ws.length){sldPush();ws.forEach(w=>{w.lw=v;delete w.w});save()}sldRefresh();return}
+  if(a==='sldAr'){if(ws.length){sldPush();ws.forEach(w=>{if(v)w.ar=v;else delete w.ar});save()}sldRefresh();return}
   if(a==='sldLD'){sldSty.ld=v;if(ws.length){sldPush();ws.forEach(w=>{w.ld=v});save()}sldRefresh();return}
   if(a==='sldC'){sldSty.c=v;if(ws.length||its.length){sldPush();ws.forEach(w=>{w.c=v});its.forEach(it=>{it.c=v});save()}sldRefresh();return}
   if(a==='sldCopyClip'||a==='sldCopy'){sldClip=JSON.stringify({items:its,wires:ws});if(a==='sldCopy')sldAct('sldPaste');else{toast('コピーしました');sldPropRefresh()}return}
