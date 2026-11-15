@@ -319,6 +319,9 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 
 table.s.sdh th.sm{font-size:15pt;line-height:1.25}
 table.s.sdh td.sm2{font-size:17pt;line-height:1.3}
+table.s.sdh .sp{padding:0;height:22mm}
+table.s.sdh .sp>div{height:11mm;display:flex;align-items:center;justify-content:center}
+table.s.sdh .sp>div+div{border-top:1px solid #222}
 
 </style>
 </head>
@@ -431,7 +434,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-15 d</div></div>`}
+  <div class="ver">版 2026-11-15 e</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -879,7 +882,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldMerge(sldData(s));const P=D.pages;
   return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
-    <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・図番・作図日・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label><label>図番<input id="sldNoIn" value="${esc(D.no||'')}" style="width:8em"></label><label>作図年月日<input type="date" id="sldDtIn" value="${esc(D.dt||'')}"></label>
+    <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・図面番号・作図日・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label><label>図面番号<input id="sldNoIn" value="${esc(D.no||'')}" style="width:8em"></label><label>作図年月日<input type="date" id="sldDtIn" value="${esc(D.dt||'')}"></label>
       <label class="sw"><input type="checkbox" id="sldOvChk" ${D.ov?'checked':''}><span>設備概要の「引込系統図」に使う(★)</span></label>
       <label>この図面の用紙${sel('id="sldOri"',D.o||'P',['P','L'],['A4縦','A4横'])}</label><label>方眼の広さ(横×縦マス)<span class="gsz">${sel('id="sldGW"',String(D.gw||30),GW)}×${sel('id="sldGH"',String(D.gh||42),GH)}</span></label>
       <div class="btns"><button class="btn small main" data-act="pv" data-docs="sld:${D.id}">この図面を印刷</button><button class="btn small" data-act="sldDup">複製</button><button class="btn small danger" data-act="sldDelDoc" ${L.length>1?'':'disabled'}>この図面を削除</button></div></div></details>
@@ -1053,7 +1056,7 @@ function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb,o)=>I.push({id:uid(),t
 
 // 図面の印刷(設備概要と同じ様式。ページごとに1枚)
 function docSld(s,id){const d=sldList(s).find(x=>x.id===id);if(!d)return [];const m=state.me||{};const P=docPages(d).filter(pgHas);const N=P.length||1;
-  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh sdh"><colgroup><col style="width:15%"><col style="width:44%"><col style="width:15%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th class="sm">電気管理技術者</th><td>${esc(m.no||'')}　${esc(m.name||'')}</td></tr><tr><th>図面名称</th><td class="ovt">${esc(d.title||'')}</td><th class="sm">図番<br>作図年月日</th><td class="sm2">${esc(d.no||'')}<br>${d.dt?fmtDate(d.dt):''}</td></tr></table>
+  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh sdh"><colgroup><col style="width:15%"><col style="width:44%"><col style="width:15%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th class="sm">電気管理技術者</th><td>${esc(m.no||'')}　${esc(m.name||'')}</td></tr><tr><th>図面名称</th><td class="ovt">${esc(d.title||'')}</td><th class="sm sp"><div>図面番号</div><div>作図年月日</div></th><td class="sm2 sp"><div>${esc(d.no||'')}</div><div>${d.dt?fmtDate(d.dt):''}</div></td></tr></table>
     <div class="ovd sdd">${N>1?`<div class="ovd-t">${k+1} / ${N}</div>`:''}${(setGrid(d),sldSVG(s,false,p,true))}</div>`))}
 
 // 移動が終わったら、折った線を本当の線(縦・横の線分)に分ける
