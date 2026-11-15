@@ -315,6 +315,7 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 .eqpg b{flex:1;font-size:13px}
 .eqpg .btn.danger{background:#fff}
 .mv .btn.on{background:#e7f1fb;border-color:var(--accent);font-weight:700}
+@media (min-width:761px){.sldprop{min-height:84px;align-content:flex-start}}
 
 </style>
 </head>
@@ -836,7 +837,7 @@ function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel
 // 移動中の線は、元が縦なら縦→横→縦、元が横なら横→縦→横 に折って水平・垂直を保つ
 function wRoute(w){const a=w.a,b=w.b;if(!w._o||Math.abs(a[0]-b[0])<1e-6||Math.abs(a[1]-b[1])<1e-6)return [a,b];
   if(w._o==='v'){const m=Math.round((a[1]+b[1])/2);return [a,[a[0],m],[b[0],m],b]}const m=Math.round((a[0]+b[0])/2);return [a,[m,a[1]],[m,b[1]],b]}
-function sldWireSVG(w,ed){const d='M'+wRoute(w).map(q=>`${q[0]*SU} ${q[1]*SU}`).join(' L');const on=ed&&sldSel.includes(w.id);
+function sldWireSVG(w,ed){if(w._hide)return '';const d='M'+wRoute(w).map(q=>`${q[0]*SU} ${q[1]*SU}`).join(' L');const on=ed&&sldSel.includes(w.id);
   return `<path d="${d}" fill="none" stroke="${on?'#e8590c':(w.c||'#000')}" stroke-width="${wLW(w)}" ${DASH[w.ld||'']?`stroke-dasharray="${DASH[w.ld]}"`:''} class="${on?'won':''}"/>${wArrow(w,on)}${ed?`<path d="${d}" class="whit" data-id="${w.id}"/>`:''}`}
 // 線の端の矢印(ar: 'a'=始点 'b'=終点 'ab'=両端)
 function wArrow(w,on){if(!w.ar)return '';const A=[w.a[0]*SU,w.a[1]*SU],B=[w.b[0]*SU,w.b[1]*SU];const L=Math.hypot(B[0]-A[0],B[1]-A[1]);if(L<1)return '';const ux=(B[0]-A[0])/L,uy=(B[1]-A[1])/L;
@@ -855,7 +856,7 @@ function sldSVG(s,ed,DD,full){const D=DD||sldData(s);
   const band=ed&&sldBand?`<rect x="${Math.min(sldBand[0],sldBand[2])*SU}" y="${Math.min(sldBand[1],sldBand[3])*SU}" width="${Math.abs(sldBand[2]-sldBand[0])*SU}" height="${Math.abs(sldBand[3]-sldBand[1])*SU}" class="band"/>`:'';
   return `<svg ${ed?`id="sld" style="${sldZoom?`width:${SW*SU*sldZoom}px;max-width:none`:''}" `:''}class="sldsvg" viewBox="${vb}" preserveAspectRatio="xMidYMid meet" font-family="sans-serif">
     <style>.sym{fill:none;stroke-linecap:round}.sym .fillw{fill:#fff}.fillc{fill:currentColor;stroke:none}.won{filter:drop-shadow(0 0 2px #ff922b)}.it.on .sym,.it.on text{filter:drop-shadow(0 0 2px #ff922b)}.whit{stroke:transparent;stroke-width:14;fill:none;cursor:pointer}.hit{fill:transparent;cursor:move}.gl{stroke:#e8edf2;stroke-width:1}.gl.g5{stroke:#cfd8e2}.stp{fill:#1c7ed6}.ep{fill:#fff;stroke:#e67700;stroke-width:2;cursor:crosshair}.band{fill:rgba(28,126,214,.08);stroke:#1c7ed6;stroke-dasharray:4 3}</style>
-    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${(()=>{if(!ed||sldSel.length!==1)return '';const w=D.wires.find(x=>x.id===sldSel[0]);return w?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="7" class="ep" data-ep="a"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="7" class="ep" data-ep="b"/>`:''})()}${ed?sldConnMarks(D):''}${pre}${st}${band}</svg>`}
+    ${grid}${D.wires.map(w=>sldWireSVG(w,ed)).join('')}${D.items.map(it=>`<g style="color:${it.c||'#000'}">${sldItemSVG(it,ed)}</g>`).join('')}${(()=>{if(!ed||sldSel.length!==1)return '';const w=D.wires.find(x=>x.id===sldSel[0]);return w?`<circle cx="${w.a[0]*SU}" cy="${w.a[1]*SU}" r="7" class="ep" data-ep="a"/><circle cx="${w.b[0]*SU}" cy="${w.b[1]*SU}" r="7" class="ep" data-ep="b"/>`:''})()}${ed&&sldDrag&&sldDrag.chains?sldDrag.chains.filter(c=>c.route).map(c=>`<path d="M${c.route.map(q=>`${q[0]*SU} ${q[1]*SU}`).join(' L')}" fill="none" stroke="${c.style.c||'#000'}" stroke-width="${c.style.lw||(c.style.w===2?'5':'1.8')}" ${DASH[c.style.ld||'']?`stroke-dasharray="${DASH[c.style.ld]}"`:''}/>`).join(''):''}${ed?sldConnMarks(D):''}${pre}${st}${band}</svg>`}
 function selObjs(){const D=sldData();return {its:D.items.filter(x=>sldSel.includes(x.id)),ws:D.wires.filter(x=>sldSel.includes(x.id))}}
 function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.length?its[0]:null;const S=one&&SYM[one.t];
   const btn=(a,l,on,extra)=>`<button class="btn small${on?' on':''}" data-act="${a}" ${extra||''}>${l}</button>`;
@@ -949,8 +950,13 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
       if(tg){const id=tg.dataset.id;const again=sldSel.length===1&&sldSel[0]===id;if(!sldSel.includes(id))sldSel=[id];
         const its=D.items.filter(x=>sldSel.includes(x.id)),ws=D.wires.filter(x=>sldSel.includes(x.id));
         const tset=new Set();its.forEach(it=>sldTerms(it).forEach(t=>tset.add(t.join(','))));
-        const att=[];D.wires.forEach(w=>{if(ws.includes(w))return;const ori=Math.abs(w.a[0]-w.b[0])<1e-6?'v':Math.abs(w.a[1]-w.b[1])<1e-6?'h':'';const A=tset.has(w.a.join(',')),B=tset.has(w.b.join(','));if(ori&&(A!==B))w._o=ori;if(A)att.push([w,'a',w.a.slice()]);if(B)att.push([w,'b',w.b.slice()])});
-        sldDrag={p0:p,its:its.map(it=>[it,it.x,it.y]),ws:ws.map(w=>[w,w.a.slice(),w.b.slice()]),att,moved:false,snap:JSON.stringify(D),again:again&&its.length===1?its[0]:null};
+        ws.forEach(w=>{tset.add(w.a.join(','));tset.add(w.b.join(','))}); // 動かす線の端・途中につながった線も追従
+        const isAtt=q=>tset.has(q.join(','))||ws.some(o=>segInt(q,o));
+        const att=[];const rig=new Set(ws);const chains=[];const inCh=new Set();
+        D.wires.forEach(w=>{if(rig.has(w)||inCh.has(w))return;const A=isAtt(w.a),B=isAtt(w.b);
+          if(A&&B){rig.add(w);return}if(!A&&!B)return;const ch=sldChain(D,w,A?'a':'b',tset,rig);
+          if(ch.rigid)ch.list.forEach(x=>rig.add(x));else{ch.list.forEach(x=>inCh.add(x));chains.push(ch)}});
+        sldDrag={p0:p,its:its.map(it=>[it,it.x,it.y]),ws:[...rig].map(w=>[w,w.a.slice(),w.b.slice()]),att,chains,moved:false,snap:JSON.stringify(D),again:again&&its.length===1?its[0]:null};
         sv.setPointerCapture(e.pointerId);sldRedraw();sldPropRefresh();return}
       const rp=sldPt(e,1);sldBand=[rp[0],rp[1],rp[0],rp[1]];sldBandAdd=add?sldSel.slice():null;if(!add)sldSel=[];sv.setPointerCapture(e.pointerId);sldRedraw();sldPropRefresh();return}
     if(sldT==='wire'){const sn=sldSnap(e);
@@ -968,12 +974,12 @@ function sldBind(){const wr=document.querySelector('.sldwrap');
     if(sldDrag&&sldDrag.ep){const sn=sldSnap(e),p=sn.p;if(eqP(p,sldDrag.p0)&&!sldDrag.moved)return;sldDrag.moved=true;const w=sldDrag.w,o=w[sldDrag.ep==='a'?'b':'a'];
       w[sldDrag.ep]=sn.term?p:Math.abs(p[0]-o[0])>=Math.abs(p[1]-o[1])?[p[0],o[1]]:[o[0],p[1]];sldRedraw();return}
     if(sldDrag){const p=sldPt(e);const dx=p[0]-sldDrag.p0[0],dy=p[1]-sldDrag.p0[1];if(!dx&&!dy&&!sldDrag.moved)return;sldDrag.moved=true;
-      sldDrag.its.forEach(([it,x,y])=>{it.x=x+dx;it.y=y+dy});sldDrag.ws.forEach(([w,a,b])=>{w.a=[a[0]+dx,a[1]+dy];w.b=[b[0]+dx,b[1]+dy]});sldDrag.att.forEach(([w,k,o])=>{w[k]=[o[0]+dx,o[1]+dy]});sldRedraw();return}
+      sldDrag.its.forEach(([it,x,y])=>{it.x=x+dx;it.y=y+dy});sldDrag.ws.forEach(([w,a,b])=>{w.a=[a[0]+dx,a[1]+dy];w.b=[b[0]+dx,b[1]+dy]});sldDrag.att.forEach(([w,k,o])=>{w[k]=[o[0]+dx,o[1]+dy]});(sldDrag.chains||[]).forEach(ch=>{ch.list.forEach(w=>w._hide=1);ch.route=sldRouteOrth(ch.F,[ch.M0[0]+dx,ch.M0[1]+dy],ch.fo,ch.mo)});sldRedraw();return}
     if(sldBand){const rp=sldPt(e,1);sldBand[2]=rp[0];sldBand[3]=rp[1];sldRedraw();return}
     if(sldWs){const pts=wirePts(sldWs,sldSnap(e)).slice(1);if(!pts.length)pts.push(sldWs);
       if(!sldHov||sldHov.length!==pts.length||!pts.every((q,i)=>eqP(q,sldHov[i]))){sldHov=pts;sldRedraw()}}});
   const up=()=>{if(sldCopyPend){const id=sldCopyPend.id;sldCopyPend=null;sldSel=sldSel.includes(id)?sldSel.filter(x=>x!==id):sldSel.concat(id);sldRedraw();sldPropRefresh();return}
-    if(sldDrag){const d=sldDrag;sldDrag=null;if(d.att)sldMaterialize(d.att.map(x=>x[0]));if(d.moved){sldHist.push(d.snap);sldFut=[];save();sldTitleRefresh()}
+    if(sldDrag){const d=sldDrag;sldDrag=null;sldChainsDone(d);if(d.moved){sldHist.push(d.snap);sldFut=[];save();sldTitleRefresh()}
       else if(d.ep){const w=d.w;sldWs=w[d.ep].slice();sldHov=[sldWs.slice()];sldSty={lw:wLW(w),ld:w.ld||'',c:w.c||'#000000'};sldT='wire';sldSel=[];sldRefresh()}
       else if(d.again)sldInline(d.again)}
     if(sldBand){const D=sldData();const [a,b,c,d]=sldBand;const x0=Math.min(a,c),x1=Math.max(a,c),y0=Math.min(b,d),y1=Math.max(b,d);const inR=q=>q[0]>=x0&&q[0]<=x1&&q[1]>=y0&&q[1]<=y1;
@@ -1064,6 +1070,31 @@ function sldConnMarks(D){const key=q=>q[0].toFixed(3)+','+q[1].toFixed(3);const 
     const ok=T.has(k)||cnt.get(k)>1||D.wires.some(o=>o!==w&&onSeg(q,o));
     out+=ok?`<circle cx="${q[0]*SU}" cy="${q[1]*SU}" r="3" fill="#2f9e44" stroke="none" pointer-events="none"/>`:`<circle cx="${q[0]*SU}" cy="${q[1]*SU}" r="4.5" fill="#fff" stroke="#e03131" stroke-width="2" pointer-events="none"/>`}));
   return out}
+
+// 部品につながった「線の道筋」(途中に分かれ目・部品がない一続きの線)を、動かすたびに水平・垂直で引き直す
+const wOri=w=>Math.abs(w.a[0]-w.b[0])<1e-6?'v':Math.abs(w.a[1]-w.b[1])<1e-6?'h':'v';
+function sldChain(D,w,k,tset,rig){const key=q=>q.map(v=>(+v).toFixed(3)).join(',');const termAll=new Set();
+  D.items.forEach(it=>{const S=SYM[it.t];if(!S||S.txt)return;sldTerms(it).forEach(t=>termAll.add(key(t)))});
+  const onSeg=(q,o)=>{const [a,b]=[o.a,o.b];if(eqP(q,a)||eqP(q,b))return false;if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(q[0]-a[0])<1e-6)return q[1]>Math.min(a[1],b[1])&&q[1]<Math.max(a[1],b[1]);if(Math.abs(a[1]-b[1])<1e-6&&Math.abs(q[1]-a[1])<1e-6)return q[0]>Math.min(a[0],b[0])&&q[0]<Math.max(a[0],b[0]);return false};
+  const list=[w],used=new Set([w]);let cur=w,ck=k;
+  for(let n=0;n<200;n++){const other=ck==='a'?cur.b:cur.a;
+    if(tset.has(other.join(',')))return {list,rigid:true};
+    const nx=D.wires.filter(o=>!used.has(o)&&!rig.has(o)&&(eqP(o.a,other)||eqP(o.b,other)));
+    const joint=nx.length===1&&!termAll.has(key(other))&&!D.wires.some(o=>o!==cur&&!used.has(o)&&onSeg(other,o))&&!D.wires.some(o=>used.has(o)&&o!==cur&&(eqP(o.a,other)||eqP(o.b,other)));
+    if(!joint)return {list,F:other.slice(),fo:wOri(cur),mo:wOri(w),M0:w[k].slice(),style:{lw:w.lw,ld:w.ld,c:w.c,w:w.w},ar:list.map(x=>x.ar).filter(Boolean).length?w.ar:''};
+    const nw=nx[0];used.add(nw);list.push(nw);ck=eqP(nw.a,other)?'a':'b';cur=nw}
+  return {list,rigid:true}}
+function sldRouteOrth(F,M,fo,mo){if(Math.abs(F[0]-M[0])<1e-6||Math.abs(F[1]-M[1])<1e-6)return [F,M];
+  if(mo==='v'&&fo==='v'){const m=Math.round((F[1]+M[1])/2);return [F,[F[0],m],[M[0],m],M]}
+  if(mo==='h'&&fo==='h'){const m=Math.round((F[0]+M[0])/2);return [F,[m,F[1]],[m,M[1]],M]}
+  if(mo==='v')return [F,[M[0],F[1]],M];return [F,[F[0],M[1]],M]}
+function sldChainsDone(d){const D=sldData();(d.chains||[]).forEach(ch=>{ch.list.forEach(w=>delete w._hide);if(!d.moved||!ch.route)return;
+  const pts=[];ch.route.forEach(q=>{if(!pts.length||!eqP(pts[pts.length-1],q))pts.push(q)});
+  const at=Math.min(...ch.list.map(w=>D.wires.indexOf(w)).filter(i=>i>=0));D.wires=D.wires.filter(w=>!ch.list.includes(w));
+  const nw=[];for(let i=1;i<pts.length;i++){const o={id:uid(),a:pts[i-1],b:pts[i]};['lw','ld','c','w'].forEach(f=>{if(ch.style[f]!=null)o[f]=ch.style[f]});nw.push(o)}
+  D.wires.splice(isFinite(at)?at:D.wires.length,0,...nw)})}
+
+function segInt(q,o){const [a,b]=[o.a,o.b];if(eqP(q,a)||eqP(q,b))return false;if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(q[0]-a[0])<1e-6)return q[1]>Math.min(a[1],b[1])&&q[1]<Math.max(a[1],b[1]);if(Math.abs(a[1]-b[1])<1e-6&&Math.abs(q[1]-a[1])<1e-6)return q[0]>Math.min(a[0],b[0])&&q[0]<Math.max(a[0],b[0]);return false}
 
 </script>
 </body>
