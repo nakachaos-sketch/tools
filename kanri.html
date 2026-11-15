@@ -873,7 +873,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   const act=sldSel.length?`<span class="grp">${btn('sldCopy','コピー')}${btn('sldDel','削除','','style="color:#c62828"')}</span>`:(sldClip?`<span class="grp">${btn('sldPaste','貼り付け')}</span>`:'');
   const hint=!sldSel.length?`<span class="note">${sldWs?'線を描いています。同じ点をもう一度タップか「線を終わる」で終了。':sldT==='sel'?'部品・線をタップで選択(Ctrl を押しながらクリックで追加選択、Ctrl を押しながらドラッグでコピー)、ドラッグで移動。線の端の緑の点=つながっている、赤い丸=つながっていない(印刷されません)。何もない所からドラッグで範囲選択。選んだ線の端(橙の丸)はタップで延長、ドラッグで端だけ移動。':''}</span>${sldWs?btn('sldEnd','線を終わる'):''}`:'';
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
-function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldData(s);const P=D.pages;
+function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldMerge(sldData(s));const P=D.pages;
   return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
     <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label>
       <label class="sw"><input type="checkbox" id="sldOvChk" ${D.ov?'checked':''}><span>設備概要の「引込系統図」に使う(★)</span></label>
@@ -888,7 +888,7 @@ function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldData(s);const P=D.pa
     <div class="note">記号は JIS C 0617(IEC 60617)の形にそろえています。★の付いた図面は設備概要の「引込系統図」に印刷されます(画像より優先)。図面ごとに「この図面を印刷」で1枚の図面として印刷できます。パソコンでは Delete で削除、Ctrl+C / Ctrl+V でコピー・貼り付け、Ctrl+Z で元に戻す。</div></div>`}
 function sldPush(){sldFut=[];sldHist.push(JSON.stringify(sldData()));if(sldHist.length>50)sldHist.shift()}
 function sldRedraw(){const w=document.querySelector('.sldwrap');if(w){w.querySelector('svg').outerHTML=sldSVG(site(),true)}sldBind()}
-function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;const y=window.scrollY;
+function sldRefresh(){const c=document.querySelector('.sldc');if(!c)return;sldPtrs.clear();sldPinch=null;try{const n=sldData().wires.length;sldMerge();if(sldData().wires.length!==n){sldSel=sldSel.filter(id=>sldData().wires.some(w=>w.id===id)||sldData().items.some(i=>i.id===id));save()}}catch(e){}const y=window.scrollY;
   const wr=c.querySelector('.sldwrap'),hd=c.querySelector('.sldhead');
   if(wr&&hd){const tmp=document.createElement('div');tmp.innerHTML=sldEditorHTML(site());hd.replaceWith(tmp.querySelector('.sldhead'));sldRedraw();sldTitleRefresh()} // 図の枠はそのまま(拡大・スクロール位置を保つ)
   else{c.outerHTML=sldEditorHTML(site());sldBind()}
@@ -1092,9 +1092,27 @@ function sldChainsDone(d){const D=sldData();(d.chains||[]).forEach(ch=>{ch.list.
   const pts=[];ch.route.forEach(q=>{if(!pts.length||!eqP(pts[pts.length-1],q))pts.push(q)});
   const at=Math.min(...ch.list.map(w=>D.wires.indexOf(w)).filter(i=>i>=0));D.wires=D.wires.filter(w=>!ch.list.includes(w));
   const nw=[];for(let i=1;i<pts.length;i++){const o={id:uid(),a:pts[i-1],b:pts[i]};['lw','ld','c','w'].forEach(f=>{if(ch.style[f]!=null)o[f]=ch.style[f]});nw.push(o)}
-  D.wires.splice(isFinite(at)?at:D.wires.length,0,...nw)})}
+  D.wires.splice(isFinite(at)?at:D.wires.length,0,...nw)});if(d.moved){sldMerge(D);sldRedraw()}}
 
 function segInt(q,o){const [a,b]=[o.a,o.b];if(eqP(q,a)||eqP(q,b))return false;if(Math.abs(a[0]-b[0])<1e-6&&Math.abs(q[0]-a[0])<1e-6)return q[1]>Math.min(a[1],b[1])&&q[1]<Math.max(a[1],b[1]);if(Math.abs(a[1]-b[1])<1e-6&&Math.abs(q[1]-a[1])<1e-6)return q[0]>Math.min(a[0],b[0])&&q[0]<Math.max(a[0],b[0]);return false}
+
+// 一直線につながった線(途中で分かれていない・部品の端子でない・同じ線種)を1本にまとめる
+function sldMerge(D){D=D||sldData();const key=q=>q.map(v=>(+v).toFixed(3)).join(',');
+  D.wires=D.wires.filter(w=>!eqP(w.a,w.b));
+  const term=new Set();D.items.forEach(it=>{const S=SYM[it.t];if(!S||S.txt)return;sldTerms(it).forEach(t=>{if(S.t0||!eqP(t,[it.x,it.y]))term.add(key(t))})});
+  const same=(x,y)=>['lw','ld','c'].every(f=>(x[f]||'')===(y[f]||''))&&(x.w||1)===(y.w||1);
+  let changed=true,guard=0;
+  while(changed&&guard++<500){changed=false;
+    const deg=new Map();D.wires.forEach(w=>[w.a,w.b].forEach(q=>deg.set(key(q),(deg.get(key(q))||0)+1)));
+    outer:for(const w of D.wires){const o1=wOri(w);if(Math.abs(w.a[0]-w.b[0])>1e-6&&Math.abs(w.a[1]-w.b[1])>1e-6)continue;
+      for(const k of ['a','b']){const q=w[k];const kq=key(q);if(deg.get(kq)!==2||term.has(kq))continue;if((w.ar||'').includes(k))continue;
+        if(D.wires.some(o=>segInt(q,o)))continue;
+        const v=D.wires.find(o=>o!==w&&(eqP(o.a,q)||eqP(o.b,q)));if(!v||wOri(v)!==o1||!same(w,v))continue;
+        if(Math.abs(v.a[0]-v.b[0])>1e-6&&Math.abs(v.a[1]-v.b[1])>1e-6)continue;
+        const vk=eqP(v.a,q)?'a':'b';if((v.ar||'').includes(vk))continue;
+        const far=vk==='a'?v.b:v.a;w[k]=far.slice();const ar=(w.ar||'').replace(k,'')+((v.ar||'').includes(vk==='a'?'b':'a')?k:'');if(ar)w.ar=[...new Set(ar)].sort().join('');else delete w.ar;
+        if(sldSel.includes(v.id)&&!sldSel.includes(w.id))sldSel=sldSel.map(x=>x===v.id?w.id:x);D.wires=D.wires.filter(o=>o!==v);if(eqP(w.a,w.b))D.wires=D.wires.filter(o=>o!==w);changed=true;break outer}}}
+  return D}
 
 </script>
 </body>
