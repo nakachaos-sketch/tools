@@ -291,6 +291,16 @@ table.s.eq td.eqg{height:23mm}
 table.s.sd-tb{width:auto;margin-left:auto;margin-top:3mm}
 table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-size:15pt;min-width:60mm;padding:0 4mm;text-align:left}
 @media (max-width:760px){body.sld-m .sldmeta{padding:4px}body.sld-m .sldmeta input#sldTitleIn{width:160px}}
+.sldmeta-d>summary{cursor:pointer;font-size:12px;color:var(--accent);padding:3px 0}
+@media (max-width:760px){
+  body.sld-m .tabs{flex-wrap:nowrap;overflow-x:auto}
+  body.sld-m .tabs button{flex:none;padding:3px 8px;font-size:12px}
+  body.sld-m .sldtitle h2{display:none}
+  body.sld-m .sldtitle{justify-content:flex-end}
+  body.sld-m .sldmeta-d .pc{display:none}
+  body.sld-m .sldtabs button{padding:3px 8px;font-size:12px}
+  body.sld-m .card.sldc{gap:4px}
+}
 
 </style>
 </head>
@@ -824,10 +834,10 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){const D=sldData(s),L=sldList(s);
   return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
-    <div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label>
+    <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label>
       <label class="sw"><input type="checkbox" id="sldOvChk" ${D.ov?'checked':''}><span>設備概要の「引込系統図」に使う(★)</span></label>
       <label>この図面の用紙${sel('id="sldOri"',D.o||'L',['L','P'],['A4横','A4縦'])}</label>
-      <div class="btns"><button class="btn small main" data-act="pv" data-docs="sld:${D.id}">この図面を印刷</button><button class="btn small" data-act="sldDup">複製</button><button class="btn small danger" data-act="sldDelDoc" ${L.length>1?'':'disabled'}>この図面を削除</button></div></div>
+      <div class="btns"><button class="btn small main" data-act="pv" data-docs="sld:${D.id}">この図面を印刷</button><button class="btn small" data-act="sldDup">複製</button><button class="btn small danger" data-act="sldDelDoc" ${L.length>1?'':'disabled'}>この図面を削除</button></div></div></details>
     <div class="sldtitle"><h2>図面エディター</h2><button class="btn small" data-act="sldUndo" ${sldHist.length?'':'disabled'}>↶ 元に戻す</button><button class="btn small" data-act="sldRedo" ${sldFut.length?'':'disabled'}>進む ↷</button></div>
     <div class="note sldhelp">① 部品を選んで方眼をタップで置く(文字はその場で入力)。② 「線」で点を順にタップ(続けてタップで折れ線、同じ点をもう一度で終わり)。③ 「選択・移動」で、ドラッグ移動・範囲選択・コピー。部品をもう一度タップ(またはダブルクリック)で文字をその場で入力。</div>
     <div class="sldhead"><div class="sldgrp">${SLD_GROUPS.map(([g],i)=>`<button class="${sldGrp===i?'on':''}" data-act="sldGrp" data-v="${i}">${g}</button>`).join('')}</div><div class="sldtools">${SLD_TOOLS.concat(SLD_GROUPS[sldGrp][1].filter(k=>SYM[k]).map(k=>[k,SYM[k].n])).map(([k,n])=>`<button class="${sldT===k?'on':''}" data-act="sldTool" data-t="${k}" title="${n}">${k in SYM?`<svg viewBox="-24 ${-22*(SYM[k].h||1)} ${48+(SYM[k].iw||0)} ${44*(SYM[k].h||1)}" width="${26+(SYM[k].iw||0)/2}" height="24"><g class="sym" style="fill:none;stroke:#000;stroke-width:2">${SYM[k].d({}).replace('class="tf"','fill="#000" style="stroke:none"')}</g>${SYM[k].box?'<text x="0" y="4" text-anchor="middle" font-size="12">OCR</text>':SYM[k].txt?'<text x="0" y="9" text-anchor="middle" font-size="26" font-weight="700">A</text>':SYM[k].mt?`<text x="0" y="4" text-anchor="middle" font-size="11">${SYM[k].lb}</text>`:''}</svg>`:''}${k in SYM?(SYM[k].c?`<span>${SYM[k].c}</span>`:''):`<span>${n}</span>`}</button>`).join('')}</div>
