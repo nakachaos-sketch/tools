@@ -317,6 +317,9 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 .mv .btn.on{background:#e7f1fb;border-color:var(--accent);font-weight:700}
 @media (min-width:761px){.sldprop{min-height:84px;align-content:flex-start}}
 
+table.s.sdh th.sm{font-size:15pt;line-height:1.25}
+table.s.sdh td.sm2{font-size:17pt;line-height:1.3}
+
 </style>
 </head>
 <body>
@@ -428,7 +431,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-15 c</div></div>`}
+  <div class="ver">版 2026-11-15 d</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -801,7 +804,8 @@ let sldT='sel',sldSel=[],sldWs=null,sldDrag=null,sldHist=[],sldHov=null,sldBand=
 let sldCurId=null;
 // 図面は事業場ごとに複数(引込系統図・単線結線図など)。旧データ(s.sld)は1枚目に移す
 function sldList(s){s=s||site();if(!s.slds){s.slds=[];if(s.sld&&(s.sld.items.length||s.sld.wires.length))s.slds.push({id:uid(),title:'引込系統図',ov:1,items:s.sld.items,wires:s.sld.wires});delete s.sld}
-  if(!s.slds.length)s.slds.push({id:uid(),title:'引込系統図',ov:1,items:[],wires:[]});return s.slds}
+  if(!s.slds.length)s.slds.push({id:uid(),title:'引込系統図',ov:1,items:[],wires:[]});s.slds.forEach((d,i)=>{if(d.no==null)d.no=String(i+1);if(!d.dt)d.dt=sldToday()});return s.slds}
+function sldToday(){const t=new Date();return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`}
 let sldPg=0;
 const pgHas=p=>p&&(p.items.length||p.wires.length);
 function sldDoc(s){const L=sldList(s);let d=L.find(x=>x.id===sldCurId);if(!d){d=L[0];sldCurId=d.id}
@@ -875,7 +879,7 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   return `<div class="sldprop">${it}${sty}${act}${hint}</div>`}
 function sldEditorHTML(s){const D=sldDoc(s),L=sldList(s);sldMerge(sldData(s));const P=D.pages;
   return `<div class="card sldc"><div class="sldtabs">${L.map(d=>`<button class="${d.id===D.id?'on':''}" data-act="sldPick" data-id="${d.id}">${esc(d.title||'(無題)')}${d.ov?' ★':''}</button>`).join('')}<button data-act="sldNew">＋ 図面を追加</button></div>
-    <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label>
+    <details class="sldmeta-d" ${window.innerWidth>760?'open':''}><summary>図面の設定<span class="pc">(タイトル・図番・作図日・概要に使う・用紙・印刷・複製・削除)</span></summary><div class="sldmeta"><label>図面のタイトル<input id="sldTitleIn" value="${esc(D.title||'')}" placeholder="例) 単線結線図"></label><label>図番<input id="sldNoIn" value="${esc(D.no||'')}" style="width:8em"></label><label>作図年月日<input type="date" id="sldDtIn" value="${esc(D.dt||'')}"></label>
       <label class="sw"><input type="checkbox" id="sldOvChk" ${D.ov?'checked':''}><span>設備概要の「引込系統図」に使う(★)</span></label>
       <label>この図面の用紙${sel('id="sldOri"',D.o||'P',['P','L'],['A4縦','A4横'])}</label><label>方眼の広さ(横×縦マス)<span class="gsz">${sel('id="sldGW"',String(D.gw||30),GW)}×${sel('id="sldGH"',String(D.gh||42),GH)}</span></label>
       <div class="btns"><button class="btn small main" data-act="pv" data-docs="sld:${D.id}">この図面を印刷</button><button class="btn small" data-act="sldDup">複製</button><button class="btn small danger" data-act="sldDelDoc" ${L.length>1?'':'disabled'}>この図面を削除</button></div></div></details>
@@ -994,7 +998,7 @@ document.addEventListener('keydown',e=>{if(view.name!=='site'||view.tab!=='sld')
   if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();sldAct('sldUndo')}
   if((e.ctrlKey||e.metaKey)&&e.key==='c'&&sldSel.length){e.preventDefault();sldAct('sldCopyClip')}
   if((e.ctrlKey||e.metaKey)&&e.key==='v'&&sldClip){e.preventDefault();sldAct('sldPaste')}});
-document.addEventListener('input',e=>{if(e.target.id!=='sldTitleIn')return;const D=sldDoc();D.title=e.target.value;save();const b=document.querySelector(`.sldtabs [data-id="${D.id}"]`);if(b)b.textContent=(D.title||'(無題)')+(D.ov?' ★':'')});
+document.addEventListener('input',e=>{if(e.target.id==='sldNoIn'||e.target.id==='sldDtIn'){const D=sldDoc();D[e.target.id==='sldNoIn'?'no':'dt']=e.target.value;save();return}if(e.target.id!=='sldTitleIn')return;const D=sldDoc();D.title=e.target.value;save();const b=document.querySelector(`.sldtabs [data-id="${D.id}"]`);if(b)b.textContent=(D.title||'(無題)')+(D.ov?' ★':'')});
 document.addEventListener('change',e=>{if(e.target.id==='sldOvChk'){const L=sldList(),D=sldDoc();L.forEach(x=>{delete x.ov});if(e.target.checked)D.ov=1;save();const c=document.querySelector('.sldc');if(c){c.querySelector('.sldtabs').outerHTML=new DOMParser().parseFromString(sldEditorHTML(site()),'text/html').querySelector('.sldtabs').outerHTML}return}
   if(e.target.id==='sldOri'){const d=sldDoc();d.o=e.target.value;const w=+(d.gw||30),h=+(d.gh||42);if((d.o==='L'&&w<h)||(d.o!=='L'&&w>h)){d.gw=String(h);d.gh=String(w)}save();sldGridChanged();return}
   if(e.target.id==='sldGW'||e.target.id==='sldGH'){const d=sldDoc();const nw=e.target.id==='sldGW'?+e.target.value:+(d.gw||30),nh=e.target.id==='sldGH'?+e.target.value:+(d.gh||42);
@@ -1010,8 +1014,8 @@ function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.le
   if(a==='sldPageAdd'){const d=sldDoc();d.pages.push({items:[],wires:[]});save();sldAct('sldPage',{dataset:{v:String(d.pages.length-1)}});return}
   if(a==='sldPageDel'){const d=sldDoc();if(d.pages.length<2)return;if(!confirm(`${sldPg+1}ページを削除しますか?(元に戻せません)`))return;d.pages.splice(sldPg,1);save();sldAct('sldPage',{dataset:{v:String(Math.max(0,sldPg-1))}});return}
   if(a==='sldPick'){sldCurId=b.dataset.id;sldPg=0;sldHist=[];sldFut=[];sldSel=[];sldWs=null;sldHov=null;const c=document.querySelector('.sldc');if(c){c.outerHTML=sldEditorHTML(site());sldBind()}return}
-  if(a==='sldNew'){const L=sldList();const d={id:uid(),title:'単線結線図',o:'P',pages:[{items:[],wires:[]}]};L.push(d);save();sldAct('sldPick',{dataset:{id:d.id}});setTimeout(()=>{const t=document.getElementById('sldTitleIn');if(t){t.focus();t.select()}},50);return}
-  if(a==='sldDup'){const L=sldList();const c=JSON.parse(JSON.stringify(sldDoc()));c.id=uid();c.title=(c.title||'')+' (コピー)';delete c.ov;c.pages.forEach(p=>{p.items.forEach(x=>x.id=uid());p.wires.forEach(x=>x.id=uid())});L.push(c);save();sldAct('sldPick',{dataset:{id:c.id}});return}
+  if(a==='sldNew'){const L=sldList();const d={id:uid(),title:'単線結線図',o:'P',no:String(L.length+1),dt:sldToday(),pages:[{items:[],wires:[]}]};L.push(d);save();sldAct('sldPick',{dataset:{id:d.id}});setTimeout(()=>{const t=document.getElementById('sldTitleIn');if(t){t.focus();t.select()}},50);return}
+  if(a==='sldDup'){const L=sldList();const c=JSON.parse(JSON.stringify(sldDoc()));c.id=uid();c.title=(c.title||'')+' (コピー)';c.no=String(L.length+1);c.dt=sldToday();delete c.ov;c.pages.forEach(p=>{p.items.forEach(x=>x.id=uid());p.wires.forEach(x=>x.id=uid())});L.push(c);save();sldAct('sldPick',{dataset:{id:c.id}});return}
   if(a==='sldDelDoc'){const L=sldList();if(L.length<2)return;const DD=sldDoc();if(!confirm(`図面「${DD.title||'(無題)'}」を削除しますか?(元に戻せません)`))return;site().slds=L.filter(x=>x!==DD);sldCurId=null;save();sldAct('sldPick',{dataset:{id:site().slds[0].id}});return}
   if(a==='sldTool'){sldT=b.dataset.t;sldWs=null;sldHov=null;sldSel=[];sldRefresh();return}
   if(a==='sldDel'){if(!sldSel.length)return;sldPush();D.items=D.items.filter(x=>!sldSel.includes(x.id));D.wires=D.wires.filter(x=>!sldSel.includes(x.id));sldSel=[];save();sldRefresh();return}
@@ -1049,7 +1053,7 @@ function sldTemplate(){const I=[],W=[];const it=(t,x,y,lb,o)=>I.push({id:uid(),t
 
 // 図面の印刷(設備概要と同じ様式。ページごとに1枚)
 function docSld(s,id){const d=sldList(s).find(x=>x.id===id);if(!d)return [];const m=state.me||{};const P=docPages(d).filter(pgHas);const N=P.length||1;
-  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh"><colgroup><col style="width:17%"><col style="width:45%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th>電気管理技術者</th></tr><tr><td colspan="2" class="ovt">${esc(d.title||'')}</td><td>${esc(m.no||'')}　${esc(m.name||'')}</td></tr></table>
+  return (P.length?P:[{items:[],wires:[]}]).map((p,k)=>SH((d.o==='L'?'':'p ')+'doc',`<table class="s ovh sdh"><colgroup><col style="width:15%"><col style="width:44%"><col style="width:15%"><col></colgroup><tr><th>事業場名</th><td>${esc(s.name)}</td><th class="sm">電気管理技術者</th><td>${esc(m.no||'')}　${esc(m.name||'')}</td></tr><tr><th>図面名称</th><td class="ovt">${esc(d.title||'')}</td><th class="sm">図番<br>作図年月日</th><td class="sm2">${esc(d.no||'')}<br>${d.dt?fmtDate(d.dt):''}</td></tr></table>
     <div class="ovd sdd">${N>1?`<div class="ovd-t">${k+1} / ${N}</div>`:''}${(setGrid(d),sldSVG(s,false,p,true))}</div>`))}
 
 // 移動が終わったら、折った線を本当の線(縦・横の線分)に分ける
