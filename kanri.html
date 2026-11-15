@@ -457,7 +457,7 @@ function siteHTML(){
         :`<div class="eqr"><div class="eqh">${combo(q+'name','機器名',EQ_NAMES)}${mv}</div>
           <div class="g4">${inp(q+'use','用途')}${combo(q+'maker','製造者名',EQ_MAKERS)}${inp(q+'v','定格電圧')}${inp(q+'made','製造年月')}</div>
           <div class="g4">${inp(q+'cap','定格容量')}${inp(q+'model','型式')}${inp(q+'i','定格電流')}${inp(q+'serial','製造番号')}</div>
-          ${inp(q+'note','備考')}</div>`}).join('')||'<div class="empty">機器がありません。</div>'}
+          ${inp(q+'note','備考(改行できます)','',{area:2})}</div>`}).join('')||'<div class="empty">機器がありません。</div>'}
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
       <datalist id="eqm">${EQ_MAKERS.map(x=>`<option value="${x}">`).join('')}</datalist><datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="eq">高圧機器表を印刷</button></div>`}
