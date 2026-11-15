@@ -576,9 +576,9 @@ function docOv(s){const o=s.ov,m=meBlock(),d=v=>esc(v||'－');
       <tr><th>引込ケーブル</th><td colspan="3" class="l">${d(caText(o))}</td><th>変圧器電圧タップ</th><td class="sm">${d(o.tap)}</td></tr>
       <tr><th>保護継電器</th><td colspan="3" class="l">${d(rlText(o))}</td><th>受電年月日</th><td>${o.recvDate?fmtDate(o.recvDate):'－'}</td></tr></table>
     <div class="ovd"><div class="ovd-t">引込系統図</div>${sldOv(s)?sldSVG(s,false,sldOv(s)):s.diagImg?`<img src="${s.diagImg}">`:''}</div>`)]}
-// 高圧機器表のページ分け(1ページ17行。「改ページ」の行から次のページ)。行番号の配列を返す
-function eqPages(eqs){const CAP=17;const pages=[];let cur=[];eqs.forEach((e,k)=>{if(cur.length&&(cur.length>=CAP||e.np)){pages.push(cur);cur=[]}cur.push(k)});if(cur.length||!pages.length)pages.push(cur);return pages}
-function docEq(s){const CAP=34;const pages=eqPages(s.eqs).map(pg=>pg.map(k=>s.eqs[k]));
+// 高圧機器表のページ分け(1ページ20行。「改ページ」の行から次のページ)。行番号の配列を返す
+function eqPages(eqs){const CAP=20;const pages=[];let cur=[];eqs.forEach((e,k)=>{if(cur.length&&(cur.length>=CAP||e.np)){pages.push(cur);cur=[]}cur.push(k)});if(cur.length||!pages.length)pages.push(cur);return pages}
+function docEq(s){const CAP=40;const pages=eqPages(s.eqs).map(pg=>pg.map(k=>s.eqs[k]));
   return pages.map((pg,pn)=>{let u=pg.length*2;const fill=[];while(u<CAP){fill.push('<tr><td rowspan="2"></td><td></td><td></td><td></td><td></td><td rowspan="2"></td></tr><tr><td></td><td></td><td></td><td></td></tr>');u+=2}
     return SH('p doc',`<div class="s-title">高 圧 機 器 表</div><div class="eq-top"><div>事業場名 ： ${esc(s.name)}</div><div>№${pn+1}</div></div>
     <table class="s eq"><colgroup><col style="width:13%"><col style="width:16%"><col style="width:16%"><col style="width:15%"><col style="width:17%"><col></colgroup>
