@@ -310,6 +310,7 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 .sldtitle .sldpages{margin-right:auto;display:inline-flex}.sldtitle h2{flex:none !important}@media (max-width:760px){body.sld-m .sldpages button{padding:2px 7px;font-size:11px}}
 .gsz{display:inline-flex;gap:3px;align-items:center}.gsz select{width:auto}
 .cbtn.fcb{box-shadow:0 0 0 1px #888}.cbtn.fcb.on{box-shadow:0 0 0 2px #1c7ed6}
+.eqh{display:grid;grid-template-columns:minmax(0,220px) auto;justify-content:space-between;gap:8px;align-items:end}
 
 </style>
 </head>
@@ -453,9 +454,10 @@ function siteHTML(){
     body=`<div class="card"><h2>高圧機器表</h2>
       ${s.eqs.map((e,k)=>{const q=`${P}eqs.${k}.`;const mv=`<div class="btns mv"><button class="btn small" data-act="eqUp" data-i="${k}">↑</button><button class="btn small" data-act="eqDn" data-i="${k}">↓</button><button class="btn small danger" data-act="eqDel" data-i="${k}">削除</button></div>`;
         return e.t==='g'?`<div class="eqgE">${inp(q+'name','区分(緑の見出し)')}${mv}</div>`
-        :`<div class="eqr"><div class="g4">${combo(q+'name','機器名',EQ_NAMES)}${inp(q+'use','用途')}${inp(q+'cap','定格容量')}${combo(q+'maker','製造者名',EQ_MAKERS)}</div>
-          <div class="g4">${inp(q+'model','型式')}${inp(q+'v','定格電圧')}${inp(q+'i','定格電流')}${inp(q+'made','製造年月')}</div>
-          <div class="g4">${inp(q+'serial','製造番号')}${inp(q+'note','備考','',{cls:'span2'})}${mv}</div></div>`}).join('')||'<div class="empty">機器がありません。</div>'}
+        :`<div class="eqr"><div class="eqh">${combo(q+'name','機器名',EQ_NAMES)}${mv}</div>
+          <div class="g4">${inp(q+'use','用途')}${combo(q+'maker','製造者名',EQ_MAKERS)}${inp(q+'v','定格電圧')}${inp(q+'made','製造年月')}</div>
+          <div class="g4">${inp(q+'cap','定格容量')}${inp(q+'model','型式')}${inp(q+'i','定格電流')}${inp(q+'serial','製造番号')}</div>
+          ${inp(q+'note','備考')}</div>`}).join('')||'<div class="empty">機器がありません。</div>'}
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
       <datalist id="eqm">${EQ_MAKERS.map(x=>`<option value="${x}">`).join('')}</datalist><datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="eq">高圧機器表を印刷</button></div>`}
