@@ -309,6 +309,7 @@ table.s.sd-tb th{font-size:14pt;height:10mm;padding:0 4mm}table.s.sd-tb td{font-
 .ovd svg.sldsvg{max-height:100%}
 .sldtitle .sldpages{margin-right:auto;display:inline-flex}.sldtitle h2{flex:none !important}@media (max-width:760px){body.sld-m .sldpages button{padding:2px 7px;font-size:11px}}
 .gsz{display:inline-flex;gap:3px;align-items:center}.gsz select{width:auto}
+.cbtn.fcb{box-shadow:0 0 0 1px #888}.cbtn.fcb.on{box-shadow:0 0 0 2px #1c7ed6}
 
 </style>
 </head>
@@ -757,7 +758,7 @@ const SYM={
   la:{c:'LA',n:'避雷器 LA',lb:'LA',t1:1,d:()=>sL(0,-20,0,-10)+`<rect x="-6" y="-10" width="12" height="16"/>`+`<path d="M0 -7 v9 M-3 -1 l3 4 l3 -4"/>`+sL(0,6,0,12)+sL(-9,12,9,12)+sL(-6,16,6,16)+sL(-3,20,3,20)},
   gnd:{n:'接地',lb:'',t1:1,d:()=>sL(0,-20,0,-4)+sL(-10,-4,10,-4)+sL(-6,1,6,1)+sL(-2,6,2,6)},
   gen:{n:'発電機',lb:'',d:()=>sL(0,-20,0,-11)+`<circle cx="0" cy="0" r="11"/><text x="0" y="5" text-anchor="middle" font-size="14" stroke="none" class="tf">G</text>`},
-  box:{n:'文字の箱(リレー等)',lb:'OCR',box:1,d:it=>{const k=boxK(it),H=boxH(it);return `<rect x="${-k*SU}" y="${-H/2}" width="${2*k*SU}" height="${H}" class="fillw"/>`}},
+  box:{n:'文字の箱(リレー等)',lb:'OCR',box:1,d:it=>{const k=boxK(it),H=boxH(it);return `<rect x="${-k*SU}" y="${-H/2}" width="${2*k*SU}" height="${H}" class="fillw" ${it&&DASH[it.ld||'']?`stroke-dasharray="${DASH[it.ld]}"`:''}/>`}},
   text:{n:'文字',lb:'文字',txt:1,d:()=>''},
   lbsf:{c:'LBS(F付)',n:'負荷開閉器 PF付',lb:'LBS',h:2,d:()=>`<g transform="translate(0,-20)">${SYM.lbs.d()}</g><g transform="translate(0,20)">${SYM.pf.d()}</g>`},
   pcsf:{c:'PCS(F付)',n:'高圧カットアウト ヒューズ付',lb:'PCS',d:()=>sL(0,-20,0,-9)+sL(0,9,0,20)+sL(0,9,-9,-7)+`<g transform="translate(-4.5,1) rotate(-29.4)"><rect x="-3.2" y="-7" width="6.4" height="14" class="fillw"/></g>`+sL(0,9,-9,-7)},
@@ -777,7 +778,8 @@ const SYM={
 const SLD_GROUPS=[['開閉器',['pas','lbs','lbsf','ds','vcb','tc','pcsf','pcs','pf','vcs','vmc','mc','mccb']],['変成器・機器',['zct','vct','tr','sc','sr','la','ch','gen','gnd']],['計器',['ct','vt','fz','vs','as','v','a','w','wh','whd','cos','hz','mm','apfr','dt','vtt','ctt']],['文字・図形',['text','box','arw','dot']]];
 let sldGrp=0;
 const SLD_TOOLS=[['sel','選択・移動'],['wire','線']];
-const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['10','12','14','16','18','20','24','28'];
+const LW=[['1.2','細'],['1.8','普通'],['3','太'],['5','母線']],LD=[['','実線'],['d','点線'],['dd','一点鎖線']],LC=['#000000','#c62828','#1c5fbf','#2e7d32','#e67700'],FS=['9','10','11','12','13','14','16','18','20','24','28'];
+const FC=[['#ffffff','白'],['none','なし'],['#fff3bf',''],['#dbe9fb',''],['#d3f9d8',''],['#ffe3e3',''],['#e9ecef','']];
 const DASH={'':'',d:'6 4',dd:'12 4 2 4'};
 let sldEat=0;document.addEventListener('pointerdown',e=>{if(!e.target.closest||!e.target.closest('#sld'))sldEat=0},true);document.addEventListener('click',e=>{if(Date.now()-sldEat<700&&!e.target.closest('#sld')&&!e.target.closest('#sldInl')){e.stopPropagation();e.preventDefault()}sldEat=0},true);
 let sldFut=[],sldBandAdd=null;function sldTitleRefresh(){const u=document.querySelector('.sldtitle [data-act=sldUndo]'),r=document.querySelector('.sldtitle [data-act=sldRedo]');if(u)u.disabled=!sldHist.length;if(r)r.disabled=!sldFut.length}
@@ -808,7 +810,7 @@ function sldTerms(it){const S=SYM[it.t];if(!S)return [];
 function tLines(x,y,t,fs,anc,col){const L=String(t).split('\n');const y0=y-(L.length-1)*fs*.6+fs*.36;
   return `<text x="${x}" y="${y0}" text-anchor="${anc}" font-size="${fs}" fill="${col}">${L.map((l,i)=>`<tspan x="${x}" ${i?`dy="${fs*1.2}"`:''}>${esc(l)||' '}</tspan>`).join('')}</text>`}
 function sldItemSVG(it,ed){const S=SYM[it.t];if(!S)return '';const on=ed&&sldSel.includes(it.id);const lb=lbOf(it),col=on?'#e8590c':(it.c||'#000'),fs=+(it.fs||(S.txt?14:S.box?13:12)),sw=it.sw||1.8;const X=it.x*SU,Y=it.y*SU;
-  const g=`<g class="sym" style="stroke:${col};stroke-width:${sw}" transform="translate(${X},${Y})${it.r&&!S.box&&!S.txt?` rotate(${-90*it.r})`:''}">${S.d(it).replace('class="tf"',`fill="${col}"`)}</g>`;
+  const g=`<g class="sym" style="stroke:${col};stroke-width:${sw}" transform="translate(${X},${Y})${it.r&&!S.box&&!S.txt?` rotate(${-90*it.r})`:''}">${S.d(it).replace('class="tf"',`fill="${col}"`).replace(/class="fillw"/g,it.fc?`style="fill:${it.fc}"`:'class="fillw"')}</g>`;
   let t='';
   const hh=(S.h||1)*SU;
   if(S.box||S.mt)t=tLines(X,Y,lb,S.mt?Math.min(fs,11,(S.mw||20)/Math.max(.5,txW(lb,1))):fs,'middle',col);
@@ -844,8 +846,10 @@ function sldPropHTML(){const {its,ws}=selObjs();const one=its.length===1&&!ws.le
   const btn=(a,l,on,extra)=>`<button class="btn small${on?' on':''}" data-act="${a}" ${extra||''}>${l}</button>`;
   const sty=`<span class="grp"><b>線</b>${LW.map(([v,l])=>btn('sldLW',l,(ws[0]?wLW(ws[0]):sldSty.lw)===v,`data-v="${v}"`)).join('')}</span>
     <span class="grp">${LD.map(([v,l])=>btn('sldLD',l,((ws[0]?ws[0].ld:sldSty.ld)||'')===v,`data-v="${v}"`)).join('')}</span>
+    ${its.length&&!ws.length&&its.every(it=>SYM[it.t]&&SYM[it.t].d(it).includes('fillw'))?`<span class="grp"><b>枠内の色</b>${FC.map(([c,l])=>`<button class="cbtn fcb${((its[0].fc||'#ffffff')===c)?' on':''}" data-act="sldFC" data-v="${c}" title="${l||c}" style="background:${c==='none'?'repeating-linear-gradient(45deg,#fff 0 4px,#ccc 4px 6px)':c}"></button>`).join('')}</span>`:''}
+    ${its.length&&!ws.length&&its.every(it=>SYM[it.t]&&SYM[it.t].box)?`<span class="grp"><b>枠線</b>${LD.map(([v,l])=>btn('sldBD',l,(its[0].ld||'')===v,`data-v="${v}"`)).join('')}</span>`:''}
     ${ws.length?`<span class="grp"><b>矢印</b>${[['','なし'],['b','終点'],['a','始点'],['ab','両端']].map(([v,l])=>btn('sldAr',l,(ws[0].ar||'')===v,`data-v="${v}"`)).join('')}</span>`:''}
-    <span class="grp"><b>色</b>${LC.map(c=>`<button class="cbtn${((ws[0]||its[0]||{}).c||sldSty.c)===c?' on':''}" data-act="sldC" data-v="${c}" style="background:${c}"></button>`).join('')}</span>`;
+    <span class="grp"><b>${its.length&&!ws.length?'枠・文字の色':'色'}</b>${LC.map(c=>`<button class="cbtn${((ws[0]||its[0]||{}).c||sldSty.c)===c?' on':''}" data-act="sldC" data-v="${c}" style="background:${c}"></button>`).join('')}</span>`;
   let it='';
   if(one){it=`<span class="grp"><b>${S.c||S.n}</b>${btn('sldEdit','文字を入力')}${S.txt?['s','m','e'].map((v,i)=>btn('sldAl',['先頭起点','中央起点','後部起点'][i],(one.al||'m')===v,`data-v="${v}"`)).join(''):''}${S.box||S.t0||S.mt?'':btn('sldRot',`回転 ↻ (${((4-(one.r||0))%4)*90}°)`)}${S.box||S.txt||S.t0||S.mt||((one.r||0)+(S.hz?1:0))%2?'':btn('sldLp',`名前を${one.lp?'右':'左'}へ`)}</span>
     <span class="grp"><b>文字</b><select data-sld="fs">${FS.map(v=>`<option ${String(one.fs||(S.txt?14:S.box?13:12))===v?'selected':''}>${v}</option>`).join('')}</select>${S.box?`<b>箱</b>${btn('sldBW','幅－','',`data-v="-1"`)}${btn('sldBW','幅＋','',`data-v="1"`)}${btn('sldBH','高さ－','',`data-v="-1"`)}${btn('sldBH','高さ＋','',`data-v="1"`)}`:''}${S.txt||S.box?'':`<b>記号の線</b><select data-sld="sw">${['1.2','1.8','2.6'].map(v=>`<option value="${v}" ${String(one.sw||'1.8')===v?'selected':''}>${{'1.2':'細','1.8':'普通','2.6':'太'}[v]}</option>`).join('')}</select>`}</span>`}
@@ -985,6 +989,8 @@ function sldAct(a,b){const D=sldData();const {its,ws}=selObjs();const one=its.le
   if(a==='sldBW'){if(one){sldPush();one.bw=Math.max(1,Math.min(10,boxK(one)+(+v)));save();sldRefresh()}return}
   if(a==='sldBH'){if(one){sldPush();one.bh=Math.max(1,Math.min(10,(+(one.bh||1))+(+v)));save();sldRefresh()}return}
   if(a==='sldLW'){sldSty.lw=v;if(ws.length){sldPush();ws.forEach(w=>{w.lw=v;delete w.w});save()}sldRefresh();return}
+  if(a==='sldFC'){if(its.length){sldPush();its.forEach(it=>{if(v==='#ffffff')delete it.fc;else it.fc=v});save()}sldRefresh();return}
+  if(a==='sldBD'){if(its.length){sldPush();its.forEach(it=>{if(v)it.ld=v;else delete it.ld});save()}sldRefresh();return}
   if(a==='sldAr'){if(ws.length){sldPush();ws.forEach(w=>{if(v)w.ar=v;else delete w.ar});save()}sldRefresh();return}
   if(a==='sldLD'){sldSty.ld=v;if(ws.length){sldPush();ws.forEach(w=>{w.ld=v});save()}sldRefresh();return}
   if(a==='sldC'){sldSty.c=v;if(ws.length||its.length){sldPush();ws.forEach(w=>{w.c=v});its.forEach(it=>{it.c=v});save()}sldRefresh();return}
