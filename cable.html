@@ -353,10 +353,16 @@ function graphSheet(p,r,PO){
   const nice=m=>{const e=Math.pow(10,Math.floor(Math.log10(m))),f=m/e;return (f<=1?1:f<=2?2:f<=5?5:10)*e};
   const fmt=v=>v===0?'0':v>=10?v.toFixed(0):v>=1?v.toFixed(1):v>=0.1?v.toFixed(2):v.toFixed(3);
   const res=(kv,gp)=>{const i=r.volts.findIndex(v=>num(v)===num(kv));const c=i>=0&&r.m[i]?r.m[i][gp==='3'?'R':gp]:null;return c||{}};
+  // 目盛はすべてのグラフで共通(いちばん高い電圧=10kVのグラフに合わせる)。電圧も電流も見比べられるように
+  const kTop=kvs[kvs.length-1],kkS=e=>Array.isArray(e)?[+e[0],+e[1]||0]:[+e,0];
+  // R・S・Tは共通の目盛、三線一括(3本分の電流が流れる)は自分の10kVに合わせた目盛
+  const scaleOf=keys=>{let m=0;const scan=o=>{if(!o)return;o.p.forEach(q=>{if(q[0]>=5&&q[1]>m)m=q[1]});(o.k||[]).map(kkS).forEach(e=>{if(e[1]>m)m=e[1]})};
+    keys.forEach(gp=>scan((G[kTop]||{})[gp]));if(!(m>0))kvs.forEach(k=>keys.forEach(gp=>scan(G[k][gp])));
+    const im=nice((m||0.1)*1.1);return {im,nd:Math.round(im/Math.pow(10,Math.floor(Math.log10(im))))===2?4:5}};
+  const SC={E:scaleOf(['R','S','T']),B:scaleOf(['3'])},vmAll=num(kTop)*1.2;
   const cell=(kv,gp,uid)=>{const o=G[kv][gp];if(!o)return `<div class="gc empty"></div>`;
-    const K=(o.k||[]).map(e=>Array.isArray(e)?[+e[0],+e[1]||0]:[+e,0]);
-    let im=0;o.p.forEach(q=>{if(q[0]>=5&&q[1]>im)im=q[1]});K.forEach(e=>{if(e[1]>im)im=e[1]});if(!(im>0))o.p.forEach(q=>{if(q[1]>im)im=q[1]});im=nice((im||0.1)*1.1);const nd=Math.round(im/Math.pow(10,Math.floor(Math.log10(im))))===2?4:5; // 目盛は切りのよい数で
-    const vm=num(kv)*1.2,Yi=u=>T+ph-Math.min(u/im,1.02)*ph,Yv=v=>T+ph-Math.min(v/vm,1.02)*ph,id='gc'+uid;
+    const K=(o.k||[]).map(kkS),{im,nd}=SC[gp==='3'?'B':'E'];
+    const vm=vmAll,Yi=u=>T+ph-Math.min(u/im,1.02)*ph,Yv=v=>T+ph-Math.min(v/vm,1.02)*ph,id='gc'+uid;
     let sv=`<svg viewBox="0 0 ${W} ${H}" class="gsv"><defs><clipPath id="${id}"><rect x="${L}" y="${T-2}" width="${pw}" height="${ph+4}"/></clipPath></defs>`;
     const tf=v=>String(+v.toPrecision(3));
     for(let i=0;i<=nd;i++){const y=T+ph*i/nd;sv+=`<line x1="${L}" x2="${L+pw}" y1="${y}" y2="${y}" stroke="#e3e3e3"/><text x="${L-6}" y="${y+6}" text-anchor="end" font-size="${FS}" fill="#c62828">${tf(im*(1-i/nd))}</text>`}
@@ -378,7 +384,7 @@ function graphSheet(p,r,PO){
     <div class="s-title">漏洩電流・電圧の記録</div>
     <div class="s-top"><div class="s-panel">${esc(r.panel||'')||'　'}</div><div class="s-range">${esc(r.range||'')}</div><div class="s-date">${dateLine(p,'full')}</div></div>
     <div class="grs">${groups.map(row).join('')}</div>
-    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分・3分　(KEW 3124A 記録計出力。電圧到達を0:00とする)</div>
+    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分・3分　目盛は${esc(kTop)}kVのグラフに合わせて共通(三線一括は別)　(KEW 3124A 記録計出力。電圧到達を0:00とする)</div>
   </div></div></div>`;
 }
 function calc(r){
