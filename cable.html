@@ -88,6 +88,10 @@ input:focus,select:focus,button:focus-visible{outline:2px solid var(--accent);ou
 .sheet.p{width:210mm;height:296mm;padding:9mm 10mm}
 .sheet.p .sheet-x{width:380mm;height:556mm}
 .sheet.p .sheet-in{padding:10mm 10mm 8mm}
+.grs{display:flex;flex-direction:column;gap:5mm;flex:1;min-height:0}
+.gr{display:flex;flex-direction:column;gap:2mm}.grh{font-size:24pt;font-weight:700;letter-spacing:.2em}
+.grb{display:grid;grid-template-columns:1fr 31%;gap:5mm;align-items:start}.sheet.p .grb{grid-template-columns:1fr 36%;gap:3mm}.sheet.p .gtb{font-size:15pt}
+.gsv{width:100%;height:auto;display:block}.gtb{font-size:19pt}.gtb td,.gtb th{white-space:nowrap;padding:1.5mm 2mm}
 .s-title{text-align:center;font-size:34pt;letter-spacing:.55em;font-weight:500;margin:4mm 0 2mm}
 .sheet.p .s-title{font-size:30pt;letter-spacing:.35em}
 .s-top{display:flex;justify-content:space-between;align-items:flex-end;gap:8mm}
@@ -217,7 +221,8 @@ const PH=['R','S','T'];
 function emptyM(n){const m={};for(let i=0;i<n;i++)m[i]={R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};return m}
 const APP={
   key:'cableDiag.v1',homeTitle:'高圧ケーブル絶縁診断 成績表',itemName:'ケーブル',backupName:'ケーブル絶縁診断',
-  perPage:{L:1,P:1},instInline:true,printDefaults:{formula:true},printSwitches:[['formula','計算式']],
+  perPage:{L:1,P:1},instInline:true,printDefaults:{formula:true,graph:true},printSwitches:[['formula','計算式'],['graph','漏洩電流グラフ(別紙)']],
+  extraPages(p,g,mode,PO){return mode==='full'&&state.print.graph?g.filter(r=>r&&hasGraph(r)).map(r=>graphSheet(p,r,PO)):[]},
   instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}],
   instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}]},
     {name:'双興 3123型',list:[{name:'高電圧絶縁抵抗計',model:'3123型',r1:'DC 5 kV − 200 GΩ',r2:'DC 10 kV − 400 GΩ',maker:'双興電機',year:'2009'}]},
@@ -252,7 +257,7 @@ const APP={
         <details class="gimp noprint"><summary>ガジェットから取り込み(KEW 3124A)</summary>
           <textarea id="gadgetTxt" placeholder="ガジェットの「データをコピー」で写した文字を貼り付け" aria-label="ガジェットのデータ"></textarea>
           <button class="btn small main" data-act="gadgetApply">取り込む</button>
-          <p>1分値・3分値・キック・シースアース絶縁抵抗と、試験方法の図(一相ずつ・三線一括)が入ります。記録のある欄だけ上書きします。</p></details>
+          <p>1分値・3分値・キック・シースアース絶縁抵抗と、試験方法の図(一相ずつ・三線一括)、漏洩電流のグラフ(印刷で別紙)が入ります。${hasGraph(r)?'<br>グラフ:取り込み済み <button class="btn small" data-act="graphClear">グラフを消す</button>':''}記録のある欄だけ上書きします。</p></details>
       </div>
       <div class="card"><h2>判定</h2><div id="sum"></div>
         <table class="crit"><tr><th>絶縁抵抗値</th><td>漏洩電流 1μA以下<br><small>(10kVで10GΩ以上、5kVで5GΩ以上)</small></td></tr>
@@ -270,6 +275,7 @@ const APP={
     const s=document.getElementById('sum');if(s)s.innerHTML=`<div class="sumg">${[['絶縁抵抗値',c.jIR],['成極指数',c.jPI],['弱点比',c.jWR],['不平衡率',c.jUB]].map(x=>`<div>${x[0]} ${badge(x[1])}</div>`).join('')}</div>`;
   },
   onAct(a,b,r){if(a==='gadgetApply'){gadgetApply(r);return}
+    if(a==='graphClear'){delete r.graph;save();render();toast('グラフを消しました');return}
     if(a==='addVolt'){r.volts.push('');r.m[r.volts.length-1]={R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};save();render()}
     if(a==='delVolt'){r.volts.pop();delete r.m[r.volts.length];save();render()}},
   sheet(p,its,mode,PO){
@@ -330,7 +336,46 @@ function gadgetApply(r){
     PH.forEach(ph=>{const c=d.m[kvs][ph];if(!c)return;r.m[i][ph]={r1:String(c.r1??''),r3:String(c.r3??''),k:c.k==='有'?'有':c.k==='無'?'無':''};n++})});
   if(d.sheath!==undefined&&String(d.sheath).trim()!=='')r.sheath=String(d.sheath).trim();
   if(['1','3','b'].includes(d.method))r.method=d.method; // 一相ずつ/三線一括 → 試験方法の図
+  if(d.g&&typeof d.g==='object'){r.graph=r.graph||{};Object.keys(d.g).forEach(kv=>{const src=d.g[kv]||{},dst=r.graph[kv]=r.graph[kv]||{};
+    if(src['3'])['R','S','T'].forEach(ph=>delete dst[ph]);if(['R','S','T'].some(ph=>src[ph]))delete dst['3']; // 同じ電圧は新しい測り方で置き換え
+    Object.keys(src).forEach(k=>{if(['R','S','T','3'].includes(k)&&Array.isArray(src[k].p))dst[k]={p:src[k].p,k:Array.isArray(src[k].k)?src[k].k:[]}})})}
   save();render();toast(n?`${n}か所を取り込みました`:'取り込める記録がありませんでした');
+}
+/* ===== 漏洩電流グラフ(別紙) ===== */
+function hasGraph(r){return !!(r&&r.graph&&Object.values(r.graph).some(o=>o&&Object.keys(o).length))}
+function graphSheet(p,r,PO){
+  const G=r.graph,kvs=Object.keys(G).filter(k=>isFinite(num(k))).sort((a,b)=>num(a)-num(b));
+  const groups=['R','S','T'].filter(ph=>kvs.some(k=>G[k][ph]));if(kvs.some(k=>G[k]['3']))groups.push('3');
+  const STY=[{c:'#2e7d32',d:'6 5'},{c:'#ef6c00',d:'14 6'},{c:'#c62828',d:''},{c:'#1565c0',d:'2 4'}];
+  const n=groups.length,W=1000,H=PO?(n<=1?1100:n===2?820:n===3?580:420):(n<=1?560:n===2?350:n===3?218:150);
+  const L=92,R=20,T=24,B=44,pw=W-L-R,ph=H-T-B,X=t=>L+Math.min(t,180)/180*pw,FS=22;
+  const nice=m=>{const e=Math.pow(10,Math.floor(Math.log10(m))),f=m/e;return (f<=1?1:f<=2?2:f<=5?5:10)*e};
+  const fmt=v=>v>=10?v.toFixed(0):v>=1?v.toFixed(1):v>=0.1?v.toFixed(2):v.toFixed(3);
+  const res=(kv,ph)=>{const i=r.volts.findIndex(v=>num(v)===num(kv));const c=i>=0&&r.m[i]?r.m[i][ph==='3'?'R':ph]:null;return c||{}};
+  const one=gp=>{
+    // 縦軸は対数目盛(1kVの小さな電流と10kVの大きな電流を1枚で見られるように)
+    let mn=Infinity,mx=0;kvs.forEach(k=>{const o=G[k][gp];if(o)o.p.forEach(q=>{if(q[0]>=10&&q[1]>0){if(q[1]>mx)mx=q[1];if(q[1]<mn)mn=q[1]}})});
+    if(!(mx>0)){mx=1;mn=0.01}
+    let hi=Math.ceil(Math.log10(mx*1.3)),lo=Math.floor(Math.log10(mn/1.3));if(hi-lo<2)lo=hi-2;
+    const Y=v=>T+ph-(Math.log10(Math.max(v,Math.pow(10,lo)))-lo)/(hi-lo)*ph,id='cl'+gp+r.id;
+    let sv=`<svg viewBox="0 0 ${W} ${H}" class="gsv"><defs><clipPath id="${id}"><rect x="${L}" y="${T}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+    for(let e=lo;e<=hi;e++){const y=Y(Math.pow(10,e));sv+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#bbb"/><text x="${L-8}" y="${y+7}" text-anchor="end" font-size="${FS}">${fmt(Math.pow(10,e))}</text>`;
+      if(e<hi)[2,5].forEach(m=>{const y2=Y(m*Math.pow(10,e));sv+=`<line x1="${L}" x2="${W-R}" y1="${y2}" y2="${y2}" stroke="#eee"/>`})}
+    for(let t=0;t<=180;t+=30)sv+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ph}" stroke="${t===60||t===180?'#999':'#eee'}" ${t===60||t===180?'stroke-dasharray="5 5"':''}/><text x="${X(t)}" y="${H-12}" text-anchor="middle" font-size="${FS}">${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}</text>`;
+    sv+=`<text x="22" y="${T+ph/2}" font-size="${FS}" transform="rotate(-90 22 ${T+ph/2})" text-anchor="middle">漏洩電流(μA)</text><rect x="${L}" y="${T}" width="${pw}" height="${ph}" fill="none" stroke="#000"/>`;
+    kvs.forEach((k,i)=>{const o=G[k][gp];if(!o)return;const st=STY[i%STY.length];
+      sv+=`<polyline clip-path="url(#${id})" fill="none" stroke="${st.c}" stroke-width="3.4" ${st.d?`stroke-dasharray="${st.d}"`:''} points="${o.p.map(q=>X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ')}"/>`;
+      (o.k||[]).forEach(t=>{const x=X(t);sv+=`<path d="M${x-11} ${T+2}L${x+11} ${T+2}L${x} ${T+21}Z" fill="${st.c}"/>`})});
+    sv+='</svg>';
+    const rows=kvs.filter(k=>G[k][gp]).map((k,i)=>{const st=STY[kvs.indexOf(k)%STY.length],c=res(k,gp),kc=(G[k][gp].k||[]).length;
+      return `<tr><td><svg width="46" height="12" viewBox="0 0 46 12"><line x1="2" x2="44" y1="6" y2="6" stroke="${st.c}" stroke-width="3" ${st.d?`stroke-dasharray="${st.d.split(' ').map(v=>v/2).join(' ')}"`:''}/></svg> ${esc(k)}kV</td><td>${esc(c.r1||'')}</td><td>${esc(c.r3||'')}</td><td>${kc?kc+'回':'無'}</td></tr>`}).join('');
+    return `<div class="gr"><div class="grh">${gp==='3'?'三線一括':gp+' 相'}</div><div class="grb">${sv}<table class="s gtb"><tr class="hb"><th>印加電圧</th><th>1分値<br>(GΩ)</th><th>3分値<br>(GΩ)</th><th>キック</th></tr>${rows}</table></div></div>`};
+  return `<div class="sheet${PO?' p':''}"><div class="sheet-x"><div class="sheet-in">
+    <div class="s-title">漏洩電流の時間変化</div>
+    <div class="s-top"><div class="s-panel">${esc(r.panel||'')||'　'}</div><div class="s-range">${esc(r.range||'')}</div><div class="s-date">${dateLine(p,'full')}</div></div>
+    <div class="grs">${groups.map(one).join('')}</div>
+    <div class="s-cap" style="font-size:15pt">KEW 3124A 記録計出力の記録(電圧到達を0:00とする。点線は1分・3分。▼はキック現象)</div>
+  </div></div></div>`;
 }
 function calc(r){
   const n=r.volts.length,o={pi:{},irOk:{},ub:{},wr:{},wrRow:-1};
@@ -521,7 +566,7 @@ const NPG=r=>`<label class="sw npg"><input type="checkbox" data-rc="newPage" ${r
 function previewHTML(){
   const mode=view.mode,PO=getOrient()==='P',n=PO?APP.perPage.P:APP.perPage.L;let pages;
   if(mode==='blank')pages=[APP.sheet(null,Array(n).fill(null),'blank',PO)];
-  else{const p=proj();pages=chunkN(p.items,n).map(g=>APP.sheet(p,[...g,...Array(n-g.length).fill(null)],mode,PO));if(!pages.length)pages=[APP.sheet(p,Array(n).fill(null),mode,PO)]}
+  else{const p=proj();pages=chunkN(p.items,n).flatMap(g=>[APP.sheet(p,[...g,...Array(n-g.length).fill(null)],mode,PO),...(APP.extraPages?APP.extraPages(p,g,mode,PO):[])]);if(!pages.length)pages=[APP.sheet(p,Array(n).fill(null),mode,PO)]}
   if(state.print.inst&&!APP.instInline){const p=mode==='blank'?null:proj();pages.push(instSheet(p,mode,PO))}
   const sw=(k,l)=>`<label class="sw"><input type="checkbox" data-pr="${k}" ${state.print[k]?'checked':''}><span>${l}</span></label>`;
   return `${barHTML(mode==='blank'?'白紙の記入用紙':mode==='form'?'記入用紙':'成績表',mode==='blank'?'toHome':'toProject')}
