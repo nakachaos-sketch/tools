@@ -252,7 +252,7 @@ const APP={
         <details class="gimp noprint"><summary>ガジェットから取り込み(KEW 3124A)</summary>
           <textarea id="gadgetTxt" placeholder="ガジェットの「データをコピー」で写した文字を貼り付け" aria-label="ガジェットのデータ"></textarea>
           <button class="btn small main" data-act="gadgetApply">取り込む</button>
-          <p>1分値・3分値・キック・シースアース絶縁抵抗が入ります。記録のある欄だけ上書きします。</p></details>
+          <p>1分値・3分値・キック・シースアース絶縁抵抗と、試験方法の図(一相ずつ・三線一括)が入ります。記録のある欄だけ上書きします。</p></details>
       </div>
       <div class="card"><h2>判定</h2><div id="sum"></div>
         <table class="crit"><tr><th>絶縁抵抗値</th><td>漏洩電流 1μA以下<br><small>(10kVで10GΩ以上、5kVで5GΩ以上)</small></td></tr>
@@ -329,6 +329,7 @@ function gadgetApply(r){
     r.m[i]=r.m[i]||{R:{r1:'',r3:'',k:''},S:{r1:'',r3:'',k:''},T:{r1:'',r3:'',k:''}};
     PH.forEach(ph=>{const c=d.m[kvs][ph];if(!c)return;r.m[i][ph]={r1:String(c.r1??''),r3:String(c.r3??''),k:c.k==='有'?'有':c.k==='無'?'無':''};n++})});
   if(d.sheath!==undefined&&String(d.sheath).trim()!=='')r.sheath=String(d.sheath).trim();
+  if(['1','3','b'].includes(d.method))r.method=d.method; // 一相ずつ/三線一括 → 試験方法の図
   save();render();toast(n?`${n}か所を取り込みました`:'取り込める記録がありませんでした');
 }
 function calc(r){
