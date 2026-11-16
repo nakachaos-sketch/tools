@@ -255,7 +255,7 @@ const APP={
         <div class="vset"><span class="lb">印加電圧(kV)</span>${r.volts.map((v,i)=>`<input type="text" inputmode="decimal" class="vin" data-fr2="volts.${i}" value="${esc(v)}" aria-label="印加電圧${i+1}">`).join('')}
           <button class="btn small" data-act="addVolt">+ 追加</button>${r.volts.length>1?'<button class="btn small danger" data-act="delVolt">− 削除</button>':''}</div>
         <div>${NPG(r)}</div>
-        <details class="gimp noprint"><summary>ガジェットから取り込み(KEW 3124A)</summary>
+        <details class="gimp noprint"><summary>ガジェットから取り込み</summary>
           <textarea id="gadgetTxt" placeholder="ガジェットの「データをコピー」で写した文字を貼り付け" aria-label="ガジェットのデータ"></textarea>
           <button class="btn small main" data-act="gadgetApply">取り込む</button>
           <p>1分値・3分値・キック・シースアース絶縁抵抗と、試験方法の図(一相ずつ・三線一括)、漏洩電流のグラフ(印刷で別紙)が入ります。${hasGraph(r)?'<br>グラフ:取り込み済み <button class="btn small" data-act="graphClear">グラフを消す</button>':''}記録のある欄だけ上書きします。</p></details>
