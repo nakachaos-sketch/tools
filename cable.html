@@ -223,7 +223,7 @@ function emptyM(n){const m={};for(let i=0;i<n;i++)m[i]={R:{r1:'',r3:'',k:''},S:{
 const APP={
   key:'cableDiag.v1',homeTitle:'高圧ケーブル絶縁診断 成績表',itemName:'ケーブル',backupName:'ケーブル絶縁診断',
   perPage:{L:1,P:1},instInline:true,printDefaults:{formula:true,graph:true},printSwitches:[['formula','計算式'],['graph','漏洩電流グラフ(別紙)']],
-  extraPages(p,g,mode,PO){return mode==='full'&&state.print.graph?g.filter(r=>r&&hasGraph(r)).map(r=>graphSheet(p,r,PO)):[]},
+  extraPages(p,g,mode,PO){return mode==='full'&&state.print.graph?g.filter(r=>r&&hasGraph(r)).map(r=>graphSheet(p,r,PO)).filter(Boolean):[]},
   instDefault:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}],
   instSets:[{name:'KYORITSU 3124A',list:[{name:'高電圧絶縁抵抗計',model:'KEW 3124A',r1:'DC 1〜10 kV',r2:'100 GΩ',maker:'共立電気計器',year:'2026'}]},
     {name:'双興 3123型',list:[{name:'高電圧絶縁抵抗計',model:'3123型',r1:'DC 5 kV − 200 GΩ',r2:'DC 10 kV − 400 GΩ',maker:'双興電機',year:'2009'}]},
@@ -347,7 +347,10 @@ function hasGraph(r){return !!(r&&r.graph&&Object.values(r.graph).some(o=>o&&Obj
 function graphSheet(p,r,PO){
   // 行=相(R・S・T、三線一括)、列=印加電圧。1枚ずつガジェットの画面と同じ「電流(赤・左目盛)と電圧(青・右目盛)」
   const G=r.graph,kvs=Object.keys(G).filter(k=>isFinite(num(k))).sort((a,b)=>num(a)-num(b));
-  const groups=['R','S','T'].filter(ph=>kvs.some(k=>G[k][ph]));if(kvs.some(k=>G[k]['3']))groups.push('3');
+  // 「試験方法の図」の選択どおりに出す(一相ずつ/三相一括/両方。「表示しない」は記録のある分すべて)
+  const mm=r.method===undefined?'b':r.method,useE=mm!=='3',useB=mm!=='1';
+  const groups=useE?['R','S','T'].filter(ph=>kvs.some(k=>G[k][ph])):[];if(useB&&kvs.some(k=>G[k]['3']))groups.push('3');
+  if(!groups.length)return '';                       // 選んだ試験方法のグラフがなければ別紙は付けない
   const n=groups.length,W=600,H=PO?(n<=1?1300:n===2?860:n===3?620:450):(n<=1?680:n===2?420:n===3?275:200);
   const FS=PO?28:17,L=PO?84:58,R=PO?66:48,T=14,B=PO?42:30,pw=W-L-R,ph=H-T-B,X=t=>L+Math.min(Math.max(t,0),180)/180*pw; // 縦向きは列が細いので文字を大きく
   const nice=m=>{const e=Math.pow(10,Math.floor(Math.log10(m))),f=m/e;return (f<=1?1:f<=2?2:f<=5?5:10)*e};
