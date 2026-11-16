@@ -391,7 +391,7 @@ function graphSheet(p,r,PO){
     <div class="s-title">漏洩電流・電圧の記録</div>
     <div class="s-top"><div class="s-panel">${esc(r.panel||'')||'　'}</div><div class="s-range">${esc(r.range||'')}</div><div class="s-date">${dateLine(p,'full')}</div></div>
     <div class="grs">${groups.map(row).join('')}</div>
-    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分・3分　目盛は${esc(kTop)}kVのグラフに合わせて共通(三線一括は別)　(KEW 3124A 記録計出力。電圧到達を0:00とする)</div>
+    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分・3分　目盛は${esc(kTop)}kVのグラフに合わせて共通(三線一括は別)　(電圧到達を0:00とする)</div>
   </div></div></div>`;
 }
 function calc(r){
