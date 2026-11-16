@@ -375,7 +375,7 @@ function graphSheet(p,r,PO){
     for(let i=-1;i<=nd;i++){const v=st*i,y=Yi(v);sv+=`<line x1="${L}" x2="${L+pw}" y1="${y}" y2="${y}" stroke="${i===0?'#9a9a9a':'#e3e3e3'}"/><text x="${L-6}" y="${y+6}" text-anchor="end" font-size="${FS}" fill="#c62828">${tf(v)}</text>`}
     for(let i=0;i<=4;i++){const v=vm*i/4,y=Yv(v);sv+=`<text x="${L+pw+6}" y="${y+6}" font-size="${FS}" fill="#1565c0">${tf(v)}</text>`}
     for(let t=0;t<=180;t+=60)sv+=`<text x="${X(t)}" y="${H-8}" text-anchor="middle" font-size="${FS}">${t/60}:00</text>`;
-    [60,180].forEach(t=>sv+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ph}" stroke="#999" stroke-dasharray="5 5"/>`);
+    [60].forEach(t=>sv+=`<line x1="${X(t)}" x2="${X(t)}" y1="${T}" y2="${T+ph}" stroke="#999" stroke-dasharray="5 5"/>`);
     sv+=`<rect x="${L}" y="${T}" width="${pw}" height="${ph}" fill="none" stroke="#000"/>`;
     const poly=(f,col,w)=>`<polyline clip-path="url(#${id})" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" points="${o.p.map(q=>X(q[0]).toFixed(1)+','+f(q).toFixed(1)).join(' ')}"/>`;
     if(o.p.some(q=>q[2]!=null))sv+=poly(q=>Yv(q[2]),'#1565c0',1.6);
@@ -391,7 +391,7 @@ function graphSheet(p,r,PO){
     <div class="s-title">漏洩電流・電圧の記録</div>
     <div class="s-top"><div class="s-panel">${esc(r.panel||'')||'　'}</div><div class="s-range">${esc(r.range||'')}</div><div class="s-date">${dateLine(p,'full')}</div></div>
     <div class="grs">${groups.map(row).join('')}</div>
-    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分・3分　目盛は${esc(kTop)}kVのグラフに合わせて共通(三線一括は別)　(電圧到達を0:00とする)</div>
+    <div class="s-cap" style="font-size:15pt"><span style="color:#d32f2f">━ 漏洩電流(μA・左目盛)</span>　<span style="color:#1565c0">━ 印加電圧(kV・右目盛)</span>　▼ キック現象　点線は1分　目盛は${esc(kTop)}kVのグラフに合わせて共通(三線一括は別)　(電圧到達を0:00とする)</div>
   </div></div></div>`;
 }
 function calc(r){
