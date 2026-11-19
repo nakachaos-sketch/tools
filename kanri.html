@@ -387,10 +387,14 @@ table.g.gnt tr:last-child td{border-bottom:none}
 .itkres{font-size:13px;line-height:1.6;background:#f4f7fa;border-radius:6px;padding:6px 8px}.itkres b{color:var(--meas)}
 .itkn{font-size:12px;line-height:1.7}
 .itk-top{display:flex;justify-content:space-between;font-size:19pt;padding:0 1mm 3mm}
-table.g.itkt th{font-size:17pt;height:11.5mm}table.g.itkt td{height:15mm}
+table.g.itkt th{font-size:17pt;height:11mm;line-height:1.25}table.g.itkt td{height:15.4mm}
+table.g.itkt .tr{border-right:.5px solid #000}table.g.itkt .tl{border-left:.5px solid #000}
+table.g.itkt td.nr{border-right:.5px solid #000}table.g.itkt td.nl{border-left:.5px solid #000}
+table.g.itkt td.r{text-align:right;padding-right:3mm}
 table.g.itkt tr.tot td{height:15mm;border-top:2.5px solid #000}
-.itk-me{display:flex;flex-direction:column;align-items:flex-end;gap:3mm;font-size:20pt;margin-top:8mm;padding-right:6mm}
+.itk-me{display:flex;flex-direction:column;align-items:flex-end;gap:2mm;font-size:20pt;margin-top:5mm;padding-right:6mm}
 table.g.itkt td.l{white-space:normal;line-height:1.1}
+table.g .xxs{font-size:12pt}
 </style>
 </head>
 <body>
@@ -908,7 +912,9 @@ function docGp(s,rid){const g=gpOf(s),r=s.gpr.find(x=>x.id===rid);if(!r)return [
     add(gpNotesDoc(sb,r),sb)});
   if(!g.subs.length)start(gpHead1(s,r,c));
   const T=pages.length;
-  return pages.map((p,k)=>SH('p gp',p.html.map(x=>`<div class="gpc">${x}</div>`).join('').replace('{{NO}}',T>1?'№'+(k+1):'')))}
+  return pages.map((p,k)=>SH('p gp',zpU(p.html.map(x=>`<div class="gpc">${x}</div>`).join('').replace('{{NO}}',T>1?'№'+(k+1):''))))}
+/* 印刷の単位のかっこを全角に */
+function zpU(h){return h.replace(/\s?\((kW|kWh|KW|%|℃|h|V|A|KVA|kVA|kV|mA)\)/g,'（$1）').replace(/>([^<]*)</g,(m,t)=>'>'+t.replace(/\(/g,'（').replace(/\)/g,'）')+'<')}
 
 /* ----- Excel 読み込み ----- */
 let GI=null;
@@ -1111,16 +1117,17 @@ function itkLive(){const c=itkCalc();const e=document.getElementById('itk-sum');
 function docItk(){const I=itkOf(),c=itkCalc(),m=meBlock();const L=[];
   I.rows.forEach((r,k)=>{const x=c.R[k];L.push({no:k+1,owner:r.owner,name:r.name,kv:r.kv==='低圧'?'低圧':(num(r.kv)||'').toLocaleString('ja-JP'),kva:r.kv==='低圧'?'':(isFinite(num(r.kva))?num(r.kva).toLocaleString('ja-JP'):''),fq:x.d?itkFq(x.d.freq):'',val:x.d?itkF(x.d.val):''});
     (r.gens||[]).forEach((g,j)=>{const y=x.G[j];L.push({sub:1,name:`└ ${g.t||''}発電`,fq:y?itkFq(y.freq):'',gt:g.t,gv:g.v?num(g.v).toLocaleString('ja-JP'):'',kw:g.kw,val:y?itkF(y.val):''})})});
-  const N=24;const P=chunk(L,N);const d=String(I.date||'').match(/(\d+)-(\d+)-(\d+)/);
-  return P.map((pg,pi)=>{const rows=pg.concat(Array(Math.max(0,N-pg.length)).fill(null)).map(x=>x?`<tr><td>${x.no||''}</td><td class="l ${String(x.owner||'').length>10?'xs':'sm'}">${esc(x.owner||'')}</td><td class="l ${String(x.name||'').length>12?'xs':'sm'}">${esc(x.name||'')}</td><td class="v">${esc(x.kv||'')}</td><td class="v">${esc(x.kva||'')}</td><td class="v">${esc(x.fq)}</td><td class="v sm">${esc(x.gt||'')}</td><td class="v">${esc(x.gv||'')}</td><td class="v">${esc(x.kw||'')}</td><td class="v">${esc(x.val)}</td></tr>`:'<tr>'+'<td></td>'.repeat(10)+'</tr>').join('');
+  const N=28;const P=chunk(L,N);if(!P.length)P.push([]);const d=String(I.date||'').match(/(\d+)-(\d+)-(\d+)/);
+  const td=(cls,v)=>`<td class="${cls}">${v}</td>`;
+  return P.map((pg,pi)=>{const rows=pg.concat(Array(Math.max(0,N-pg.length)).fill(null)).map(x=>{x=x||{};return '<tr>'+td('nr',x.no||'')+td(`l nl ${String(x.owner||'').length>10?'xs':'sm'}`,esc(x.owner||''))+td(`l ${String(x.name||'').length>16?'xxs':String(x.name||'').length>12?'xs':'sm'}`,esc(x.name||''))+td('v',esc(x.kv||''))+td('v',esc(x.kva||''))+td('v',esc(x.fq||''))+td('v sm tr',esc(x.gt||''))+td('v tl tr',esc(x.gv||''))+td('v tl',esc(x.kw||''))+td('v',esc(x.val||''))+'</tr>'}).join('');
     const last=pi===P.length-1;
-    return SH('p gp',`<div class="gp-t" style="letter-spacing:.3em">委託事業場一覧表</div>
-      <div class="itk-top"><span>電気管理技術者が担当している事業場(今回申請分含む)</span><span>${d?`${+d[1]}年${+d[2]}月${+d[3]}日 現在`:''}${P.length>1?`　${pi+1}/${P.length}`:''}</span></div>
+    return SH('p gp',zpU(`<div class="gp-t" style="letter-spacing:.3em">委託事業場一覧表</div>
+      <div class="itk-top"><span>電気管理技術者が担当している事業場（今回申請分含む）</span><span>${d?`${+d[1]}年${+d[2]}月${+d[3]}日 現在`:''}${P.length>1?`　${pi+1}／${P.length}`:''}</span></div>
       <table class="g itkt"><colgroup><col style="width:5%"><col style="width:20%"><col style="width:23%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:7%"></colgroup>
-      <tr><th rowspan="2"></th><th rowspan="2" colspan="2">設置者名称　及び　事業場名称</th><th>受 電</th><th>設 備</th><th>点 検</th><th colspan="3">発 電 所</th><th rowspan="2">換算<br>係数</th></tr>
-      <tr><th>電 圧</th><th>容 量</th><th>頻 度</th><th>種 類</th><th>電圧</th><th>出 力</th></tr>${rows}
-      ${last?`<tr class="tot"><td colspan="3" class="l">合計件数　${c.n} 件</td><td colspan="2" class="v">${c.cap?c.cap.toLocaleString('ja-JP')+' kVA':''}</td><td colspan="4" class="l">換算係数合計${c.ded?`(小規模の控除 －${itkF(c.ded)} 後)`:''}</td><td class="v">${itkF(c.total)}</td></tr>`:''}</table>
-      ${last?`<div class="itk-me"><div>電気管理技術者　(氏　名)　${esc(m.name)}</div><div>(整理番号)　${esc(m.no)}</div></div>`:''}`)})}
+      <tr><th rowspan="2" colspan="3">設置者名称　及び　事業場名称</th><th rowspan="2">受 電<br>電 圧</th><th rowspan="2">設 備<br>容 量</th><th rowspan="2">点 検<br>頻 度</th><th colspan="3">発 電 所</th><th rowspan="2">換算<br>係数</th></tr>
+      <tr><th class="tr">種 類</th><th class="tl tr">電圧</th><th class="tl">出 力</th></tr>${rows}
+      ${last?`<tr class="tot"><td colspan="2" class="r">合計件数　${c.n} 件</td><td class="r">設備容量合計</td><td colspan="2" class="v">${c.cap?c.cap.toLocaleString('ja-JP')+' kVA':''}</td><td colspan="4" class="l">換算係数合計${c.ded?`（小規模の控除 －${itkF(c.ded)} 後）`:''}</td><td class="v">${itkF(c.total)}</td></tr>`:''}</table>
+      ${last?`<div class="itk-me"><div>電気管理技術者　（氏　名）　${esc(m.name)}</div><div>（整理番号）　${esc(m.no)}</div></div>`:''}`))})}
 function itkAct(a,b){const I=itkOf();const k=+b.dataset.i;const rr=()=>{save();const y=window.scrollY;render();window.scrollTo(0,y)};
   switch(a){
     case 'itkOpen':go({name:'itk'});break;
