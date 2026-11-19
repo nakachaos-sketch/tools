@@ -323,11 +323,66 @@ table.s.sdh .sp{padding:0;height:22mm}
 table.s.sdh .sp>div{height:11mm;display:flex;align-items:center;justify-content:center}
 table.s.sdh .sp>div+div{border-top:1px solid #222}
 
+/* ===== 月報 ===== */
+input[type=time],input[type=month]{width:100%;min-width:0;max-width:100%;border:1px solid var(--line);border-radius:4px;padding:5px 7px;background:#fff;font-size:15px;color:var(--ink);-webkit-appearance:none;appearance:none;min-height:2.3em}
+.g8{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}
+.g8 label{font-size:10px}
+.g8 input{color:var(--meas)}
+@media (max-width:760px){.g8{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.gpblk{border-top:1px dashed var(--line);padding-top:6px;display:flex;flex-direction:column;gap:4px}
+.gpblk>b{font-size:13px;color:var(--accent);font-weight:500}
+.gpck{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 14px}
+@media (max-width:560px){.gpck{grid-template-columns:minmax(0,1fr)}}
+.gpci{flex-direction:row;align-items:center;justify-content:space-between;gap:6px;font-size:13px;color:var(--ink);border-bottom:1px dotted var(--line);padding:1px 0}
+.gpci select{width:auto;min-width:84px;padding:3px 5px;font-size:14px}
+.gpcalc{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;background:#f4f7fa;border-radius:6px;padding:6px 8px}
+.gpcalc div{display:flex;flex-direction:column;min-width:0}
+.gpcalc span{font-size:11px;color:var(--sub)}
+.gpcalc b{font-size:14px;color:var(--meas);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:560px){.gpcalc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.gpy>summary{font-size:14px;font-weight:700;color:var(--accent);padding:4px 0;cursor:pointer}
+.gpy>.list{margin-top:6px}
+.gprow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.gpbe{border:1px solid var(--line);border-radius:6px;padding:6px 8px;display:flex;flex-direction:column;gap:4px;background:#fafbfc}
+.gpie{display:grid;grid-template-columns:minmax(0,1fr) 112px auto auto;gap:4px;align-items:end}
+.gpie3{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr) auto;gap:4px;align-items:end}
+.gpge{border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.gpge[open]{display:flex;flex-direction:column;gap:4px}
+.gpge>summary{font-size:13px;color:var(--accent);cursor:pointer}
+select.gptpl{width:auto}
+.gpmap>summary{font-size:13px;cursor:pointer}
+.gpmr{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:6px;align-items:center;font-size:12px;color:var(--ink);border-top:1px dashed var(--line);padding:3px 0}
+.gpmr select{font-size:13px;padding:3px 4px}
+.gpnav{align-items:center}
+/* 月報の用紙(A4縦)。2倍で作って半分に縮小 */
+.sheet.gp .sheet-in{border:none;padding:4mm 7mm 2mm;display:block}
+.gpc{padding-bottom:4.6mm}
+.gp-t{text-align:center;font-size:31pt;letter-spacing:.42em;padding:5mm 0 8mm 0.42em}
+.gp-top{display:flex;align-items:center;gap:14mm}
+.gp-box{border:2.5px solid #000;padding:1.6mm 0;width:112mm;text-align:center;font-size:21pt;background:#ccffff}
+.gp-box.g{background:#ccffcc;letter-spacing:.25em;width:96mm}
+.gp-no{margin-left:auto;font-size:21pt;padding-right:3mm}
+table.g{width:100%;border-collapse:collapse;table-layout:fixed;border:2.5px solid #000;font-size:20pt;color:#000}
+table.g th,table.g td{border:1px solid #000;height:12.6mm;padding:0 1.6mm;text-align:center;vertical-align:middle;white-space:nowrap;overflow:hidden;font-weight:400;line-height:1.12}
+table.g th.lb{background:#ccffcc;letter-spacing:.1em}
+table.g th.h{background:#d9d9d9;font-size:16pt}
+table.g td.v{color:#1a3fbf}
+table.g td.l,table.g th.l{text-align:left;padding-left:2.6mm}
+table.g tr.tt td{background:#d9d9d9;text-align:left;padding-left:3mm;font-size:18pt}
+table.g .sm{font-size:16.5pt}
+table.g .xs{font-size:14pt}
+table.g td.sl{background:linear-gradient(to top right,transparent calc(50% - 1.3px),#000 calc(50% - .8px),#000 calc(50% + .8px),transparent calc(50% + 1.3px))}
+table.g.ck td.l{padding-left:2mm}
+table.g.gnt td{border:none;border-bottom:1.6px dotted #000;text-align:left;padding-left:3mm;font-size:18pt}
+table.g.gnt td.sm{font-size:15.5pt}
+table.g.gnt td.xs{font-size:13.5pt}
+table.g.gnt tr:last-child td{border-bottom:none}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <input type="file" id="importFile" hidden>
+<input type="file" id="gpFile" accept=".xlsx,.xlsm,.xls,.json" hidden>
 <input type="file" id="imgFile" accept="image/*" hidden>
 <script>
 'use strict';
@@ -415,6 +470,7 @@ function render(){
   else if(view.name==='site'&&site())a.innerHTML=siteHTML();
   else if(view.name==='insp'&&insp())a.innerHTML=inspHTML();
   else if(view.name==='pv')a.innerHTML=pvHTML();
+  else if(['gp','gpset','gpimp'].includes(view.name)&&site())a.innerHTML=gpViewHTML();
   else{view={name:'home'};a.innerHTML=homeHTML()}
   if(view.name==='pv')fit();
   document.body.classList.toggle('sld-m',view.name==='site'&&view.tab==='sld');
@@ -434,7 +490,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-15 h</div></div>`}
+  <div class="ver">版 2026-11-19 月報</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -474,6 +530,7 @@ function siteHTML(){
       <div class="btns"><button class="btn small" data-act="eqAdd">+ 機器</button><button class="btn small" data-act="eqAddG">+ 区分(見出し)</button></div>
       <datalist id="eqm">${EQ_MAKERS.map(x=>`<option value="${x}">`).join('')}</datalist><datalist id="eqn">${EQ_NAMES.map(x=>`<option value="${x}">`).join('')}</datalist></div>
     <div class="btns"><button class="btn main" data-act="pv" data-docs="eq">高圧機器表を印刷</button></div>`}
+  else if(tab==='gp'){body=gpTabHTML(s)}
   else if(tab==='hogo'){
     body=`<div class="card"><h2>保護協調検討</h2><div class="note">保護協調アプリを、この事業場の現場として開きます(データは保護協調アプリに保存され、この事業場のバックアップにも入ります)。</div>
       <div class="btns"><button class="btn main" data-act="openHogo">保護協調検討を開く</button></div></div>`}
@@ -484,7 +541,7 @@ function siteHTML(){
     <div class="list">${L.map(i=>`<button class="item" data-act="openInsp" data-id="${i.id}"><div class="t"><b>${fmtDate(i.date)||'日付未入力'} ${KIND[i.kind]}</b><span>${['earth','hv','lv'].map(k=>i[k].secs.length?{earth:'接地',hv:'高圧絶縁',lv:'低圧絶縁'}[k]:'').filter(Boolean).join('・')}${Object.keys(i.links||{}).length?' ・ 成績表 '+Object.keys(i.links).length+'件':''}</span></div><span class="badge ${i.kind==='shunko'?'b-ok':'b-none'}">${KIND[i.kind]}</span></button>`).join('')||'<div class="empty">点検記録がありません。</div>'}</div>`}
   return `${bar(s.name,'toHome')}
   <div class="wrap ${tab==='sld'?'':'narrow'}">
-    ${tabs(tab,[['insp','点検記録'],['ov','設備概要'],['sld','系統図'],['eq','高圧機器表'],['hogo','保護協調']])}
+    ${tabs(tab,[['insp','点検記録'],['gp','月報'],['ov','設備概要'],['sld','系統図'],['eq','高圧機器表'],['hogo','保護協調']])}
     ${body}
     <div class="card"><h2>この事業場のバックアップ</h2><div class="btns"><button class="btn" data-act="exportSite">この事業場を保存</button><button class="btn danger" data-act="delSite">この事業場を削除</button></div>
       <div class="note">点検記録・各成績表(OCR・DGR など)・保護協調を1つのファイルにまとめて保存します。保存先は選べます(Box なども可)。</div></div>
@@ -631,7 +688,7 @@ function docLv(s,i){const out=[];const LN=o3()==='P'?35:15;
       <tr><th>R-E間</th><th>${phL}</th><th>T-E間</th></tr>${body}</table>`))})});return out}
 function chunk(a,n){const o=[];for(let k=0;k<a.length;k+=n)o.push(a.slice(k,k+n));if(!o.length)o.push([]);return o}
 function buildDocs(docs){const s=site(),i=insp();const out=[];
-  docs.forEach(d=>{if(d.startsWith('sld:')){const [,id,pg]=d.split(':');out.push(...docSld(s,id,pg!=null?+pg:null))}if(d==='sldall')sldList(s).filter(x=>!x.ov&&docPages(x).some(pgHas)).forEach(x=>out.push(...docSld(s,x.id)));if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
+  docs.forEach(d=>{if(d.startsWith('gp:'))out.push(...docGp(s,d.slice(3)));if(d.startsWith('sld:')){const [,id,pg]=d.split(':');out.push(...docSld(s,id,pg!=null?+pg:null))}if(d==='sldall')sldList(s).filter(x=>!x.ov&&docPages(x).some(pgHas)).forEach(x=>out.push(...docSld(s,x.id)));if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
     if(d==='ov')out.push(...docOv(s));if(d==='eq')out.push(...docEq(s));
     if(d==='earth'&&i.earth.secs.length)out.push(...docEarth(s,i));if(d==='hv'&&i.hv.secs.length)out.push(...docHv(s,i));if(d==='lv'&&i.lv.secs.length)out.push(...docLv(s,i))});
   return out}
@@ -641,6 +698,337 @@ function pvHTML(){const pages=buildDocs(view.docs);
     <div class="pages" id="pages">${pages.map(x=>`<div class="pg">${x}</div>`).join('')||'<div class="empty">印刷するものがありません(設備が未登録など)。</div>'}</div></div>`}
 function fit(){const el=$('#pages');if(!el)return;el.style.zoom=Math.min(1,(el.parentElement.clientWidth-2)/(297*96/25.4))}
 window.addEventListener('resize',()=>{if(view.name==='pv')fit()});
+
+/* ===== 月報(自家用電気工作物 巡視点検月報) ===== */
+const GP_RES=['良','否','有','無','－','／',''];
+const GP_RES_L=['良','否','有','無','－','／ 斜線','空欄'];
+const GP_CK={
+  recA:['受変電設備点検箇所',[['引込柱'],['引込開閉器(PAS)'],['高圧ケーブル'],['避雷器'],['高圧母線・支持碍子'],['高圧開閉器(LBS・PCS)'],['変圧器'],['高圧コンデンサ'],['機器・接続部の過熱','無'],['異音異臭・損傷汚損','無'],['計器類'],['施錠']]],
+  loadA:['負荷設備点検箇所',[['電灯分電盤ブレーカー'],['動力分電盤ブレーカー'],['漏電ブレーカー'],['電動機'],['照明器具・配線器具'],['ケーブル・接地線'],['機器・接続部の過熱','無'],['異音異臭・損傷汚損','無'],['低圧漏電警報器']]],
+  recB:['受電設備点検箇所',[['引込柱'],['引込開閉器(PAS)'],['避雷器'],['高圧ケーブル'],['高圧母線・支持碍子'],['断路器(DS)'],['主遮断器(VCB)'],['計器用変圧器(VT)'],['計器用変流器(CT)'],['保護継電器(OCR・DGR)'],['接地線'],['機器・接続部の過熱','無'],['異音異臭・損傷汚損','無'],['表示灯・計器類'],['施錠']]],
+  subB:['変電設備点検箇所',[['高圧ケーブル'],['高圧母線・支持碍子'],['断路器(DS)'],['主遮断器(VCB)'],['計器用変圧器(VT)'],['計器用変流器(CT)'],['高圧開閉器(LBS)'],['変圧器'],['高圧コンデンサ'],['表示灯・計器類'],['接地線'],['低圧幹線ブレーカー'],['機器・接続部の過熱','無'],['異音異臭・損傷汚損','無'],['施錠']]],
+  loadB:['負荷設備点検箇所',[['動力分電盤ブレーカー'],['電灯分電盤ブレーカー'],['漏電ブレーカー'],['制御盤 電磁開閉器'],['電動機'],['照明・配線器具'],['低圧ケーブル'],['機器・接続部の過熱','無'],['異音異臭・損傷汚損','無']]]};
+const GP_CKL=[['recA','受変電設備(小規模)'],['recB','受電設備'],['subB','変電設備'],['loadA','負荷設備(小規模)'],['loadB','負荷設備']];
+const GP_BT={hv:'高圧受電盤',p3:'動力バンク(三相)',p1:'電灯バンク(単相3線)'};
+const GP_F={hv:[['rs','R-S間'],['st','S-T間'],['rt','R-T間'],['r','R'],['s','S'],['t','T'],['kw','電力(kW)'],['pf','力率(%)']],
+  p3:[['rs','R-S間'],['st','S-T間'],['rt','R-T間'],['r','R'],['s','S'],['t','T'],['io','漏れ電流Ior(mA)'],['oil','絶縁油温度(℃)']],
+  p1:[['rs','R-N間'],['st','T-N間'],['rt','R-T間'],['r','R'],['s','N'],['t','T'],['io','漏れ電流Ior(mA)'],['oil','絶縁油温度(℃)']]};
+function gpFields(b){return GP_F[b.t].filter(([k])=>k==='pf'?!!b.pf:k==='oil'?b.oil!==false:true)}
+function gpGroup(k){const [title,L]=GP_CK[k];return {id:uid(),title,items:L.map(([n,d])=>({id:uid(),n,d:d||'良'}))}}
+function gpBlock(t,name){return {id:uid(),t,name:name||(t==='hv'?'高圧受電盤':t==='p3'?'動力バンク':'電灯バンク'),kva:'',v:t==='hv'?'':t==='p1'?'210/105':'210',a:'',tap:'',oil:t!=='hv',pf:false}}
+function newGp(){return {supplier:'東京電力エナジーパートナー株式会社',ctype:'業務用電力',mday:'',mult:'',pmode:'0',cmode:'auto',cfix:'',c2:'a',times:'1',rooms:['所内温度'],
+  subs:[{id:uid(),name:'受電設備',blocks:[gpBlock('p3'),gpBlock('p1')],groups:[gpGroup('recA'),gpGroup('loadA')],nl:6,np:false}],
+  pv:{on:false,title:'太陽光発電設備(低圧)',pcs:[{id:uid(),n:'PCS①',u1:'kW',u2:'kWh'}]}}}
+function gpOf(s){if(!s.gp)s.gp=newGp();if(!s.gpr)s.gpr=[];return s.gp}
+const gpCur=()=>{const s=site();return s&&(s.gpr||[]).find(r=>r.id===view.rid)};
+function gpYm(ym,d){const m=String(ym||'').match(/(\d+)-(\d+)/);if(!m)return '';const t=+m[1]*12+(+m[2]-1)+(d||0);return `${Math.floor(t/12)}-${String(t%12+1).padStart(2,'0')}`}
+function gpYmTxt(ym){const m=String(ym||'').match(/(\d+)-(\d+)/);return m?`${+m[1]}年${+m[2]}月分`:''}
+function gpRec(s,ym){return (s.gpr||[]).find(r=>r.ym===ym)}
+const gv=(o,...k)=>{let x=o;for(const q of k){if(x==null)return '';x=x[q]}return x==null?'':x};
+function gpRatedA(b){if(b.a)return b.a;const k=num(b.kva),v=num(String(b.v||'').split('/')[0]);if(!isFinite(k)||!isFinite(v)||!v)return '';return String(Math.round(k*1000/(b.t==='p1'?v:Math.sqrt(3)*v)))}
+function gpBlockTitle(b){if(b.t==='hv')return esc(b.name);const a=gpRatedA(b);const tap=String(b.tap||'').trim();
+  return `${esc(b.name)}${b.kva?`　　【 定格　${esc(b.kva)} (KVA) ・ ${esc(b.v)} (V)${a?` ・ ${esc(a)} (A)`:''} 】`:''}${tap?`　　電圧タップ ： ${esc(tap)}${/^\d+$/.test(tap)?'V':''}`:''}`}
+function newGpRec(s,ym){const g=gpOf(s);const prev=(s.gpr||[]).filter(r=>r.ym<ym).sort((a,b)=>b.ym.localeCompare(a.ym))[0];
+  const r={id:uid(),ym,mr:{kwh:'',maxd:'',act:'',re:'',pf:'',use:'',period:'',cfix:'',prev:''},ins:Array.from({length:+g.times||1},()=>({d:'',tm:'',w:'',ta:'',rt:[]})),m:{},c:{},n:{},pv:{}};
+  g.subs.forEach(sb=>sb.groups.forEach(gr=>gr.items.forEach(it=>{r.c[it.id]=it.d})));
+  if(prev){r.n=JSON.parse(JSON.stringify(prev.n||{}));if(prev.mr&&prev.mr.pf)r.mr.pf=prev.mr.pf}
+  return r}
+/* ----- 計算 ----- */
+function gpNum(v){const n=num(v);return isFinite(n)?n:NaN}
+function gpUse(s,r){if(!r)return NaN;if(String(gv(r,'mr','use')).trim()!=='')return gpNum(r.mr.use);const p=gpRec(s,gpYm(r.ym,-1));const g=gpOf(s);
+  const pv=String(gv(r,'mr','prev')).trim();const a=gpNum(gv(r,'mr','kwh')),b=pv!==''?gpNum(pv):gpNum(gv(p,'mr','kwh')),m=gpNum(g.mult);return isFinite(a)&&isFinite(b)&&isFinite(m)?(a-b)*m:NaN}
+function gpMaxKw(s,r){if(!r)return NaN;const a=gpNum(gv(r,'mr','maxd')),m=gpNum(gpOf(s).mult);return isFinite(a)&&isFinite(m)?a*m:NaN}
+function gpCalc(s,r){const g=gpOf(s);const o={};const p=gpRec(s,gpYm(r.ym,-1));
+  o.prev=String(gv(r,'mr','prev')).trim()||gv(p,'mr','kwh');o.use=gpUse(s,r);o.maxkw=gpMaxKw(s,r);
+  let mx=NaN,mxYm='';for(let k=0;k<12;k++){const ym=gpYm(r.ym,-k);const v=gpMaxKw(s,gpRec(s,ym));if(isFinite(v)&&!(v<=mx)){mx=v;mxYm=ym}}
+  o.mx=mx;o.mxYm=mxYm;
+  const cf=String(gv(r,'mr','cfix')).trim()||g.cfix;
+  o.contract=g.cmode==='fix'?(cf===''?'':Number(num(cf)).toLocaleString('ja-JP')):isFinite(mx)?Math.round(mx).toLocaleString('ja-JP'):'';
+  const [y,m]=(mxYm?gpYm(mxYm,+g.pmode||0):'').split('-').map(Number);
+  o.c2=!mxYm||!g.c2?'':g.c2==='b'?`${y}年${m}月分（${Math.round(mx).toLocaleString('ja-JP')}kW）`:`${y}年${m}月分最大`;
+  const ly=gpRec(s,gpYm(r.ym,-12));const lm=gpMaxKw(s,ly),lu=gpUse(s,ly);
+  o.yoyMax=isFinite(o.maxkw)&&lm>0?(o.maxkw/lm*100):NaN;o.yoyUse=isFinite(o.use)&&lu>0?(o.use/lu*100):NaN;
+  o.period=String(gv(r,'mr','period')).trim()||gpPeriod(g,r.ym);
+  return o}
+function gpPeriod(g,ym){const d=parseInt(g.mday,10);if(!d||!ym)return '';const e=gpYm(ym,+g.pmode||0),st=gpYm(e,-1);const em=+e.split('-')[1],sm=+st.split('-')[1];
+  if(d===1){const [ey,emm]=e.split('-').map(Number);const last=new Date(ey,emm-1,0).getDate();return `${sm}月1日 ～ ${sm}月${last}日`}
+  return `${sm}月${d}日 ～ ${em}月${d-1}日`}
+const f0=v=>isFinite(v)?Math.round(v).toLocaleString('ja-JP'):'';
+const f1=v=>isFinite(v)?(Math.round(v*10)/10).toFixed(1):'';
+function f3(v){const s=String(v==null?'':v).trim();if(s==='')return '';const n=num(s);return isFinite(n)&&/^[\d.,\s]+$/.test(s)?n.toFixed(3):s}
+function gpMD(d){const m=String(d||'').match(/(\d+)-(\d+)-(\d+)/);return m?`${+m[2]}/${+m[3]}`:esc(d||'')}
+
+/* ----- 月報タブ(一覧) ----- */
+function gpTabHTML(s){const g=gpOf(s);const L=s.gpr.slice().sort((a,b)=>b.ym.localeCompare(a.ym));
+  const yrs={};L.forEach(r=>{const y=r.ym.slice(0,4);(yrs[y]=yrs[y]||[]).push(r)});const ys=Object.keys(yrs).sort().reverse();
+  const item=r=>{const c=gpCalc(s,r);const d=(r.ins||[]).map(x=>x.d).filter(Boolean);
+    return `<button class="item" data-act="gpOpen" data-id="${r.id}"><div class="t"><b>${gpYmTxt(r.ym)}</b><span>${d.length?'点検 '+d.map(gpMD).join('・'):'点検日 未入力'}${isFinite(c.use)?` ・ ${f0(c.use)} kWh`:''}${isFinite(c.maxkw)?` ・ 最大 ${f0(c.maxkw)} kW`:''}</span></div><span class="badge b-none">${(r.ins||[]).length>1?'月2回':'月1回'}</span></button>`};
+  return `<div class="btns"><button class="btn main" data-act="gpNew">+ 次の${g.iv==='2'?'点検月(2か月後)':'月'}の月報</button><button class="btn" data-act="gpSet">月報の設定</button></div>
+    <div class="note">新しく作ると、点検箇所の結果は「ふだんの結果」、特記事項は前の月の文が入ります。測定値の欄には、前の月の値がうすく表示されます。</div>
+    <div class="list">${ys.map((y,k)=>`<details class="gpy" ${k===0?'open':''}><summary>${y}年(${yrs[y].length}件)</summary><div class="list">${yrs[y].map(item).join('')}</div></details>`).join('')||'<div class="empty">月報がありません。最初に「月報の設定」で変電設備やバンクを登録してから、「+ 次の月の月報」で作ります。<br>今までのExcelの記録は、下の「Excelから読み込む」で取り込めます。</div>'}</div>
+    <div class="card"><h2>読み込み・保存</h2>
+      <div class="btns"><button class="btn" data-act="gpImp">Excelから読み込む</button><button class="btn" data-act="gpJsonSave">月報のデータを保存</button><button class="btn" data-act="gpImp">月報のデータを読込</button></div>
+      <div class="note">「Excelから読み込む」は、今までの電力データのシート(1行が1回の点検)から、過去の記録を取り込みます。<br>「月報のデータ」は、この事業場の月報の設定と記録だけのファイルです。ほかの端末に移すときや、ひな形として別の事業場に使うときに使います。</div></div>`}
+
+/* ----- 月ごとの入力 ----- */
+function gpRecHTML(){const s=site(),g=gpOf(s),r=gpCur();if(!r)return '';const si=sIdx(),ri=s.gpr.indexOf(r),P=`sites.${si}.gpr.${ri}.`;
+  const p=gpRec(s,gpYm(r.ym,-1));const prevYm=s.gpr.filter(x=>x.ym<r.ym).sort((a,b)=>b.ym.localeCompare(a.ym))[0],nextYm=s.gpr.filter(x=>x.ym>r.ym).sort((a,b)=>a.ym.localeCompare(b.ym))[0];
+  const ph=(...k)=>{const v=gv(p,...k);return v===''?'':String(v)};
+  const fi=(path,label,o)=>{o=o||{};const v=getPath(state,path);return `<label${o.cls?` class="${o.cls}"`:''}>${label}<input type="${o.type||'text'}" ${o.dec?'inputmode="decimal"':''} ${o.list?`list="${o.list}"`:''} data-f="${path}" value="${esc(v)}" ${o.ph?`placeholder="${esc(o.ph)}"`:''}></label>`};
+  const N=r.ins.length;
+  let h=`<div class="btns gpnav">${prevYm?`<button class="btn small" data-act="gpOpen" data-id="${prevYm.id}">← ${gpYmTxt(prevYm.ym)}</button>`:''}<span style="flex:1"></span>${nextYm?`<button class="btn small" data-act="gpOpen" data-id="${nextYm.id}">${gpYmTxt(nextYm.ym)} →</button>`:''}</div>
+  <div class="card"><h2>月</h2><div class="g3"><label>月報の月<input type="month" data-gpym="1" value="${esc(r.ym)}"></label></div></div>
+  <div class="card"><h2>検針値 ${g.mult?`(乗率 ${esc(g.mult)})`:''}</h2>
+    <div class="g3">${fi(P+'mr.kwh','全日電力量 指針値',{dec:1,ph:ph('mr','kwh')})}${fi(P+'mr.maxd','最大需要電力 指針値',{dec:1,ph:ph('mr','maxd')})}${fi(P+'mr.pf','力率(%)',{dec:1,ph:ph('mr','pf')})}</div>
+    <div class="g3">${fi(P+'mr.act','有効電力量 指針値',{dec:1,ph:ph('mr','act')})}${fi(P+'mr.re','無効電力量 指針値',{dec:1,ph:ph('mr','re')})}${g.iv==='2'||!p?fi(P+'mr.prev','前月の全日電力量 指針値',{dec:1,ph:p?String(gv(p,'mr','kwh')):'検針票の前月指針'}):''}</div>
+    ${g.iv==='2'&&!p?'<div class="note">隔月点検で前の月の月報がないので、使用電力量は「前月の指針値」(検針票に書いてあります)から計算します。</div>':''}
+    <div class="gpcalc" id="gpcalc">${gpCalcHTML(s,r)}</div>
+    <details${r.mr.use||r.mr.period||r.mr.cfix?' open':''}><summary>手入力で直す(計器を取り替えた月など)</summary>
+      <div class="g3">${fi(P+'mr.use','月間使用電力量(kWh)',{dec:1,ph:'空欄なら自動'})}${fi(P+'mr.period','使用期間',{ph:gpPeriod(g,r.ym)||'例) 9月22日 ～ 10月21日'})}${g.cmode==='fix'?fi(P+'mr.cfix','契約電力(kW)',{dec:1,ph:g.cfix||''}):''}</div>
+      <div class="note">計器を取り替えた月は、指針値が前の月とつながらないので、使用電力量を手入力してください。</div></details></div>
+  <div class="card"><h2>点検日・天候・温度</h2>${r.ins.map((x,k)=>{const Q=`${P}ins.${k}.`;return `${N>1?`<div class="grp">${k+1}回目</div>`:''}
+    <div class="g4">${fi(Q+'d','点検日',{type:'date'})}${fi(Q+'tm','時刻',{type:'time'})}${fi(Q+'w','天候',{list:'gpw'})}${fi(Q+'ta','外気温度(℃)',{dec:1})}</div>
+    ${g.rooms.length?`<div class="g4">${g.rooms.map((rm,j)=>fi(Q+'rt.'+j,esc(rm||'所内温度')+'(℃)',{dec:1,ph:ph('ins',k,'rt',j)})).join('')}</div>`:''}`}).join('')}
+    <div class="btns">${N<2?'<button class="btn small" data-act="gpIns" data-v="2">+ 2回目の点検を足す</button>':'<button class="btn small danger" data-act="gpIns" data-v="1">2回目を消す</button>'}</div>
+    <datalist id="gpw"><option value="晴"><option value="曇"><option value="雨"><option value="雪"><option value="晴れ"><option value="曇り"></datalist></div>`;
+  g.subs.forEach(sb=>{
+    h+=`<div class="card gpsub"><h2>${esc(sb.name||'(名前なし)')}</h2>`;
+    sb.blocks.forEach(b=>{h+=`<div class="gpblk"><b>${gpBlockTitle(b)}</b>`;
+      for(let k=0;k<N;k++){const Q=`${P}m.${b.id}.${k}.`;h+=`${N>1?`<div class="note">${k+1}回目</div>`:''}<div class="g8">${gpFields(b).map(([f,l])=>fi(Q+f,(b.t==='hv'&&['rs','st','rt'].includes(f)?l+'(kV)':['rs','st','rt'].includes(f)?l+'(V)':['r','s','t'].includes(f)?l+'(A)':l),{dec:f!=='pf',ph:ph('m',b.id,k,f)})).join('')}</div>`}
+      h+=`</div>`});
+    sb.groups.forEach(gr=>{h+=`<div class="gpblk"><b>${esc(gr.title)}</b><div class="gpck">${gr.items.map(it=>`<label class="gpci"><span>${esc(it.n)}</span>${sel(`data-f="${P}c.${it.id}"`,r.c[it.id]==null?'':r.c[it.id],GP_RES,GP_RES_L)}</label>`).join('')}</div></div>`});
+    if(sb.groups.length)h+=`<div class="btns"><button class="btn small" data-act="gpDef" data-id="${sb.id}">点検箇所をふだんの結果に戻す</button></div>`;
+    if(+sb.nl>0)h+=`<div class="gpblk"><b>特記事項</b>${Array.from({length:+sb.nl},(_,j)=>`<input type="text" class="gpnl" data-f="${P}n.${sb.id}.${j}" value="${esc(gv(r,'n',sb.id,j))}" placeholder="${j+1}行目">`).join('')}</div>`;
+    h+=`</div>`;
+    if(g.pv.on&&sb===g.subs[0])h+=gpPvEdit(g,r,P,ph)});
+  h+=`<div class="btns"><button class="btn main" data-act="gpPrint">印刷プレビュー</button><button class="btn danger" data-act="gpDel">この月を削除</button></div>`;
+  return `${bar(gpYmTxt(r.ym)+' 月報','gpBack',`<button data-act="gpPrint">印刷</button>`)}<div class="wrap narrow">${h}</div>`}
+function gpPvEdit(g,r,P,ph){return `<div class="card"><h2>${esc(g.pv.title||'太陽光発電設備')}</h2>${g.pv.pcs.map(pc=>{const Q=`${P}pv.${pc.id}.`;const fi=(f,l,d)=>`<label>${l}<input type="text" ${d?'inputmode="decimal"':''} data-f="${Q+f}" value="${esc(gv(r,'pv',pc.id,f))}" placeholder="${esc(ph('pv',pc.id,f))}"></label>`;
+  return `<div class="grp">${esc(pc.n)}</div><div class="g4">${fi('kw',`指示値(${esc(pc.u1||'kW')})`,1)}${fi('kwh',`積算(${esc(pc.u2||'kWh')})`,1)}${fi('err','最終エラー')}${fi('eh','エラー時間(h)',1)}</div>`}).join('')}</div>`}
+function gpCalcHTML(s,r){const c=gpCalc(s,r),g=gpOf(s);const it=(l,v)=>`<div><span>${l}</span><b>${v||'—'}</b></div>`;
+  return it('前月の指針',f3(c.prev))+it('月間使用電力量',isFinite(c.use)?f0(c.use)+' kWh':'')+it('月間最大電力',isFinite(c.maxkw)?f0(c.maxkw)+' kW':'')+it('契約電力',c.contract?c.contract+' kW':'')+it(g.c2?'12か月の最大':'',g.c2?c.c2:'')+it('最大電力前年比',f1(c.yoyMax)&&f1(c.yoyMax)+' %')+it('電力量前年比',f1(c.yoyUse)&&f1(c.yoyUse)+' %')+it('使用期間',esc(c.period))}
+
+/* ----- 設定 ----- */
+function gpSetHTML(){const s=site(),g=gpOf(s),P=`sites.${sIdx()}.gp.`;
+  const ck=(path,v,l)=>`<label class="sw"><input type="checkbox" data-gpck="${path}" ${v?'checked':''}><span>${l}</span></label>`;
+  let h=`<div class="card"><h2>検針・契約</h2>
+    <div class="g2">${inp(P+'supplier','供給者')}${inp(P+'ctype','契約種別')}</div>
+    <div class="g3">${inp(P+'mday','計量日(日)','',{dec:1,ph:'例) 18'})}${inp(P+'mult','乗率','',{dec:1,ph:'例) 240'})}<label>使用期間の終わり${sel(`data-fr="${P}pmode"`,g.pmode||'0',['0','-1'],['月報と同じ月','月報の前の月'])}</label></div>
+    <div class="g3"><label>契約電力${sel(`data-fr="${P}cmode"`,g.cmode,['auto','fix'],['過去12か月の最大(自動)','決まった値'])}</label>${g.cmode==='fix'?inp(P+'cfix','契約電力(kW)','',{dec:1}):'<span></span>'}<label>契約電力の下の行${sel(`data-fr="${P}c2"`,g.c2||'',['a','b',''],['○年○月分最大','○年○月分(○○kW)','なし'])}</label></div>
+    <div class="note">例：計量日18日・月報の前の月 → 11月分の使用期間は「9月18日 ～ 10月17日」。<br>月間使用電力量 = (今月の指針 − 前月の指針) × 乗率、月間最大電力 = 最大需要電力の指針 × 乗率 で計算します。</div></div>
+  <div class="card"><h2>点検</h2><div class="g3"><label>点検の間隔${sel(`data-fr="${P}iv"`,g.iv||'1',['1','2'],['毎月','隔月(2か月に1回)'])}</label><label>新しく作る月の点検回数${sel(`data-fr="${P}times"`,g.times||'1',['1','2'],['月1回','月2回'])}</label></div>
+    <div class="note">隔月にすると、「+ 次の月の月報」で2か月後の月を作ります。使用電力量や前年比は、その月の検針値(前月の指針値を入れる欄あり)で計算します。</div>
+    <div class="grp">所内温度の欄</div>${g.rooms.map((x,j)=>`<div class="gprow">${inp(P+'rooms.'+j,'欄の名前','',{ph:'例) 第1変電所内温度'})}<button class="btn small danger" data-act="gpRoomDel" data-i="${j}">×</button></div>`).join('')}
+    <div class="btns"><button class="btn small" data-act="gpRoomAdd">+ 所内温度の欄</button></div></div>`;
+  g.subs.forEach((sb,k)=>{const Q=`${P}subs.${k}.`;
+    h+=`<div class="card gpsub"><div class="sech"><h2>${k===0?'1枚目に入る設備':'設備 '+(k+1)}：${esc(sb.name||'')}</h2><div class="btns">${k>0?`<button class="btn small" data-act="gpSubUp" data-i="${k}">↑</button>`:''}<button class="btn small danger" data-act="gpSubDel" data-i="${k}">削除</button></div></div>
+      <div class="g3">${inp(Q+'name','名前','',{ph:'例) 第１変電設備'})}<label>特記事項の行数${sel(`data-fr="${Q}nl"`,String(sb.nl||0),['0','1','2','3','4','5','6','7','8','9','10'],['なし','1行','2行','3行','4行','5行','6行','7行','8行','9行','10行'])}</label>${k>0?ck(Q+'np',sb.np!==false,'新しいページから'):'<span></span>'}</div>
+      <div class="grp">測定する盤・バンク</div>`;
+    sb.blocks.forEach((b,j)=>{const B=`${Q}blocks.${j}.`;
+      h+=`<div class="gpbe"><div class="g4"><label>種類${sel(`data-fr="${B}t"`,b.t,['hv','p3','p1'],['高圧受電盤','動力(三相)','電灯(単相3線)'])}</label>${inp(B+'name','名前','',{cls:'span2',ph:'例) 動力 №１ バンク'})}<div class="btns mv"><button class="btn small" data-act="gpBlkUp" data-s="${k}" data-i="${j}">↑</button><button class="btn small danger" data-act="gpBlkDel" data-s="${k}" data-i="${j}">×</button></div></div>
+        ${b.t==='hv'?`<div class="chk">${ck(B+'pf',b.pf,'力率の欄')}</div>`:`<div class="g4">${inp(B+'kva','定格容量(kVA)','',{dec:1})}${inp(B+'v','定格電圧(V)','',{ph:b.t==='p1'?'210/105':'210'})}${inp(B+'a','定格電流(A)','',{dec:1,ph:'自動 '+(gpRatedA({...b,a:''})||'')})}${inp(B+'tap','電圧タップ','',{ph:'例) 6600V'})}</div><div class="chk">${ck(B+'oil',b.oil!==false,'絶縁油温度の欄')}</div>`}</div>`});
+    h+=`<div class="btns"><button class="btn small" data-act="gpBlkAdd" data-s="${k}" data-t="hv">+ 高圧受電盤</button><button class="btn small" data-act="gpBlkAdd" data-s="${k}" data-t="p3">+ 動力バンク</button><button class="btn small" data-act="gpBlkAdd" data-s="${k}" data-t="p1">+ 電灯バンク</button></div>
+      <div class="grp">点検箇所</div>`;
+    sb.groups.forEach((gr,j)=>{const G=`${Q}groups.${j}.`;
+      h+=`<details class="gpge"><summary>${esc(gr.title)}(${gr.items.length}項目)</summary><div class="gprow">${inp(G+'title','表の見出し')}<div class="btns mv"><button class="btn small" data-act="gpGrpUp" data-s="${k}" data-i="${j}">↑</button><button class="btn small danger" data-act="gpGrpDel" data-s="${k}" data-i="${j}">表を削除</button></div></div>
+        ${gr.items.map((it,m)=>`<div class="gpie">${inp(G+`items.${m}.n`,'')}<label>${sel(`data-f="${G}items.${m}.d"`,it.d,GP_RES,GP_RES_L)}</label><button class="btn small" data-act="gpItUp" data-s="${k}" data-g="${j}" data-i="${m}">↑</button><button class="btn small danger" data-act="gpItDel" data-s="${k}" data-g="${j}" data-i="${m}">×</button></div>`).join('')}
+        <div class="btns"><button class="btn small" data-act="gpItAdd" data-s="${k}" data-g="${j}">+ 項目</button></div><div class="note">右の選択は「ふだんの結果」です。新しい月を作ると、この結果が入ります。印刷は3列に並びます(上から下、左から右の順)。</div></details>`});
+    h+=`<div class="btns"><select id="gpTpl${k}" class="gptpl">${GP_CKL.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}<option value="">空の表</option></select><button class="btn small" data-act="gpGrpAdd" data-s="${k}">+ 点検箇所の表</button></div></div>`});
+  h+=`<div class="btns"><button class="btn" data-act="gpSubAdd">+ 変電設備(次のページ)</button></div>
+  <div class="card"><h2>太陽光発電(オプション)</h2><div class="chk">${ck(P+'pv.on',g.pv.on,'月報に太陽光発電の表を入れる')}</div>
+    ${g.pv.on?`${inp(P+'pv.title','表の見出し')}${g.pv.pcs.map((pc,j)=>`<div class="gpie3">${inp(`${P}pv.pcs.${j}.n`,'名前')}${inp(`${P}pv.pcs.${j}.u1`,'指示値の単位','',{ph:'kW'})}${inp(`${P}pv.pcs.${j}.u2`,'積算の単位','',{ph:'kWh'})}<button class="btn small danger" data-act="gpPcsDel" data-i="${j}">×</button></div>`).join('')}
+    <div class="btns"><button class="btn small" data-act="gpPcsAdd">+ パワコン</button></div><div class="note">1枚目の点検箇所の下(特記事項の上)に、パワコンごとの指示値・積算・最終エラーの表が入ります。</div>`:''}</div>`;
+  return `${bar('月報の設定','gpBack')}<div class="wrap narrow">${h}</div>`}
+
+/* ----- 印刷 ----- */
+const GPT='自家用電気工作物巡視点検月報';
+function gpHead1(s,r,c){const g=gpOf(s),m=meBlock();const R=r.ins;
+  return `<div class="gp-t">${GPT}</div><div class="gp-top"><div class="gp-box">${gpYmTxt(r.ym)}</div><div class="gp-no">{{NO}}</div></div>
+  <table class="g"><colgroup><col style="width:15%"><col style="width:33%"><col style="width:7%"><col style="width:17%"><col style="width:21%"><col style="width:7%"></colgroup>
+    <tr><th class="lb" rowspan="2">事業場名</th><td rowspan="2">${esc(s.name)}</td><td rowspan="2"></td><th class="lb" rowspan="2">電気管理技術者</th><td class="sm">${m.no?(/番号/.test(m.no)?'':'管理技術者番号：')+esc(m.no):''}</td><td rowspan="2"></td></tr><tr><td>${esc(m.name)}</td></tr></table>
+  <table class="g"><colgroup><col style="width:15%"><col style="width:33%"><col style="width:13%"><col style="width:23%"><col style="width:13%"><col style="width:13%"></colgroup>
+    <tr><th class="lb" rowspan="2">供 給 者</th><td rowspan="2" class="${g.supplier.length>16?'sm':''}">${esc(g.supplier)}</td><th class="lb" rowspan="2">契約電力</th><td class="v">${c.contract?c.contract+' kW':''}</td><th class="lb" rowspan="2">契約種別</th><td rowspan="2" class="sm">${esc(g.ctype)}</td></tr><tr><td class="v sm">${esc(c.c2)}</td></tr></table>
+  <table class="g"><colgroup><col style="width:23%"><col style="width:13%"><col style="width:23%"><col style="width:13%"><col style="width:17%"><col style="width:11%"></colgroup>
+    <tr><th class="lb">検 針 値</th><td colspan="5" class="l">【 計量日 ${esc(g.mday)}日 ・ 乗率 ${esc(g.mult)} 】　　使用期間　${esc(c.period)}</td></tr>
+    <tr><td class="l sm">全日電力量　指針値</td><td class="v">${esc(f3(r.mr.kwh))}</td><td class="l sm">最大需要電力　指針値</td><td class="v">${esc(f3(r.mr.maxd))}</td><td class="l sm">力率 (%)</td><td class="v">${esc(r.mr.pf)}</td></tr>
+    <tr><td class="l sm">有効電力量　指針値</td><td class="v">${esc(f3(r.mr.act))}</td><td class="l sm">月間最大電力 (kW)</td><td class="v">${f0(c.maxkw)}</td><td class="l sm">最大電力前年比 (%)</td><td class="v">${f1(c.yoyMax)}</td></tr>
+    <tr><td class="l sm">無効電力量　指針値</td><td class="v">${esc(f3(r.mr.re))}</td><td class="l sm">月間使用電力量 (kWh)</td><td class="v">${f0(c.use)}</td><td class="l sm">電力量前年比 (%)</td><td class="v">${f1(c.yoyUse)}</td></tr></table>
+  ${(()=>{const W=[14,13,11,14,...g.rooms.map(x=>String(x).length>6?19:15)];const tw=W.reduce((a,b)=>a+b,0);const sc=tw>100?100/tw:1;
+    return `<table class="g" style="width:${Math.min(100,tw)}%"><colgroup>${W.map(w=>`<col style="width:${w*sc/Math.min(100,tw)*100}%">`).join('')}</colgroup>
+    <tr><th>点検日</th><th>時 刻</th><th>天 候</th><th class="sm">外気温度(℃)</th>${g.rooms.map(x=>`<th class="${String(x).length>6?'xs':'sm'}">${esc(x)}(℃)</th>`).join('')}</tr>
+    ${R.map((x,k)=>`<tr><td class="v">${gpMD(x.d)}</td><td class="v">${esc(String(x.tm||'').replace(/^0(\d)/,'$1'))}</td><td class="v">${esc(x.w)}</td><td class="v">${esc(x.ta)}</td>${g.rooms.map((_,j)=>`<td class="v">${esc(gv(x,'rt',j))}</td>`).join('')}</tr>`).join('')}</table>`})()}`}
+function gpHeadN(s,r,sb){return `<div class="gp-t">${GPT}</div><div class="gp-top"><div class="gp-box g">${esc(sb.name)}</div><div class="gp-box">${gpYmTxt(r.ym)}</div><div class="gp-no">{{NO}}</div></div>`}
+function gpBlockDoc(b,r){const F=gpFields(b);const ex=F.slice(6);const N=r.ins.length;const hv=b.t==='hv';
+  const EX={io:['漏れ電流','Ior (mA)'],oil:['絶縁油温度','(℃)'],kw:['電　力','(kW)'],pf:['力　率','(%)']};
+  const w0=12,wv=11,wa=10,we=ex.length?(100-w0-3*wv-3*wa)/ex.length:0;
+  return `<table class="g"><colgroup><col style="width:${w0}%">${`<col style="width:${wv}%">`.repeat(3)}${`<col style="width:${ex.length?wa:(100-w0-3*wv)/3}%">`.repeat(3)}${ex.map(()=>`<col style="width:${we}%">`).join('')}</colgroup>
+    <tr class="tt"><td colspan="${7+ex.length}">${gpBlockTitle(b)}</td></tr>
+    <tr><th rowspan="2">点検日</th><th colspan="3">電　圧　(${hv?'kV':'V'})</th><th colspan="3">電　流　(A)</th>${ex.map(([k])=>`<th class="${k==='oil'?'sm':''}">${EX[k][0]}</th>`).join('')}</tr>
+    <tr>${(b.t==='p1'?['R-N 間','T-N 間','R-T 間','R','N','T']:['R-S 間','S-T 間','R-T 間','R','S','T']).map(x=>`<th>${x}</th>`).join('')}${ex.map(([k])=>`<th class="sm">${EX[k][1]}</th>`).join('')}</tr>
+    ${Array.from({length:N},(_,k)=>`<tr><td class="v">${gpMD(r.ins[k].d)}</td>${F.map(([f])=>`<td class="v">${esc(gv(r,'m',b.id,k,f))}</td>`).join('')}</tr>`).join('')}</table>`}
+function gpCkDoc(sb,r){if(!sb.groups.length)return '';
+  return `<table class="g ck"><colgroup><col style="width:23%"><col style="width:10%"><col style="width:23%"><col style="width:10%"><col style="width:24%"><col style="width:10%"></colgroup>
+  ${sb.groups.map(gr=>{const L=gr.items,n=Math.max(1,Math.ceil(L.length/3));let h=`<tr>${(`<th class="h">${esc(gr.title)}</th><th class="h">結　果</th>`).repeat(3)}</tr>`;
+    for(let i=0;i<n;i++){h+='<tr>'+[0,1,2].map(c=>{const it=L[c*n+i];if(!it)return '<td></td><td></td>';const v=r.c[it.id]==null?'':r.c[it.id];const nm=String(it.n);
+      return `<td class="l ${nm.length>12?'xs':'sm'}">${esc(nm)}</td>${v==='／'?'<td class="sl"></td>':`<td class="v">${esc(v)}</td>`}`}).join('')+'</tr>'}
+    return h}).join('')}</table>`}
+function gpPvDoc(g,r){return `<table class="g"><colgroup><col style="width:16%"><col style="width:21%"><col style="width:25%"><col style="width:19%"><col style="width:19%"></colgroup>
+  <tr class="tt"><td colspan="5">${esc(g.pv.title||'太陽光発電設備')}</td></tr><tr><th>パワコン</th><th>指 示 値</th><th>積 算 値</th><th>最終エラー</th><th class="sm">エラー時間 (h)</th></tr>
+  ${g.pv.pcs.map(pc=>{const x=gv(r,'pv',pc.id)||{};return `<tr><td>${esc(pc.n)}</td><td class="v">${x.kw!==''&&x.kw!=null?esc(x.kw)+' '+esc(pc.u1||'kW'):''}</td><td class="v">${x.kwh!==''&&x.kwh!=null?esc(x.kwh)+' '+esc(pc.u2||'kWh'):''}</td><td class="v">${esc(x.err)}</td><td class="v">${esc(x.eh)}</td></tr>`}).join('')}</table>`}
+function gpNotesDoc(sb,r){const n=+sb.nl||0;if(!n)return '';return `<table class="g gnt">${Array.from({length:n},(_,j)=>{const t=String(gv(r,'n',sb.id,j));return `<tr><td class="${t.length>62?'xs':t.length>56?'sm':''}">${esc(t)}</td></tr>`}).join('')}</table>`}
+let gpMeasEl=null;
+function gpMeasure(html){if(!gpMeasEl){gpMeasEl=document.createElement('div');gpMeasEl.className='sheet p gp';gpMeasEl.style.cssText='position:absolute;left:-20000px;top:0;visibility:hidden';gpMeasEl.innerHTML='<div class="sheet-x"><div class="sheet-in"><div class="gpm"></div></div></div>';document.body.appendChild(gpMeasEl)}
+  const box=gpMeasEl.querySelector('.gpm');box.innerHTML=`<div class="gpc">${html}</div>`;const h=box.firstChild.offsetHeight;
+  const si=gpMeasEl.querySelector('.sheet-in');const cs=getComputedStyle(si);return {h,avail:si.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)}}
+function docGp(s,rid){const g=gpOf(s),r=s.gpr.find(x=>x.id===rid);if(!r)return [];const c=gpCalc(s,r);
+  const pages=[];let cur=null,avail=0;
+  const start=(head)=>{const m=gpMeasure(head);avail=m.avail;cur={html:[head],h:m.h};pages.push(cur)};
+  const add=(html,sb)=>{if(!html)return;const m=gpMeasure(html);if(cur.html.length>1&&cur.h+m.h>avail+1){start(gpHeadN(s,r,sb))}cur.html.push(html);cur.h+=m.h};
+  g.subs.forEach((sb,k)=>{
+    if(k===0)start(gpHead1(s,r,c));else if(sb.np!==false)start(gpHeadN(s,r,sb));
+    sb.blocks.forEach(b=>add(gpBlockDoc(b,r),sb));add(gpCkDoc(sb,r),sb);
+    if(k===0&&g.pv.on)add(gpPvDoc(g,r),sb);
+    add(gpNotesDoc(sb,r),sb)});
+  if(!g.subs.length)start(gpHead1(s,r,c));
+  const T=pages.length;
+  return pages.map((p,k)=>SH('p gp',p.html.map(x=>`<div class="gpc">${x}</div>`).join('').replace('{{NO}}',T>1?'№'+(k+1):'')))}
+
+/* ----- Excel 読み込み ----- */
+let GI=null;
+function gpLoadXlsx(){return window.XLSX?Promise.resolve():new Promise((ok,ng)=>{const sc=document.createElement('script');sc.src='https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';sc.onload=ok;sc.onerror=()=>ng(new Error('load'));document.head.appendChild(sc)})}
+const gnorm=s=>String(s==null?'':s).normalize('NFKC').replace(/[\s　]/g,'').replace(/[－−‐―]/g,'-').toLowerCase();
+function gpSheetGrid(ws){const rows={};let maxC=0,maxR=0;Object.keys(ws).forEach(k=>{if(k[0]==='!')return;const a=XLSX.utils.decode_cell(k);const cell=ws[k];if(cell.v==null||cell.v==='')return;(rows[a.r]=rows[a.r]||{})[a.c]=cell.v;if(a.c>maxC)maxC=a.c;if(a.r>maxR)maxR=a.r});return {rows,maxC,maxR}}
+function gpFindHdr(G){for(let r=0;r<=Math.min(G.maxR,30);r++){const row=G.rows[r]||{};const v=Object.values(row).filter(x=>typeof x==='string');if(v.length>=5&&v.some(x=>/点検日/.test(x)))return r}return 0}
+function gpCols(G,hdr){const H=G.rows[hdr]||{},U=G.rows[hdr-1]||{};const cols=[];let gp='';
+  for(let c=0;c<=G.maxC;c++){if(U[c]!=null&&String(U[c]).trim())gp=String(U[c]).trim();if(H[c]==null||String(H[c]).trim()==='')continue;cols.push({c,L:XLSX.utils.encode_col(c),g:gp,f:String(H[c]).trim(),n:gnorm(H[c])})}return cols}
+function gpTargets(g){const T=[];const t=(k,l,grp,kind)=>T.push({k,l,grp,kind});
+  t('mo','年月(この列の月を使います)','共通','month');t('no','点検回(1・2)','共通','num');t('d','点検日','共通','date');t('tm','時刻','共通','time');t('w','天候','共通','text');t('ta','外気温度','共通','num');
+  g.rooms.forEach((x,j)=>t('rt.'+j,x||'所内温度','共通','num'));
+  [['kwh','全日電力量 指針値'],['maxd','最大需要電力 指針値'],['act','有効電力量 指針値'],['re','無効電力量 指針値'],['pf','力率'],['use','月間使用電力量(計器交換の月の確認用)']].forEach(([k,l])=>t('mr.'+k,l,'検針値','num'));
+  if(g.cmode==='fix')t('mr.cfix','契約電力','検針値','num');
+  g.subs.forEach(sb=>{const G=sb.name||'設備';sb.blocks.forEach(b=>gpFields(b).forEach(([f,l])=>t(`m.${b.id}.${f}`,`${b.name} ${l}`,G,'num')));
+    sb.groups.forEach(gr=>gr.items.forEach(it=>t('c.'+it.id,`${gr.title} ${it.n}`,G,'text')));
+    for(let j=0;j<(+sb.nl||0);j++)t(`n.${sb.id}.${j}`,`特記事項 ${j+1}行目`,G,'text')});
+  if(g.pv.on)g.pv.pcs.forEach(pc=>[['kw','指示値'],['kwh','積算'],['err','最終エラー'],['eh','エラー時間']].forEach(([f,l])=>t(`pv.${pc.id}.${f}`,`${pc.n} ${l}`,'太陽光','text')));
+  return T}
+function gpGuess(g,cols){const M={};const first=(re,from)=>{const x=cols.find(c=>c.c>=(from||0)&&re.test(c.n));return x?x.c:null};
+  const put=(k,v)=>{if(v!=null)M[k]=v};
+  put('mo',first(/^(対象月|年月日|年月|月)$/));put('no',first(/点検回/));put('d',first(/^点検日$/));put('tm',first(/時刻/));put('w',first(/天候|天気/));put('ta',first(/外気/));
+  cols.filter(c=>/所内温度/.test(c.n)).forEach((c,j)=>{if(j<g.rooms.length)M['rt.'+j]=c.c});
+  put('mr.kwh',first(/全日電力量/));put('mr.maxd',first(/最大需要/));put('mr.act',first(/有効電力量/));put('mr.re',first(/無効電力量/));put('mr.pf',first(/^力率/));put('mr.use',first(/使用電力量|月間使用量/));
+  if(g.cmode==='fix')put('mr.cfix',first(/^契約電力/));
+  const idx=c=>cols.findIndex(x=>x.c===c);let ptr=0;
+  const seek=(re,win,okf)=>{for(let i=ptr;i<cols.length&&i<ptr+win;i++){if(re.test(cols[i].n)&&(!okf||okf(cols[i]))){ptr=i+1;return cols[i].c}}return null};
+  const FR={rs:b=>b.t==='p1'?/^(r-n|r-s)/:/^r-s/,st:b=>b.t==='p1'?/^(t-n|s-n|s-t)/:/^s-t/,rt:()=>/^r-t/,r:()=>/^r(\(.*\))?$/,s:b=>b.t==='p1'?/^(n|s)(\(.*\))?$/:/^s(\(.*\))?$/,t:()=>/^t(\(.*\))?$/,io:()=>/漏れ|^io/,oil:()=>/油温|絶縁油/,kw:()=>/^電力/,pf:()=>/力率/};
+  const itemRe=n=>{const s=gnorm(n);const base=s.replace(/\(.*?\)/g,'');const inner=(s.match(/\((.*?)\)/)||[])[1]||'';return c=>{if(/\(旧\)/.test(c.n))return false;const h=c.n.replace(/\((負荷|新)\)$/,'');const hb=h.replace(/\(.*?\)/g,'');
+    return h===s||hb===base||(hb.length>=2&&(base.includes(hb)||hb.includes(base)))||(inner&&(hb===inner||hb.includes(inner)))}};
+  g.subs.forEach((sb,k)=>{
+    sb.blocks.forEach(b=>{let firstF=true;gpFields(b).forEach(([f])=>{const v=seek(FR[f](b),firstF?80:4);if(v!=null){M[`m.${b.id}.${f}`]=v;firstF=false}})});
+    sb.groups.forEach(gr=>gr.items.forEach(it=>{const fn=itemRe(it.n);for(let i=ptr;i<cols.length&&i<ptr+30;i++){if(fn(cols[i])){M['c.'+it.id]=cols[i].c;ptr=i+1;break}}}));
+    if(k===0&&g.pv.on){g.pv.pcs.forEach((pc,j)=>{[['kw',/kw$/],['kwh',/kwh$/],['err',/^エラー$|エラーコード/],['eh',/エラータイム|エラー時間/]].forEach(([f,re],q)=>{const v=seek(re,j===0&&q===0?40:4);if(v!=null)M[`pv.${pc.id}.${f}`]=v})})}
+    if(+sb.nl>0){let j=0;const v=seek(/特記|備考|行目/,8);if(v!=null){M[`n.${sb.id}.0`]=v;j=1;while(j<+sb.nl&&ptr<cols.length&&/特記|備考|行目/.test(cols[ptr].n)){M[`n.${sb.id}.${j}`]=cols[ptr].c;ptr++;j++}}}
+  });
+  return M}
+function gpXDate(v){if(v==null||v==='')return null;if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*864e5));return {y:d.getUTCFullYear(),m:d.getUTCMonth()+1,d:d.getUTCDate()}}
+  const m=String(v).normalize('NFKC').match(/(\d{4})\D+(\d{1,2})(?:\D+(\d{1,2}))?/);return m?{y:+m[1],m:+m[2],d:m[3]?+m[3]:1}:null}
+function gpXVal(v,kind){if(v==null)return '';if(kind==='date'){const d=gpXDate(v);return d?`${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`:String(v)}
+  if(kind==='time'){if(typeof v==='number'){const f=v%1,mins=Math.round(f*1440);return `${String(Math.floor(mins/60)%24).padStart(2,'0')}:${String(mins%60).padStart(2,'0')}`}const t=String(v).trim().normalize('NFKC');const m=t.match(/^(\d{1,2}):(\d{2})/);return m?`${m[1].padStart(2,'0')}:${m[2]}`:t}
+  if(typeof v==='number')return String(+v.toPrecision(10));const s=String(v).trim();return s==='0'&&kind==='text'?'':s}
+function gpImpStart(file){toast('Excelを読み込んでいます…');gpLoadXlsx().then(()=>file.arrayBuffer()).then(buf=>{const wb=XLSX.read(buf,{type:'array'});
+    const names=wb.SheetNames;const pick=names.find(n=>/電力/.test(n)&&/デ.?[-ー]?タ|データ/.test(n))||names[0];GI={wb,file:file.name};gpImpSheet(pick);go({...view,name:'gpimp'})})
+  .catch(e=>toast(e&&e.message==='load'?'読み込みの部品を取得できませんでした(インターネット接続を確認してください)':'Excelを読み込めませんでした'))}
+function gpImpSheet(name){const s=site(),g=gpOf(s);GI.sheet=name;GI.G=gpSheetGrid(GI.wb.Sheets[name]);GI.hdr=gpFindHdr(GI.G);gpImpCols()}
+function gpImpCols(){const g=gpOf(site());GI.cols=gpCols(GI.G,GI.hdr);GI.T=gpTargets(g);GI.map=gpGuess(g,GI.cols);GI.off=GI.cols.some(c=>/提出月/.test(c.n))?1:0;GI.mode=GI.mode||'over'}
+function gpImpHTML(){if(!GI)return '';const G=GI.G;const opts=cur=>`<option value="">— 読まない —</option>`+GI.cols.map(c=>`<option value="${c.c}" ${c.c===cur?'selected':''}>${c.L}列 ${esc(c.g&&c.g!==c.f?c.g+' / ':'')}${esc(c.f)}</option>`).join('');
+  const grps=[...new Set(GI.T.map(t=>t.grp))];
+  const mo=GI.map.mo;let ex='';
+  if(mo!=null){const L=[];for(let r=GI.hdr+1;r<=G.maxR;r++){const v=(G.rows[r]||{})[mo];const d=gpXDate(v);if(d)L.push(d)}if(L.length){const a=L[0],b=L[L.length-1];ex=`${a.y}年${a.m}月 ～ ${b.y}年${b.m}月 の ${L.length}行`}}
+  return `${bar('Excelから読み込む','gpImpX')}<div class="wrap narrow">
+  <div class="card"><h2>ファイル：${esc(GI.file)}</h2>
+    <div class="g3"><label>シート${sel('data-gpi="sheet"',GI.sheet,GI.wb.SheetNames)}</label><label>見出しの行<input type="text" inputmode="decimal" data-gpi="hdr" value="${GI.hdr+1}"></label><label>月報の月${sel('data-gpi="off"',String(GI.off),['0','1'],['年月の列の月のまま','年月の列の次の月'])}</label></div>
+    <div class="note">${ex?'読み込む範囲：'+ex+'。':''}同じ月の月報がすでにあるときは、上書きします。<br>下の対応は自動で選んであります。違うところだけ選び直してください。</div></div>
+  ${grps.map(gp=>{const L=GI.T.filter(t=>t.grp===gp);const n=L.filter(t=>GI.map[t.k]!=null).length;
+    return `<details class="card gpmap" ${gp==='共通'||gp==='検針値'?'open':''}><summary><b>${esc(gp)}</b>　${n} / ${L.length} 項目を読みます</summary>${L.map(t=>`<label class="gpmr"><span>${esc(t.l)}</span><select data-gpm="${t.k}">${opts(GI.map[t.k])}</select></label>`).join('')}</details>`}).join('')}
+  <div class="btns"><button class="btn main" data-act="gpImpRun">読み込む</button><button class="btn" data-act="gpImpX">やめる</button></div></div>`}
+function gpImpRun(){const s=site(),g=gpOf(s),G=GI.G,M=GI.map,T=GI.T;if(M.mo==null){toast('年月の列を選んでください');return}
+  const kind={};T.forEach(t=>kind[t.k]=t.kind);const groups=new Map();
+  const solarOn=g.pv.on&&Object.keys(M).some(k=>k.startsWith('pv.'));
+  for(let rr=GI.hdr+1;rr<=G.maxR;rr++){const row=G.rows[rr];if(!row)continue;const d=gpXDate(row[M.mo]);if(!d)continue;const ym=gpYm(`${d.y}-${d.m}`,+GI.off);
+    const v={};Object.entries(M).forEach(([k,c])=>{if(c==null||k==='mo')return;const x=gpXVal(row[c],kind[k]);if(x!=='')v[k]=x});
+    const has=Object.keys(v).some(k=>/^(mr\.kwh|mr\.maxd|m\.|tm|ta|pv\.)/.test(k)&&/\d/.test(v[k]));if(!has)continue;
+    if(!groups.has(ym))groups.set(ym,[]);const L=groups.get(ym);const sig=JSON.stringify({...v,no:''});if(L.some(x=>x.sig===sig))continue;L.push({v,sig})}
+  if(!groups.size){toast('読み込める行がありませんでした');return}
+  const exist=[...groups.keys()].filter(ym=>gpRec(s,ym)).length;
+  if(exist&&!confirm(`${groups.size}か月分を読み込みます。そのうち ${exist}か月分は、今ある月報を上書きします。よろしいですか?`))return;
+  groups.forEach((L,ym)=>{let r=gpRec(s,ym);const nr={id:r?r.id:uid(),ym,mr:{kwh:'',maxd:'',act:'',re:'',pf:'',use:'',period:'',cfix:''},ins:[],m:{},c:{},n:{},pv:{}};
+    g.subs.forEach(sb=>sb.groups.forEach(gr=>gr.items.forEach(it=>{nr.c[it.id]=it.d})));
+    L.forEach((x,k0)=>{const k=x.v.no&&(+x.v.no===2)?1:x.v.no&&(+x.v.no===1)?0:k0;if(k>1)return;
+      nr.ins[k]=nr.ins[k]||{d:'',tm:'',w:'',ta:'',rt:[]};
+      Object.entries(x.v).forEach(([key,val])=>{const p=key.split('.');
+        if(key==='d'||key==='tm'||key==='w'||key==='ta'){nr.ins[k][key]=val;return}
+        if(p[0]==='rt'){nr.ins[k].rt[+p[1]]=val;return}
+        if(p[0]==='m'){((nr.m[p[1]]=nr.m[p[1]]||{})[k]=nr.m[p[1]][k]||{})[p[2]]=val;return}
+        if(k!==0)return;
+        if(p[0]==='mr'){nr.mr[p[1]]=val;return}
+        if(p[0]==='c'){nr.c[p[1]]=val;return}
+        if(p[0]==='n'){if(solarOn&&/^(太陽光PCS|最終エラー記録)/.test(val))return;(nr.n[p[1]]=nr.n[p[1]]||{})[p[2]]=val;return}
+        if(p[0]==='pv'){(nr.pv[p[1]]=nr.pv[p[1]]||{})[p[2]]=val}})});
+    for(let k=0;k<2;k++)if(!nr.ins[k]&&k===0)nr.ins[0]={d:'',tm:'',w:'',ta:'',rt:[]};nr.ins=nr.ins.filter(Boolean);
+    Object.keys(nr.n).forEach(sid=>{const a=Object.keys(nr.n[sid]).sort((x,y)=>x-y).map(j=>nr.n[sid][j]);nr.n[sid]=a.reduce((o,t,j)=>(o[j]=t,o),{})});
+    if(r)s.gpr[s.gpr.indexOf(r)]=nr;else s.gpr.push(nr)});
+  s.gpr.sort((a,b)=>a.ym.localeCompare(b.ym));
+  // 使用電力量:計算と合う月は計算に任せ、合わない月(計器交換など)だけ手入力として残す
+  [...groups.keys()].sort().forEach(ym=>{const r=gpRec(s,ym);const u=String(r.mr.use||'');if(u==='')return;const keep=u;r.mr.use='';const c=gpUse(s,r);if(isFinite(c)&&Math.abs(c-num(keep))<1)r.mr.use='';else r.mr.use=keep});
+  if(g.cmode==='fix')[...groups.keys()].forEach(ym=>{const r=gpRec(s,ym);if(r.mr.cfix&&num(r.mr.cfix)===num(g.cfix))r.mr.cfix=''});
+  save();const n=groups.size;GI=null;go({name:'site',sid:s.id,tab:'gp'});toast(`${n}か月分を読み込みました`)}
+
+/* ----- 画面の切り替え・操作 ----- */
+function gpViewHTML(){if(view.name==='gp')return gpCur()?gpRecHTML():(view={name:'site',sid:view.sid,tab:'gp'},siteHTML());if(view.name==='gpset')return gpSetHTML();if(view.name==='gpimp')return GI?gpImpHTML():(view={name:'site',sid:view.sid,tab:'gp'},siteHTML());return ''}
+function gpAct(a,b){const s=site();if(!s)return;const g=gpOf(s);const I=+b.dataset.i,S=+b.dataset.s;const sb=g.subs[S];
+  const rr=()=>{save();const y=window.scrollY;render();window.scrollTo(0,y)};
+  switch(a){
+    case 'gpOpen':go({name:'gp',sid:s.id,rid:b.dataset.id});break;
+    case 'gpBack':go({name:'site',sid:s.id,tab:'gp'});break;
+    case 'gpSet':go({name:'gpset',sid:s.id});break;
+    case 'gpNew':{const last=s.gpr.slice().sort((x,y)=>y.ym.localeCompare(x.ym))[0];const t=new Date();const ym=last?gpYm(last.ym,+g.iv||1):`${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}`;
+      const ex=gpRec(s,ym);if(ex){go({name:'gp',sid:s.id,rid:ex.id});break}const r=newGpRec(s,ym);s.gpr.push(r);s.gpr.sort((x,y)=>x.ym.localeCompare(y.ym));save();go({name:'gp',sid:s.id,rid:r.id});break}
+    case 'gpDel':{const r=gpCur();if(r&&confirm(`${gpYmTxt(r.ym)}の月報を削除しますか?`)){s.gpr=s.gpr.filter(x=>x!==r);save();go({name:'site',sid:s.id,tab:'gp'})}break}
+    case 'gpIns':{const r=gpCur();if(+b.dataset.v===2)r.ins.push({d:'',tm:'',w:'',ta:'',rt:[]});else if(confirm('2回目の点検の入力を消しますか?')){r.ins=r.ins.slice(0,1);Object.values(r.m).forEach(o=>{delete o[1]})}rr();break}
+    case 'gpDef':{const r=gpCur();const x=g.subs.find(q=>q.id===b.dataset.id);x.groups.forEach(gr=>gr.items.forEach(it=>{r.c[it.id]=it.d}));rr();break}
+    case 'gpPrint':{const r=gpCur();view.ret={...view};view={...view,name:'pv',docs:['gp:'+r.id]};render();window.scrollTo(0,0);break}
+    case 'gpRoomAdd':g.rooms.push('');rr();break;
+    case 'gpRoomDel':g.rooms.splice(I,1);rr();break;
+    case 'gpSubAdd':g.subs.push({id:uid(),name:`第${g.subs.length}変電設備`,blocks:[gpBlock('hv'),gpBlock('p3','動力 №１ バンク'),gpBlock('p1','電灯 №１ バンク')],groups:[gpGroup('subB'),gpGroup('loadB')],nl:0,np:true});rr();break;
+    case 'gpSubUp':mvArr(g.subs,I,-1);rr();break;
+    case 'gpSubDel':if(confirm(`「${g.subs[I].name}」を設定から削除しますか?(今までの月報の値は残りますが、印刷されなくなります)`)){g.subs.splice(I,1);rr()}break;
+    case 'gpBlkAdd':{const last=sb.blocks.filter(x=>x.t===b.dataset.t).slice(-1)[0];const nb=last?{...JSON.parse(JSON.stringify(last)),id:uid()}:gpBlock(b.dataset.t);sb.blocks.push(nb);rr();break}
+    case 'gpBlkUp':mvArr(sb.blocks,I,-1);rr();break;
+    case 'gpBlkDel':if(confirm(`「${sb.blocks[I].name}」を削除しますか?`)){sb.blocks.splice(I,1);rr()}break;
+    case 'gpGrpAdd':{const v=($('#gpTpl'+S)||{}).value;sb.groups.push(v?gpGroup(v):{id:uid(),title:'点検箇所',items:[{id:uid(),n:'',d:'良'}]});rr();break}
+    case 'gpGrpUp':mvArr(sb.groups,I,-1);rr();break;
+    case 'gpGrpDel':if(confirm('この点検箇所の表を削除しますか?')){sb.groups.splice(I,1);rr()}break;
+    case 'gpItAdd':sb.groups[+b.dataset.g].items.push({id:uid(),n:'',d:'良'});rr();break;
+    case 'gpItUp':mvArr(sb.groups[+b.dataset.g].items,I,-1);rr();break;
+    case 'gpItDel':sb.groups[+b.dataset.g].items.splice(I,1);rr();break;
+    case 'gpPcsAdd':g.pv.pcs.push({id:uid(),n:'PCS'+'①②③④⑤⑥⑦⑧⑨⑩'[g.pv.pcs.length%10],u1:'kW',u2:'kWh'});rr();break;
+    case 'gpPcsDel':g.pv.pcs.splice(I,1);rr();break;
+    case 'gpImp':$('#gpFile').click();break;
+    case 'gpImpX':GI=null;go({name:'site',sid:s.id,tab:'gp'});break;
+    case 'gpImpRun':gpImpRun();break;
+    case 'gpJsonSave':saveFile(new Blob([JSON.stringify({app:'kanri-geppo',v:1,name:s.name,gp:s.gp,gpr:s.gpr},null,1)],{type:'application/json'}),`${s.name.replace(/[\\/:*?"<>|]/g,'_')}_月報_${ymd()}.json`);break;
+  }}
+function gpJsonLoad(d){const s=site();if(!d||d.app!=='kanri-geppo'||!d.gp){toast('月報のデータではないようです');return}
+  const has=(s.gpr||[]).length;if(!confirm(`「${d.name||''}」の月報(設定と ${(d.gpr||[]).length}か月分)を、この事業場「${s.name}」に読み込みます。${has?'今の月報の設定は置き換わり、同じ月の記録は上書きされます。':''}よろしいですか?`))return;
+  s.gp=d.gp;s.gpr=s.gpr||[];(d.gpr||[]).forEach(r=>{const k=s.gpr.findIndex(x=>x.ym===r.ym);if(k>=0)s.gpr[k]=r;else s.gpr.push(r)});s.gpr.sort((a,b)=>a.ym.localeCompare(b.ym));save();render();toast(`${(d.gpr||[]).length}か月分を読み込みました`)}
+document.addEventListener('change',e=>{const t=e.target;
+  if(t.dataset.gpck){setPath(state,t.dataset.gpck,t.checked);save();const y=window.scrollY;render();window.scrollTo(0,y)}
+  if(t.dataset.gpym){const s=site(),r=gpCur();const v=t.value;if(!/^\d{4}-\d{2}$/.test(v)){t.value=r.ym;return}const o=gpRec(s,v);if(o&&o!==r){toast(`${gpYmTxt(v)}の月報はもうあります`);t.value=r.ym;return}r.ym=v;s.gpr.sort((a,b)=>a.ym.localeCompare(b.ym));save();render()}
+  if(t.dataset.gpi&&GI){const k=t.dataset.gpi;if(k==='sheet'){gpImpSheet(t.value)}else if(k==='hdr'){const n=parseInt(t.value,10);if(n>0){GI.hdr=n-1;gpImpCols()}}else if(k==='off'){GI.off=+t.value}render()}
+  if(t.dataset.gpm&&GI){if(t.value==='')delete GI.map[t.dataset.gpm];else GI.map[t.dataset.gpm]=+t.value;if(t.dataset.gpm==='mo')render()}
+  if(t.id==='gpFile'&&t.files[0]){const f=t.files[0];t.value='';if(/\.json$/i.test(f.name)){f.text().then(x=>{try{gpJsonLoad(JSON.parse(x.replace(/^﻿/,'')))}catch(err){toast('月報のデータではないようです')}})}else gpImpStart(f)}
+});
+function gpLive(p){if(/\.gpr\.\d+\.mr\./.test(p)){const e=document.getElementById('gpcalc');const r=gpCur();if(e&&r)e.innerHTML=gpCalcHTML(site(),r)}
+  if(/\.gp\.subs\.\d+\.name$/.test(p)||/\.gp\.subs\.\d+\.blocks\.\d+\.(kva|v)$/.test(p)){}}
 
 /* ===== バックアップ(事業場ごとに1ファイル) ===== */
 function hogoKeys(sid){return ['genjou','henko'].map(v=>'pcoord_'+sid+'_'+v)}
@@ -678,6 +1066,7 @@ function mvArr(a,k,d){const j=k+d;if(j<0||j>=a.length)return;[a[k],a[j]]=[a[j],a
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,s=site(),i=insp();
   if(a.startsWith('sld')){sldAct(a,b);return}
+  if(a.startsWith('gp')){gpAct(a,b);return}
   switch(a){
     case 'toHome':go({name:'home'});break;
     case 'toSite':go({name:'site',sid:view.sid,tab:'insp'});break;
@@ -729,7 +1118,7 @@ function openApp(k){const a=APPS.find(x=>x.k===k),s=site(),i=insp();const p=link
 function onField(t){const p=t.dataset.f||t.dataset.fr;setPath(state,p,t.value);
   // 接地の種別を変えたら規定値の既定
   if(/\.rows\.\d+\.k$/.test(p)){const r=getPath(state,p.replace(/\.k$/,''));if(!r.lim||Object.values(EARTH_LIM).includes(r.lim))r.lim=EARTH_LIM[t.value]}
-  save();
+  save();gpLive(p);
   const m=p.match(/^(.*\.(earth|hv|lv)\.secs\.\d+\.rows\.\d+\.)/);if(m){const el=document.getElementById('j-'+m[1]);if(el)el.innerHTML=badge(JF[m[2]](getPath(state,m[1].slice(0,-1))))}
   if(/secs\.\d+\.name$/.test(p)){const h=document.getElementById('h-'+p.slice(0,-4));if(h)h.textContent=t.value||'(名前なし)'}
   if(p.endsWith('.name')&&view.name==='site'&&p.split('.').length===3){const h=$('.bar h1');if(h)h.textContent=t.value}
