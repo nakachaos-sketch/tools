@@ -377,12 +377,27 @@ table.g.gnt td{border:none;border-bottom:1.6px dotted #000;text-align:left;paddi
 table.g.gnt td.sm{font-size:15.5pt}
 table.g.gnt td.xs{font-size:13.5pt}
 table.g.gnt tr:last-child td{border-bottom:none}
+/* ===== 委託事業場一覧表 ===== */
+.itks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;background:#f4f7fa;border-radius:6px;padding:6px 8px}
+.itks div{display:flex;flex-direction:column}.itks span{font-size:11px;color:var(--sub)}.itks b{font-size:17px;color:var(--meas);font-weight:700}
+.itks b.okv{color:var(--ok)}
+@media (max-width:560px){.itks{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.itkg{display:grid;grid-template-columns:110px 90px 100px minmax(0,1fr) auto;gap:6px;align-items:end;background:#fff8e1;border-radius:6px;padding:6px 8px}
+@media (max-width:560px){.itkg{grid-template-columns:repeat(2,minmax(0,1fr))}.itkg label:nth-child(4){grid-column:span 2}}
+.itkres{font-size:13px;line-height:1.6;background:#f4f7fa;border-radius:6px;padding:6px 8px}.itkres b{color:var(--meas)}
+.itkn{font-size:12px;line-height:1.7}
+.itk-top{display:flex;justify-content:space-between;font-size:19pt;padding:0 1mm 3mm}
+table.g.itkt th{font-size:17pt;height:11.5mm}table.g.itkt td{height:15mm}
+table.g.itkt tr.tot td{height:15mm;border-top:2.5px solid #000}
+.itk-me{display:flex;flex-direction:column;align-items:flex-end;gap:3mm;font-size:20pt;margin-top:8mm;padding-right:6mm}
+table.g.itkt td.l{white-space:normal;line-height:1.1}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <input type="file" id="importFile" hidden>
 <input type="file" id="gpFile" accept=".xlsx,.xlsm,.xls,.json" hidden>
+<input type="file" id="itkFile" accept=".json" hidden>
 <input type="file" id="imgFile" accept="image/*" hidden>
 <script>
 'use strict';
@@ -471,6 +486,7 @@ function render(){
   else if(view.name==='insp'&&insp())a.innerHTML=inspHTML();
   else if(view.name==='pv')a.innerHTML=pvHTML();
   else if(['gp','gpset','gpimp'].includes(view.name)&&site())a.innerHTML=gpViewHTML();
+  else if(view.name==='itk')a.innerHTML=itkHTML();
   else{view={name:'home'};a.innerHTML=homeHTML()}
   if(view.name==='pv')fit();
   document.body.classList.toggle('sld-m',view.name==='site'&&view.tab==='sld');
@@ -484,13 +500,14 @@ function homeHTML(){
     <div class="btns"><button class="btn main" data-act="newSite">+ 新しい事業場</button></div>
     <div class="list">${L.map(s=>{const last=s.insps.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
       return `<button class="item" data-act="openSite" data-id="${s.id}"><div class="t"><b>${esc(s.name)}</b><span>${esc(s.owner||'')}${last?` ・ 最新: ${fmtDate(last.date)} ${KIND[last.kind]}`:' ・ 点検記録なし'}</span></div><span class="badge b-none">${s.insps.length}件</span></button>`}).join('')||'<div class="empty">事業場がありません。「+ 新しい事業場」から作ります。</div>'}</div>
+    ${(()=>{const I=state.itaku;const c=I&&I.rows.length?itkCalc():null;return `<button class="item" data-act="itkOpen"><div class="t"><b>委託事業場一覧表(換算係数)</b><span>${c?`${c.n}件 ・ 換算係数の合計 ${itkF(c.total)} ・ ${c.total<33?'33未満':'33以上'}`:'担当している事業場の換算係数を計算して、一覧表を印刷します'}</span></div><span class="badge ${c&&c.total>=33?'b-ng':'b-ok'}">${c?itkF(c.total):'—'}</span></button>`})()}
     <div class="card"><h2>電気管理技術者(書類に印刷されます)</h2>
       <div class="g2">${inp('me.office','事務所名','',{ph:'例) ○○電気管理事務所'})}${inp('me.name','氏名','',{ph:'例) ○○ ○○'})}</div>
       <div class="g3">${inp('me.no','管理技術者 番号','',{ph:'例) F1234号'})}${inp('me.addr','住所','',{ph:'例) ○○県○○市○○町'})}${inp('me.tel','電話','',{ph:'例) 000-000-0000'})}</div></div>
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-19 月報</div></div>`}
+  <div class="ver">版 2026-11-19 一覧表</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -688,7 +705,7 @@ function docLv(s,i){const out=[];const LN=o3()==='P'?35:15;
       <tr><th>R-E間</th><th>${phL}</th><th>T-E間</th></tr>${body}</table>`))})});return out}
 function chunk(a,n){const o=[];for(let k=0;k<a.length;k+=n)o.push(a.slice(k,k+n));if(!o.length)o.push([]);return o}
 function buildDocs(docs){const s=site(),i=insp();const out=[];
-  docs.forEach(d=>{if(d.startsWith('gp:'))out.push(...docGp(s,d.slice(3)));if(d.startsWith('sld:')){const [,id,pg]=d.split(':');out.push(...docSld(s,id,pg!=null?+pg:null))}if(d==='sldall')sldList(s).filter(x=>!x.ov&&docPages(x).some(pgHas)).forEach(x=>out.push(...docSld(s,x.id)));if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
+  docs.forEach(d=>{if(d==='itk')out.push(...docItk());if(d.startsWith('gp:'))out.push(...docGp(s,d.slice(3)));if(d.startsWith('sld:')){const [,id,pg]=d.split(':');out.push(...docSld(s,id,pg!=null?+pg:null))}if(d==='sldall')sldList(s).filter(x=>!x.ov&&docPages(x).some(pgHas)).forEach(x=>out.push(...docSld(s,x.id)));if(d==='notice')out.push(...docNotice(s,i));if(d==='cover')out.push(...docCover(s,i));if(d==='report')out.push(...docReport(s,i));
     if(d==='ov')out.push(...docOv(s));if(d==='eq')out.push(...docEq(s));
     if(d==='earth'&&i.earth.secs.length)out.push(...docEarth(s,i));if(d==='hv'&&i.hv.secs.length)out.push(...docHv(s,i));if(d==='lv'&&i.lv.secs.length)out.push(...docLv(s,i))});
   return out}
@@ -1030,13 +1047,108 @@ document.addEventListener('change',e=>{const t=e.target;
 function gpLive(p){if(/\.gpr\.\d+\.mr\./.test(p)){const e=document.getElementById('gpcalc');const r=gpCur();if(e&&r)e.innerHTML=gpCalcHTML(site(),r)}
   if(/\.gp\.subs\.\d+\.name$/.test(p)||/\.gp\.subs\.\d+\.blocks\.\d+\.(kva|v)$/.test(p)){}}
 
+/* ===== 委託事業場一覧表(換算係数) 平成15年経済産業省告示第249号 第3条・第4条(令和6年11月15日施行の改正まで) ===== */
+const ITK_DT=[[64,0.4],[150,0.6],[350,0.8],[550,1.0],[750,1.2],[1000,1.4],[1300,1.6],[1650,1.8],[2000,2.0],[2700,2.2],[4000,2.4],[6000,2.6],[8800,2.8],[Infinity,3.0]];
+const ITK_GT=[[100,0.3],[300,0.4],[600,0.6],[1000,0.8],[1500,1.0],[2000,1.2],[2500,1.4],[3500,1.6],[5000,1.8]];
+const ITK_CAT=[['10','第10号(その他の需要設備)','毎月1回',1],['7','第7号(100kVA以下・低圧受電)','隔月1回',0.6],['8i','第8号イ(絶縁監視装置)','隔月1回',0.6],['8ro','第8号ロ(絶縁監視装置・遠隔点検)','毎月1回',0.6],['9','第9号(第7号＋屋内キュービクル等)','3か月に1回',0.45]];
+const ITK_GF={pv:[['4','第4号','6か月に1回',0.25],['4-2i','第4号の2イ','4か月に1回',0.32],['4-2ro','第4号の2ロ','6か月に1回',0.31],['4-2ha','第4号の2ハ','3か月に1回',0.33],['4-2ni','第4号の2ニ','2か月に1回',0.36],['4-3i','第4号の3イ','5か月に1回',0.32],['4-3ro','第4号の3ロ','6か月に1回',0.31],['4-3ha','第4号の3ハ','4か月に1回',0.32],['4-3ni','第4号の3ニ','3か月に1回',0.33]],
+  ic:[['2','第2号','毎月1回',1],['2-2','第2号の2','3か月に1回',0.45]],
+  gt:[['2','第2号','毎月1回',1],['2-2','第2号の2','3か月に1回',0.45],['2-2t','第2号の2ただし書','6か月に1回',0.25]],
+  fc:[['3','第3号','毎月1回',1]],wd:[['5','第5号','毎月1回',1]],hy:[['1','第1号','毎月2回',1]]};
+const ITK_TY=[['太陽光','pv'],['蓄電所','pv'],['内燃力','ic'],['ガスタービン','gt'],['燃料電池','fc'],['風力','wd'],['水力','hy']];
+function itkOf(){if(!state.itaku)state.itaku={date:'',rows:[]};return state.itaku}
+const r3=v=>Math.round(v*1000)/1000;
+const itkF=v=>isFinite(v)?String(r3(v)):'';
+function itkTbl(T,x){for(const [lim,c] of T)if(x<lim)return c;return NaN}
+function itkDem(r){const low=r.kv==='低圧';const kva=num(r.kva);if(!low&&!isFinite(kva))return null;const W=[];
+  const v=num(r.kv);if(isFinite(v)&&v>7000)W.push('7,000Vを超えて受電する需要設備は、外部委託の対象外です');
+  const small=!low&&kva<64&&!r.emg;let base,why;
+  if(low){base=0.3;why='低圧受電'}else if(small){base=0.2;why='小規模高圧需要設備(第3条第2項)'}else if(r.ev&&kva<1000){base=0.4;why='電気自動車の充電専用(第3条第2項)'}else{base=itkTbl(ITK_DT,kva);why=`${kva}kVA`}
+  let cat=ITK_CAT.find(c=>c[0]===(r.cat||'10'))||ITK_CAT[0],freq=cat[2],mult=cat[3],gou=cat[1].replace(/\(.*$/,'');
+  if(small){freq=r.reg?'6か月に1回':'3か月に1回';mult=1;gou='第6号'+(r.reg?'ただし書':'');if((r.cat||'10')!=='10')W.push('小規模高圧需要設備は第6号の頻度になります(信頼性区分は使いません)')}
+  if(!small&&!low&&['7','9'].includes(r.cat)&&kva>100)W.push(`${r.cat==='7'?'第7号':'第9号'}は、設備容量100kVA以下か低圧受電の需要設備に限ります`);
+  if(r.emg&&!low&&kva<64)W.push('非常用予備発電装置があるので、小規模高圧需要設備にはなりません');
+  return {base,mult,val:base*mult,freq,gou,why,small,W}}
+function itkGen(g){const kw=num(g.kw);if(!isFinite(kw))return null;const W=[];const grp=(ITK_TY.find(t=>t[0]===g.t)||ITK_TY[0])[1];
+  const O=ITK_GF[grp];const o=O.find(x=>x[0]===g.f)||O[0];let base=itkTbl(ITK_GT,kw);
+  if(kw>=5000)W.push('出力5,000kW以上の発電所は、外部委託の対象外です');
+  return {base,mult:o[3],val:base*o[3],freq:o[2],gou:o[1],W}}
+function itkCalc(){const I=itkOf();let all=0,cap=0,n=0;const sm=[];const R=I.rows.map(r=>{const d=itkDem(r);const G=(r.gens||[]).map(itkGen);
+    if(d){if(isFinite(d.val))all+=d.val;if(d.small)sm.push(d.val)}G.forEach(g=>{if(g&&isFinite(g.val))all+=g.val});
+    if(r.name||r.owner)n++;const k=num(r.kva);if(isFinite(k))cap+=k;
+    const sum=(d&&isFinite(d.val)?d.val:0)+G.reduce((a,g)=>a+(g&&isFinite(g.val)?g.val:0),0);return {d,G,sum}});
+  const ded=sm.slice(0,10).reduce((a,b)=>a+b,0);return {R,all,ded,total:all-ded,cap,n,nsm:sm.length}}
+const itkFq=s=>s==='毎月1回'?'1ヶ月':s==='毎月2回'?'月2回':s==='隔月1回'?'2ヶ月':String(s||'').replace(/か月に1回/,'ヶ月');
+function itkSumHTML(c){const ok=c.total<33;return `<div class="itks"><div><span>事業場</span><b>${c.n} 件</b></div><div><span>換算係数の合計</span><b>${itkF(c.total)}</b></div><div><span>判定(33未満)</span><b class="${ok?'okv':'ngv'}">${ok?'可':'否'}</b></div>${c.ded?`<div><span>小規模の控除</span><b>－${itkF(c.ded)}</b></div>`:''}</div>`}
+function itkRowRes(x){const L=[];if(x.d)L.push(`需要設備：${esc(x.d.why)} → ${itkF(x.d.base)} × ${x.d.mult} = <b>${itkF(x.d.val)}</b>　${esc(x.d.gou)}・${esc(x.d.freq)}`);
+  x.G.forEach((g,k)=>{if(g)L.push(`発電所${x.G.length>1?k+1:''}：${itkF(g.base)} × ${g.mult} = <b>${itkF(g.val)}</b>　${esc(g.gou)}・${esc(g.freq)}`)});
+  const W=[...(x.d?x.d.W:[]),...x.G.flatMap(g=>g?g.W:[])];
+  return (L.length?L.join('<br>')+`<br>この事業場の換算係数：<b>${itkF(x.sum)}</b>`:'設備容量を入れると計算します')+W.map(w=>`<div class="ngv">⚠ ${esc(w)}</div>`).join('')}
+function itkHTML(){const I=itkOf(),c=itkCalc();const ck=(path,v,l)=>`<label class="sw"><input type="checkbox" data-gpck="${path}" ${v?'checked':''}><span>${l}</span></label>`;
+  const rows=I.rows.map((r,k)=>{const P=`itaku.rows.${k}.`;const gt=(r.gens||[]).map((g,j)=>{const Q=`${P}gens.${j}.`;const grp=(ITK_TY.find(t=>t[0]===g.t)||ITK_TY[0])[1];
+      return `<div class="itkg"><label>発電所の種類${sel(`data-fr="${Q}t"`,g.t,ITK_TY.map(t=>t[0]))}</label>${inp(Q+'v','電圧(V)','',{dec:1})}${inp(Q+'kw','出力(kW)','',{dec:1})}<label>点検頻度の区分${sel(`data-fr="${Q}f"`,g.f||ITK_GF[grp][0][0],ITK_GF[grp].map(o=>o[0]),ITK_GF[grp].map(o=>`${o[1]}・${o[2]}`))}</label><button class="btn small danger" data-act="itkGenDel" data-i="${k}" data-j="${j}">×</button></div>`}).join('');
+    return `<div class="card itkr"><div class="sech"><h2>${k+1}. ${esc(r.name||r.owner||'(名前なし)')}</h2><div class="btns"><button class="btn small" data-act="itkUp" data-i="${k}">↑</button><button class="btn small danger" data-act="itkDel" data-i="${k}">削除</button></div></div>
+      <div class="g2">${inp(P+'owner','設置者名称')}${inp(P+'name','事業場名称')}</div>
+      <div class="g4"><label>受電電圧${sel(`data-fr="${P}kv"`,r.kv||'6600',['6600','3300','低圧','22000'],['6,600V','3,300V','低圧','22,000V'])}</label>${r.kv==='低圧'?'<span></span>':inp(P+'kva','設備容量(kVA)','',{dec:1})}<label class="span2">信頼性区分(点検頻度)${sel(`data-fr="${P}cat"`,r.cat||'10',ITK_CAT.map(x=>x[0]),ITK_CAT.map(x=>`${x[1]}・${x[2]}`))}</label></div>
+      <div class="chk">${ck(P+'emg',r.emg,'非常用予備発電装置あり')}${ck(P+'ev',r.ev,'電気自動車の充電専用')}${ck(P+'reg',r.reg,'登録点検業務受託法人が点検(小規模のみ)')}</div>
+      ${gt}<div class="btns"><button class="btn small" data-act="itkGenAdd" data-i="${k}">+ 発電所(太陽光など)</button></div>
+      <div class="itkres" id="itk-r-${k}">${itkRowRes(c.R[k])}</div></div>`}).join('');
+  return `${bar('委託事業場一覧表','toHome',`<button data-act="itkPrint">印刷</button>`)}<div class="wrap narrow">
+  <div class="card"><h2>換算係数の合計</h2><div class="g3">${inp('itaku.date','一覧表の日付','',{type:'date'})}</div><div id="itk-sum">${itkSumHTML(c)}</div>
+    <div class="note">告示第249号第3条の換算係数で計算します。1人が担当できるのは、合計33未満です。</div></div>
+  ${rows||'<div class="empty">事業場がありません。</div>'}
+  <div class="btns"><button class="btn main" data-act="itkAdd">+ 事業場</button><button class="btn" data-act="itkFromSites">管理アプリの事業場から取り込む</button>${I.rows.length?'':'<button class="btn" data-act="itkSample">見本を入れる</button>'}<button class="btn main" data-act="itkPrint">印刷プレビュー</button></div>
+  <div class="card"><h2>保存・読込</h2><div class="btns"><button class="btn" data-act="itkSave">一覧表を保存</button><button class="btn" data-act="itkLoad">一覧表を読込</button></div><div class="note">「全部をバックアップ」にも入ります。</div></div>
+  <details class="card"><summary><b>計算のしかた(告示第249号)</b></summary><div class="note itkn">
+    <b>需要設備の基本の係数(第3条第1項)</b>：低圧受電 0.3／高圧 64kVA未満 0.4、64～150kVA 0.6、150～350kVA 0.8、350～550kVA 1.0、550～750kVA 1.2、750～1,000kVA 1.4、1,000～1,300kVA 1.6、1,300～1,650kVA 1.8、1,650～2,000kVA 2.0、2,000～2,700kVA 2.2、2,700～4,000kVA 2.4、4,000～6,000kVA 2.6、6,000～8,800kVA 2.8、8,800kVA以上 3.0(「～」は以上・未満)<br>
+    <b>発電所・蓄電所(出力)</b>：100kW未満 0.3、100～300kW 0.4、300～600kW 0.6、600～1,000kW 0.8、1,000～1,500kW 1.0、1,500～2,000kW 1.2、2,000～2,500kW 1.4、2,500～3,500kW 1.6、3,500～5,000kW 1.8<br>
+    <b>置き換え(第3条第2項)</b>：小規模高圧需要設備(64kVA未満で非常用予備発電装置なし) 0.2、電気自動車の充電専用(1,000kVA未満) 0.4<br>
+    <b>かける数(第3条第3項)</b>：第7号・第8号の需要設備 ×0.6、第9号の需要設備 ×0.45(どちらも小規模を除く)、太陽電池発電所・蓄電所(第4号) ×0.25、第4号の2・第4号の3 ×0.31～0.36、内燃力などの第2号の2 ×0.45、同ただし書 ×0.25<br>
+    <b>小規模の控除(第3条第1項ただし書)</b>：小規模高圧需要設備は、10事業場分までを合計から差し引きます。<br>
+    <b>点検頻度(第4条)</b>：第7号は「設備容量100kVA以下または低圧受電」でイ～ニの条件。第8号は第7号のイ～ニの条件に適合し、イ(絶縁監視装置など)は隔月、ロ(遠隔点検)は毎月。第9号は第7号に適合し、屋内のキュービクル式で蓄電池・非常用予備発電装置がないもの。<br>
+    発電所と需要設備が同じ事業場にあるときは、両方の換算係数を足して事業場の値にします(経済産業省の委託事業場一覧表の様式と同じ)。</div></details></div>`}
+function itkLive(){const c=itkCalc();const e=document.getElementById('itk-sum');if(e)e.innerHTML=itkSumHTML(c);c.R.forEach((x,k)=>{const el=document.getElementById('itk-r-'+k);if(el)el.innerHTML=itkRowRes(x)})}
+function docItk(){const I=itkOf(),c=itkCalc(),m=meBlock();const L=[];
+  I.rows.forEach((r,k)=>{const x=c.R[k];L.push({no:k+1,owner:r.owner,name:r.name,kv:r.kv==='低圧'?'低圧':(num(r.kv)||'').toLocaleString('ja-JP'),kva:r.kv==='低圧'?'':(isFinite(num(r.kva))?num(r.kva).toLocaleString('ja-JP'):''),fq:x.d?itkFq(x.d.freq):'',val:x.d?itkF(x.d.val):''});
+    (r.gens||[]).forEach((g,j)=>{const y=x.G[j];L.push({sub:1,name:`└ ${g.t||''}発電`,fq:y?itkFq(y.freq):'',gt:g.t,gv:g.v?num(g.v).toLocaleString('ja-JP'):'',kw:g.kw,val:y?itkF(y.val):''})})});
+  const N=24;const P=chunk(L,N);const d=String(I.date||'').match(/(\d+)-(\d+)-(\d+)/);
+  return P.map((pg,pi)=>{const rows=pg.concat(Array(Math.max(0,N-pg.length)).fill(null)).map(x=>x?`<tr><td>${x.no||''}</td><td class="l ${String(x.owner||'').length>10?'xs':'sm'}">${esc(x.owner||'')}</td><td class="l ${String(x.name||'').length>12?'xs':'sm'}">${esc(x.name||'')}</td><td class="v">${esc(x.kv||'')}</td><td class="v">${esc(x.kva||'')}</td><td class="v">${esc(x.fq)}</td><td class="v sm">${esc(x.gt||'')}</td><td class="v">${esc(x.gv||'')}</td><td class="v">${esc(x.kw||'')}</td><td class="v">${esc(x.val)}</td></tr>`:'<tr>'+'<td></td>'.repeat(10)+'</tr>').join('');
+    const last=pi===P.length-1;
+    return SH('p gp',`<div class="gp-t" style="letter-spacing:.3em">委託事業場一覧表</div>
+      <div class="itk-top"><span>電気管理技術者が担当している事業場(今回申請分含む)</span><span>${d?`${+d[1]}年${+d[2]}月${+d[3]}日 現在`:''}${P.length>1?`　${pi+1}/${P.length}`:''}</span></div>
+      <table class="g itkt"><colgroup><col style="width:5%"><col style="width:20%"><col style="width:23%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:7%"></colgroup>
+      <tr><th rowspan="2"></th><th rowspan="2" colspan="2">設置者名称　及び　事業場名称</th><th>受 電</th><th>設 備</th><th>点 検</th><th colspan="3">発 電 所</th><th rowspan="2">換算<br>係数</th></tr>
+      <tr><th>電 圧</th><th>容 量</th><th>頻 度</th><th>種 類</th><th>電圧</th><th>出 力</th></tr>${rows}
+      ${last?`<tr class="tot"><td colspan="3" class="l">合計件数　${c.n} 件</td><td colspan="2" class="v">${c.cap?c.cap.toLocaleString('ja-JP')+' kVA':''}</td><td colspan="4" class="l">換算係数合計${c.ded?`(小規模の控除 －${itkF(c.ded)} 後)`:''}</td><td class="v">${itkF(c.total)}</td></tr>`:''}</table>
+      ${last?`<div class="itk-me"><div>電気管理技術者　(氏　名)　${esc(m.name)}</div><div>(整理番号)　${esc(m.no)}</div></div>`:''}`)})}
+function itkAct(a,b){const I=itkOf();const k=+b.dataset.i;const rr=()=>{save();const y=window.scrollY;render();window.scrollTo(0,y)};
+  switch(a){
+    case 'itkOpen':go({name:'itk'});break;
+    case 'itkAdd':I.rows.push({id:uid(),owner:'',name:'',kv:'6600',kva:'',cat:'10',gens:[]});rr();break;
+    case 'itkDel':if(confirm(`「${I.rows[k].name||I.rows[k].owner||'この事業場'}」を一覧から削除しますか?`)){I.rows.splice(k,1);rr()}break;
+    case 'itkUp':mvArr(I.rows,k,-1);rr();break;
+    case 'itkGenAdd':(I.rows[k].gens=I.rows[k].gens||[]).push({t:'太陽光',v:'',kw:'',f:'4'});rr();break;
+    case 'itkGenDel':I.rows[k].gens.splice(+b.dataset.j,1);rr();break;
+    case 'itkFromSites':{const have=new Set(I.rows.map(r=>r.name));let n=0;state.sites.forEach(s=>{if(!have.has(s.name)){I.rows.push({id:uid(),owner:s.owner||'',name:s.name,kv:'6600',kva:(s.ov&&s.ov.recvKVA)||'',cat:'10',gens:[]});n++}});rr();toast(n?`${n}件を取り込みました`:'取り込む事業場はありません');break}
+    case 'itkSample':I.date=new Date().toISOString().slice(0,10);I.rows=[{id:uid(),owner:'○○工業株式会社',name:'○○工業株式会社 本社工場',kv:'6600',kva:'500',cat:'10',gens:[]},
+      {id:uid(),owner:'株式会社△△',name:'株式会社△△ 第二工場',kv:'6600',kva:'2500',cat:'10',gens:[{t:'太陽光',v:'420',kw:'150',f:'4'}]},
+      {id:uid(),owner:'□□商店',name:'□□商店',kv:'6600',kva:'50',cat:'10',gens:[]},
+      {id:uid(),owner:'医療法人◇◇会',name:'◇◇クリニック',kv:'6600',kva:'100',cat:'7',gens:[]}];rr();break;
+    case 'itkPrint':view={name:'pv',docs:['itk'],ret:{name:'itk'}};render();window.scrollTo(0,0);break;
+    case 'itkSave':saveFile(new Blob([JSON.stringify({app:'kanri-itaku',v:1,itaku:I},null,1)],{type:'application/json'}),`委託事業場一覧表_${ymd()}.json`);break;
+    case 'itkLoad':$('#itkFile').click();break;
+  }}
+document.addEventListener('change',e=>{const t=e.target;if(t.id==='itkFile'&&t.files[0]){const f=t.files[0];t.value='';f.text().then(x=>{let d;try{d=JSON.parse(x.replace(/^﻿/,''))}catch(err){}
+  const it=d&&(d.app==='kanri-itaku'?d.itaku:d.app==='kanri'?d.itaku:null);if(!it||!Array.isArray(it.rows)){toast('一覧表のデータではないようです');return}
+  if(itkOf().rows.length&&!confirm('今の一覧表を、読み込んだ内容で置き換えますか?'))return;state.itaku=it;save();render();toast(`${it.rows.length}件を読み込みました`)})}});
+
 /* ===== バックアップ(事業場ごとに1ファイル) ===== */
 function hogoKeys(sid){return ['genjou','henko'].map(v=>'pcoord_'+sid+'_'+v)}
 function collect(sites){const apps={};
   APPS.forEach(a=>{const st=readApp(a.key);if(!st)return;const ids=new Set();sites.forEach(s=>s.insps.forEach(i=>{if(i.links&&i.links[a.k])ids.add(i.links[a.k])}));
     const ps=(st.projects||[]).filter(p=>ids.has(p.id));if(ps.length)apps[a.key]=ps});
   const hg={};sites.forEach(s=>hogoKeys(s.id).forEach(k=>{const v=localStorage.getItem(k);if(v!=null)hg[k]=v}));
-  return {app:'kanri',v:1,me:state.me,sites,apps,hogo:hg}}
+  return {app:'kanri',v:1,me:state.me,sites,apps,hogo:hg,...(sites===state.sites&&state.itaku?{itaku:state.itaku}:{})}}
 function saveFile(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;
   const dl=()=>{document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)};
   const err=e=>{if(e&&e.name==='AbortError')return;dl()};
@@ -1050,7 +1162,8 @@ function exportSites(sites,name){saveFile(new Blob([JSON.stringify(collect(sites
 function importData(d){
   if(!d||d.app!=='kanri'||!Array.isArray(d.sites)){toast(d&&d.app?'これは管理アプリのバックアップではありません':'バックアップファイルではないようです');return}
   d.sites.forEach(s=>{const k=state.sites.findIndex(x=>x.id===s.id);if(k>=0)state.sites[k]=s;else state.sites.push(s)});
-  if(d.me&&!state.me.name)state.me=d.me;save();
+  if(d.me&&!state.me.name)state.me=d.me;
+  if(d.itaku&&Array.isArray(d.itaku.rows)&&(!state.itaku||!state.itaku.rows.length||confirm('委託事業場一覧表も、バックアップの内容に置き換えますか?')))state.itaku=d.itaku;save();
   let n=0;Object.entries(d.apps||{}).forEach(([key,ps])=>{const a=APPS.find(x=>x.key===key);if(!a)return;const st=readApp(key)||{v:1,projects:[]};st.projects=st.projects||[];
     const pf=['cable','taiatsu'].includes(a.k)?'items':'relays';
     ps.filter(p=>p&&Array.isArray(p[pf])).forEach(p=>{const k=st.projects.findIndex(x=>x.id===p.id);if(k>=0)st.projects[k]=p;else st.projects.push(p);n++});
@@ -1067,6 +1180,7 @@ document.addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act,s=site(),i=insp();
   if(a.startsWith('sld')){sldAct(a,b);return}
   if(a.startsWith('gp')){gpAct(a,b);return}
+  if(a.startsWith('itk')){itkAct(a,b);return}
   switch(a){
     case 'toHome':go({name:'home'});break;
     case 'toSite':go({name:'site',sid:view.sid,tab:'insp'});break;
@@ -1118,7 +1232,7 @@ function openApp(k){const a=APPS.find(x=>x.k===k),s=site(),i=insp();const p=link
 function onField(t){const p=t.dataset.f||t.dataset.fr;setPath(state,p,t.value);
   // 接地の種別を変えたら規定値の既定
   if(/\.rows\.\d+\.k$/.test(p)){const r=getPath(state,p.replace(/\.k$/,''));if(!r.lim||Object.values(EARTH_LIM).includes(r.lim))r.lim=EARTH_LIM[t.value]}
-  save();gpLive(p);
+  save();gpLive(p);if(p.startsWith('itaku.'))itkLive();
   const m=p.match(/^(.*\.(earth|hv|lv)\.secs\.\d+\.rows\.\d+\.)/);if(m){const el=document.getElementById('j-'+m[1]);if(el)el.innerHTML=badge(JF[m[2]](getPath(state,m[1].slice(0,-1))))}
   if(/secs\.\d+\.name$/.test(p)){const h=document.getElementById('h-'+p.slice(0,-4));if(h)h.textContent=t.value||'(名前なし)'}
   if(p.endsWith('.name')&&view.name==='site'&&p.split('.').length===3){const h=$('.bar h1');if(h)h.textContent=t.value}
