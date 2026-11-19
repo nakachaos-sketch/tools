@@ -388,8 +388,9 @@ table.g.gnt tr:last-child td{border-bottom:none}
 .itkn{font-size:12px;line-height:1.7}
 .itk-top{display:flex;justify-content:space-between;font-size:19pt;padding:0 1mm 3mm}
 table.g.itkt th{font-size:17pt;height:11mm;line-height:1.25}table.g.itkt td{height:15.4mm}
-table.g.itkt .tr{border-right:.5px solid #000}table.g.itkt .tl{border-left:.5px solid #000}
-table.g.itkt td.nr{border-right:.5px solid #000}table.g.itkt td.nl{border-left:.5px solid #000}
+table.g.itkt .tr{border-right:.3px solid #888}table.g.itkt .tl{border-left:.3px solid #888}
+table.g.itkt td.nr{border-right:.3px solid #888}table.g.itkt td.nl{border-left:.3px solid #888}
+table.g.itkt .vv{color:#1a3fbf}
 table.g.itkt td.r{text-align:right;padding-right:3mm}
 table.g.itkt tr.tot td{height:15mm;border-top:2.5px solid #000}
 .itk-me{display:flex;flex-direction:column;align-items:flex-end;gap:2mm;font-size:20pt;margin-top:5mm;padding-right:6mm}
@@ -1126,7 +1127,7 @@ function docItk(){const I=itkOf(),c=itkCalc(),m=meBlock();const L=[];
       <table class="g itkt"><colgroup><col style="width:5%"><col style="width:20%"><col style="width:23%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:8%"><col style="width:6%"><col style="width:7%"><col style="width:7%"></colgroup>
       <tr><th rowspan="2" colspan="3">設置者名称　及び　事業場名称</th><th rowspan="2">受 電<br>電 圧</th><th rowspan="2">設 備<br>容 量</th><th rowspan="2">点 検<br>頻 度</th><th colspan="3">発 電 所</th><th rowspan="2">換算<br>係数</th></tr>
       <tr><th class="tr">種 類</th><th class="tl tr">電圧</th><th class="tl">出 力</th></tr>${rows}
-      ${last?`<tr class="tot"><td colspan="2" class="r">合計件数　${c.n} 件</td><td class="r">設備容量合計</td><td colspan="2" class="v">${c.cap?c.cap.toLocaleString('ja-JP')+' kVA':''}</td><td colspan="4" class="l">換算係数合計${c.ded?`（小規模の控除 －${itkF(c.ded)} 後）`:''}</td><td class="v">${itkF(c.total)}</td></tr>`:''}</table>
+      ${last?`<tr class="tot"><td colspan="2">合計件数　${c.n} 件</td><td colspan="3">設備容量合計　<span class="vv">${c.cap?c.cap.toLocaleString('ja-JP')+' kVA':''}</span></td><td colspan="4">換算係数合計${c.ded?`（小規模の控除 －${itkF(c.ded)} 後）`:''}</td><td class="v">${itkF(c.total)}</td></tr>`:''}</table>
       ${last?`<div class="itk-me"><div>電気管理技術者　（氏　名）　${esc(m.name)}</div><div>（整理番号）　${esc(m.no)}</div></div>`:''}`))})}
 function itkAct(a,b){const I=itkOf();const k=+b.dataset.i;const rr=()=>{save();const y=window.scrollY;render();window.scrollTo(0,y)};
   switch(a){
