@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<!-- © 2026 中島電気管理事務所 All rights reserved. このプログラムの無断複製・転用・再配布を禁じます。 -->
-<meta name="copyright" content="© 2026 中島電気管理事務所">
+<!-- © 2026 なかでんラボ All rights reserved. このプログラムの無断複製・転用・再配布を禁じます。 -->
+<meta name="copyright" content="© 2026 なかでんラボ">
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>自家用電気工作物 管理</title>
+<title>でんきのきろく ― 電気管理技術者の点検ノート</title>
 <meta name="apple-mobile-web-app-title" content="工作物管理">
 <meta name="application-name" content="工作物管理">
 <link rel="apple-touch-icon" href="icons/kanri-180.png?v=1">
@@ -503,7 +503,7 @@ function render(){
 function homeHTML(){
   const L=state.sites.slice().sort((a,b)=>a.name.localeCompare(b.name,'ja'));
   const p='me.';
-  return `${bar('自家用電気工作物 管理')}
+  return `${bar('でんきのきろく')}
   <div class="wrap narrow">
     <div class="btns"><button class="btn main" data-act="newSite">+ 新しい事業場</button></div>
     <div class="list">${L.map(s=>{const last=s.insps.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''))[0];
@@ -515,7 +515,7 @@ function homeHTML(){
     <div class="card"><h2>バックアップ(全部の事業場をまとめて)</h2>
       <div class="btns"><button class="btn" data-act="exportAll">全部をバックアップ</button><button class="btn" data-act="importJson">バックアップを読込</button></div>
       <div class="note">入力した内容は、この端末(ブラウザ)の中だけに保存されます。インターネット上には公開されません。<br>事業場ごとのバックアップは、事業場の画面から保存できます。各成績表アプリ(OCR・DGR など)でこの管理アプリから作った成績表も、いっしょに保存・読込されます。</div></div>
-  <div class="ver">版 2026-11-19 一覧表</div></div>`}
+  <div class="ver">版 2026-11-20</div></div>`}
 function tabs(cur,list){return `<div class="tabs noprint">${list.map(([k,l])=>`<button class="${cur===k?'on':''}" data-act="tab" data-tab="${k}">${l}</button>`).join('')}</div>`}
 function siteHTML(){
   const s=site(),si=sIdx(),P=`sites.${si}.`,tab=view.tab||'insp';
@@ -1636,7 +1636,7 @@ function sldMerge(D){D=D||sldData();const key=q=>q.map(v=>(+v).toFixed(3)).join(
   return D}
 
 </script>
-<div class="cpy" style="text-align:center;font-size:11px;color:#8a95a3;padding:14px 8px 20px;font-family:sans-serif">© 2026 中島電気管理事務所　無断複製・転用を禁じます</div>
+<div class="cpy" style="text-align:center;font-size:11px;color:#8a95a3;padding:14px 8px 20px;font-family:sans-serif">© 2026 なかでんラボ　無断複製・転用を禁じます</div>
 <style>@media print{.cpy{display:none!important}}</style>
 </body>
 </html>
