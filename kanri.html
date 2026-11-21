@@ -400,15 +400,20 @@ table.g.itkt tr.tot td{height:15mm;border-top:2.5px solid #000}
 table.g.itkt td.l{white-space:normal;line-height:1.1}
 table.g .xxs{font-size:12pt}
 /* 月報の印刷:手直し(2026-11-22) */
-table.g.hd{margin-bottom:4mm}
+table.g.hd{margin-bottom:4.6mm}
+.gp-top{margin-bottom:4.6mm}
+.gpc>table.g.hd:last-child{margin-bottom:0}
 table.g th.gy{background:#d9d9d9}
 table.g td.me{line-height:1.5}
 .gp-top.gsub{gap:0}.gp-top.gsub .gp-box.g{width:83mm}.gp-top.gsub .gp-box.m{width:77mm;margin-left:42mm}
 /* ゆったり:Excelの行の高さ(24pt×93%)に合わせる */
 .sheet.gpl table.g th,.sheet.gpl table.g td{height:15.6mm}
-.sheet.gpl table.g.hd{margin-bottom:6.8mm}
-.sheet.gpl table.g.gb th,.sheet.gpl table.g.gb td{height:14mm}
-.sheet.gpl .gpc.gbc{padding-bottom:2mm}
+.sheet.gpl table.g.hd{margin-bottom:5.4mm}
+.sheet.gpl .gp-top{margin-bottom:5.4mm}
+.sheet.gpl .gpc{padding-bottom:5.4mm}
+.sheet.gpl .gpc>table.g.hd:last-child{margin-bottom:0}
+.sheet.gpl table.g.gb th,.sheet.gpl table.g.gb td{height:13.2mm}
+.sheet.gpl .gpc.gbc{padding-bottom:5.4mm}
 </style>
 </head>
 <body>
@@ -882,17 +887,18 @@ const GPT='自家用電気工作物巡視点検月報';
 function gpHead1(s,r,c){const g=gpOf(s),m=meBlock();const R=r.ins;
   return `<div class="gp-t">${GPT}</div><div class="gp-top"><div class="gp-box">${gpYmTxt(r.ym)}</div><div class="gp-no">{{NO}}</div></div>
   <table class="g hd"><colgroup><col style="width:15%"><col style="width:33%"><col style="width:7%"><col style="width:17%"><col style="width:21%"><col style="width:7%"></colgroup>
-    <tr><th class="lb" rowspan="2">事業場名</th><td rowspan="2">${esc(s.name)}</td><td rowspan="2"></td><th class="lb" rowspan="2">電気管理技術者</th><td rowspan="2" class="me">${m.no?`<div class="sm">${esc(m.no)}</div>`:''}<div>${esc(m.name)}</div></td><td rowspan="2"></td></tr><tr></tr></table>
+    <tr><th class="lb" rowspan="2">事業場名</th><td rowspan="2">${esc(s.name)}</td><td rowspan="2"></td><th class="lb" rowspan="2">電気管理技術者</th><td rowspan="2" class="me">${m.no?`<div>${esc(m.no)}</div>`:''}<div>${esc(m.name)}</div></td><td rowspan="2"></td></tr><tr></tr></table>
   <table class="g hd"><colgroup><col style="width:15%"><col style="width:33%"><col style="width:11.3%"><col style="width:17%"><col style="width:12%"><col style="width:11.7%"></colgroup>
-    <tr><th class="lb" rowspan="2">供 給 者</th><td rowspan="2" class="${g.supplier.length>16?'sm':''}">${esc(g.supplier)}</td><th class="lb" rowspan="2">契約電力</th><td class="v">${c.contract?c.contract+' kW':''}</td><th class="lb" rowspan="2">契約種別</th><td rowspan="2" class="sm">${esc(g.ctype)}</td></tr><tr><td class="v xs">${esc(c.c2)}</td></tr></table>
+    <tr><th class="lb" rowspan="2">供 給 者</th><td rowspan="2" class="${g.supplier.length>16?'sm':''}">${esc(g.supplier)}</td><th class="lb" rowspan="2">契約電力</th><td class="v">${c.contract?c.contract+' kW':''}</td><th class="lb" rowspan="2">契約種別</th><td rowspan="2" class="sm">${esc(g.ctype)}</td></tr><tr><td class="v ${String(c.c2).length>16?'xs':String(c.c2).length>13?'sm':''}">${esc(c.c2)}</td></tr></table>
   <table class="g hd"><colgroup><col style="width:23%"><col style="width:13%"><col style="width:23%"><col style="width:13%"><col style="width:17%"><col style="width:11%"></colgroup>
     <tr><th class="lb">検 針 値</th><td colspan="5" class="l">【 計量日 ${esc(g.mday)}日 ・ 乗率 ${esc(g.mult)} 】　　使用期間　${esc(c.period)}</td></tr>
     <tr><td class="l sm">全日電力量　指針値</td><td class="v">${esc(f3(r.mr.kwh))}</td><td class="l sm">最大需要電力　指針値</td><td class="v">${esc(f3(r.mr.maxd))}</td><td class="l sm">力率 (%)</td><td class="v">${esc(r.mr.pf)}</td></tr>
     <tr><td class="l sm">有効電力量　指針値</td><td class="v">${esc(f3(r.mr.act))}</td><td class="l sm">月間最大電力 (kW)</td><td class="v">${f0(c.maxkw)}</td><td class="l sm">最大電力前年比 (%)</td><td class="v">${f1(c.yoyMax)}</td></tr>
     <tr><td class="l sm">無効電力量　指針値</td><td class="v">${esc(f3(r.mr.re))}</td><td class="l sm">月間使用電力量 (kWh)</td><td class="v">${f0(c.use)}</td><td class="l sm">電力量前年比 (%)</td><td class="v">${f1(c.yoyUse)}</td></tr></table>
-  ${(()=>{const W=[13,12,9,12,...g.rooms.map(x=>String(x).length>6?17:13)];const tw=W.reduce((a,b)=>a+b,0);const sc=tw>100?100/tw:1;
-    return `<table class="g" style="width:${Math.min(100,tw)}%"><colgroup>${W.map(w=>`<col style="width:${w*sc/Math.min(100,tw)*100}%">`).join('')}</colgroup>
-    <tr><th class="gy">点検日</th><th class="gy">時 刻</th><th class="gy">天 候</th><th class="gy sm">外気温度(℃)</th>${g.rooms.map(x=>`<th class="gy ${String(x).length>6?'xs':'sm'}">${esc(x)}(℃)</th>`).join('')}</tr>
+  ${(()=>{const G=[10,10,10,12.5,12.5],n=g.rooms.length,RW=[];if(n){let k=0;for(let q=0;q<n;q++){const take=Math.round((G.length-k)/(n-q));RW.push(G.slice(k,k+take).reduce((a,b)=>a+b,0)||10);k+=take}}
+    const W=[12,11,11,11,...RW];const tw=W.reduce((a,b)=>a+b,0);
+    return `<table class="g hd" style="width:${Math.min(100,tw)}%"><colgroup>${W.map(w=>`<col style="width:${w/tw*100}%">`).join('')}</colgroup>
+    <tr><th class="gy">点検日</th><th class="gy">時 刻</th><th class="gy">天 候</th><th class="gy sm">外気温度(℃)</th>${g.rooms.map((x,j)=>`<th class="gy ${RW[j]>=20||String(x).length<=6?'sm':'xs'}">${esc(x)}(℃)</th>`).join('')}</tr>
     ${R.map((x,k)=>`<tr><td class="v">${gpMDj(x.d)}</td><td class="v">${gpTMj(x.tm)}</td><td class="v">${esc(x.w)}</td><td class="v">${esc(x.ta)}</td>${g.rooms.map((_,j)=>`<td class="v">${esc(gv(x,'rt',j))}</td>`).join('')}</tr>`).join('')}</table>`})()}`}
 function gpHeadN(s,r,sb){return `<div class="gp-t">${GPT}</div><div class="gp-top gsub"><div class="gp-box g">${esc(sb.name)}</div><div class="gp-box m">${gpYmTxt(r.ym)}</div><div class="gp-no">{{NO}}</div></div>`}
 function gpBlockDoc(b,r){const F=gpFields(b);const ex=F.slice(6);const N=r.ins.length;const hv=b.t==='hv';
@@ -904,7 +910,7 @@ function gpBlockDoc(b,r){const F=gpFields(b);const ex=F.slice(6);const N=r.ins.l
     <tr>${(b.t==='p1'?['R-N 間','T-N 間','R-T 間','R','N','T']:['R-S 間','S-T 間','R-T 間','R','S','T']).map(x=>`<th>${x}</th>`).join('')}${ex.map(([k])=>`<th class="sm">${EX[k][1]}</th>`).join('')}</tr>
     ${Array.from({length:N},(_,k)=>`<tr><td class="v">${gpMDj(r.ins[k].d)}</td>${F.map(([f])=>`<td class="v">${esc(gv(r,'m',b.id,k,f))}</td>`).join('')}</tr>`).join('')}</table>`}
 function gpCkDoc(sb,r){if(!sb.groups.length)return '';
-  return `<table class="g ck"><colgroup><col style="width:23%"><col style="width:10%"><col style="width:23%"><col style="width:10%"><col style="width:24%"><col style="width:10%"></colgroup>
+  return `<table class="g ck"><colgroup><col style="width:23%"><col style="width:11%"><col style="width:21%"><col style="width:10%"><col style="width:22.5%"><col style="width:12.5%"></colgroup>
   ${sb.groups.map(gr=>{const L=gr.items,n=Math.max(1,Math.ceil(L.length/3));let h=`<tr>${(`<th class="h">${esc(gr.title)}</th><th class="h">結　果</th>`).repeat(3)}</tr>`;
     for(let i=0;i<n;i++){h+='<tr>'+[0,1,2].map(c=>{const it=L[c*n+i];if(!it)return '<td></td><td></td>';const v=r.c[it.id]==null?'':r.c[it.id];const nm=String(it.n);
       return `<td class="l ${nm.length>12?'xs':'sm'}">${esc(nm)}</td>${v==='／'?'<td class="sl"></td>':`<td class="v">${esc(v)}</td>`}`}).join('')+'</tr>'}
