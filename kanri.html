@@ -414,6 +414,14 @@ table.g td.me{line-height:1.5}
 .sheet.gpl .gpc>table.g.hd:last-child{margin-bottom:0}
 .sheet.gpl table.g.gb th,.sheet.gpl table.g.gb td{height:13.2mm}
 .sheet.gpl .gpc.gbc{padding-bottom:5.4mm}
+/* 事業場名の表:印鑑の欄を正方形に(幅12%=約22mm角) */
+.sheet.gp table.g.st th,.sheet.gp table.g.st td{height:43.6mm}
+/* 標準(詰め):1枚に収めるための高さと間隔 */
+.sheet.gp:not(.gpl) table.g th,.sheet.gp:not(.gpl) table.g td{height:12mm}
+.sheet.gp:not(.gpl) table.g.st th,.sheet.gp:not(.gpl) table.g.st td{height:43.6mm}
+.sheet.gp:not(.gpl) .gpc{padding-bottom:3.6mm}
+.sheet.gp:not(.gpl) table.g.hd,.sheet.gp:not(.gpl) .gp-top{margin-bottom:3.6mm}
+.sheet.gp:not(.gpl) .gpc>table.g.hd:last-child{margin-bottom:0}
 </style>
 </head>
 <body>
@@ -886,9 +894,9 @@ function gpSetHTML(){const s=site(),g=gpOf(s),P=`sites.${sIdx()}.gp.`;
 const GPT='自家用電気工作物巡視点検月報';
 function gpHead1(s,r,c){const g=gpOf(s),m=meBlock();const R=r.ins;
   return `<div class="gp-t">${GPT}</div><div class="gp-top"><div class="gp-box">${gpYmTxt(r.ym)}</div><div class="gp-no">{{NO}}</div></div>
-  <table class="g hd"><colgroup><col style="width:13%"><col style="width:29%"><col style="width:13%"><col style="width:17%"><col style="width:21%"><col style="width:7%"></colgroup>
-    <tr><th class="lb" rowspan="2">事業場名</th><td rowspan="2" class="${s.name.length>18?'xs':s.name.length>13?'sm':''}">${esc(s.name)}</td><td rowspan="2"></td><th class="lb" rowspan="2">電気管理技術者</th><td rowspan="2" class="me">${m.no?`<div>${esc(m.no)}</div>`:''}<div>${esc(m.name)}</div></td><td rowspan="2"></td></tr><tr></tr></table>
-  <table class="g hd"><colgroup><col style="width:13%"><col style="width:29%"><col style="width:11.3%"><col style="width:23%"><col style="width:12%"><col style="width:11.7%"></colgroup>
+  <table class="g hd st"><colgroup><col style="width:13%"><col style="width:29%"><col style="width:12%"><col style="width:17%"><col style="width:17%"><col style="width:12%"></colgroup>
+    <tr><th class="lb">事業場名</th><td class="${s.name.length>18?'xs':s.name.length>13?'sm':''}">${esc(s.name)}</td><td></td><th class="lb">電気管理技術者</th><td class="me">${m.no?`<div>${esc(m.no)}</div>`:''}<div>${esc(m.name)}</div></td><td></td></tr></table>
+  <table class="g hd"><colgroup><col style="width:13%"><col style="width:29%"><col style="width:12%"><col style="width:22.3%"><col style="width:12%"><col style="width:11.7%"></colgroup>
     <tr><th class="lb" rowspan="2">供 給 者</th><td rowspan="2" class="${g.supplier.length>18?'xs':g.supplier.length>14?'sm':''}">${esc(g.supplier)}</td><th class="lb" rowspan="2">契約電力</th><td class="v">${c.contract?c.contract+' kW':''}</td><th class="lb" rowspan="2">契約種別</th><td rowspan="2" class="${g.ctype.length>7?'xs':g.ctype.length>5?'sm':''}">${esc(g.ctype)}</td></tr><tr><td class="v ${String(c.c2).length>21?'xs':String(c.c2).length>18?'sm':''}">${esc(c.c2)}</td></tr></table>
   <table class="g hd"><colgroup><col style="width:23%"><col style="width:13%"><col style="width:23%"><col style="width:13%"><col style="width:17%"><col style="width:11%"></colgroup>
     <tr><th class="lb">検 針 値</th><td colspan="5" class="l">【 計量日 ${esc(g.mday)}日 ・ 乗率 ${esc(g.mult)} 】　　使用期間　${esc(c.period)}</td></tr>
